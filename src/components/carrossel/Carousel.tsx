@@ -54,6 +54,12 @@ export default function Carousel({
   // Configuração de paginação otimizada
   const paginationConfig = pagination ? { clickable: true } : false;
 
+  // Módulos a serem carregados (carrega apenas os necessários)
+  const modules = [];
+  if (navigation) modules.push(Navigation);
+  if (pagination) modules.push(Pagination);
+  if (autoplay) modules.push(Autoplay);
+
   // Breakpoints otimizados
   const breakpoints = {
     640: {
@@ -79,7 +85,7 @@ export default function Carousel({
   return (
     <div className={`w-full ${className}`}>
       <Swiper
-        modules={[Navigation, Pagination, Autoplay]}
+        modules={modules}
         spaceBetween={spaceBetween}
         slidesPerView={slidesPerView}
         navigation={navigation}
