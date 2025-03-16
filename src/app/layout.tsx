@@ -16,6 +16,10 @@ const geistMono = Geist_Mono({
 export const metadata: Metadata = {
   title: "Prof Didática | Seu Portal Educativo",
   description: "Materiais educativos e recursos para professores e estudantes",
+  icons: {
+    icon: '/images/system/favicon.png',
+    apple: '/images/system/favicon.png',
+  },
 };
 
 export default function RootLayout({
