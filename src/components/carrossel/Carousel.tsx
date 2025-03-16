@@ -38,12 +38,43 @@ export default function Carousel({
 }: CarouselProps) {
   const [mounted, setMounted] = useState(false);
 
-  // Evita erros de hidratação com SSR
+  // Só renderiza o Swiper no lado do cliente para evitar erros de hidratação
   useEffect(() => {
     setMounted(true);
   }, []);
 
-  if (!mounted) return null;
+  // Configuração de autoplay otimizada
+  const autoplayConfig = autoplay
+    ? {
+        delay: 3000,
+        disableOnInteraction: false,
+      }
+    : false;
+
+  // Configuração de paginação otimizada
+  const paginationConfig = pagination ? { clickable: true } : false;
+
+  // Breakpoints otimizados
+  const breakpoints = {
+    640: {
+      slidesPerView: Math.min(2, slidesPerView),
+    },
+    768: {
+      slidesPerView: Math.min(3, slidesPerView),
+    },
+    1024: {
+      slidesPerView: slidesPerView,
+    },
+  };
+
+  if (!mounted) {
+    // Renderiza um placeholder até que o componente seja montado no cliente
+    return (
+      <div className={`w-full ${className} bg-gray-100 animate-pulse`} 
+           style={{ height: '300px' }}>
+      </div>
+    );
+  }
 
   return (
     <div className={`w-full ${className}`}>
@@ -52,34 +83,15 @@ export default function Carousel({
         spaceBetween={spaceBetween}
         slidesPerView={slidesPerView}
         navigation={navigation}
-        pagination={pagination ? { clickable: true } : false}
+        pagination={paginationConfig}
         loop={loop}
-        autoplay={
-          autoplay
-            ? {
-                delay: 3000,
-                disableOnInteraction: false,
-              }
-            : false
-        }
-        breakpoints={{
-          640: {
-            slidesPerView: Math.min(2, slidesPerView),
-          },
-          768: {
-            slidesPerView: Math.min(3, slidesPerView),
-          },
-          1024: {
-            slidesPerView: slidesPerView,
-          },
-        }}
+        autoplay={autoplayConfig}
+        breakpoints={breakpoints}
         onSlideChange={onSlideChange}
         className="mySwiper"
       >
         {items.map((item) => (
-          <SwiperSlide key={item.id}>
-            {item.content}
-          </SwiperSlide>
+          <SwiperSlide key={item.id}>{item.content}</SwiperSlide>
         ))}
       </Swiper>
     </div>
