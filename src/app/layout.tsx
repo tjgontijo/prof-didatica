@@ -1,4 +1,4 @@
-import type { Metadata } from "next";
+import type { Metadata, Viewport } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
 import UtmifyScripts from '@/components/utmfy-scripts';
@@ -22,14 +22,15 @@ export const metadata: Metadata = {
     icon: '/images/system/favicon.png',
     apple: '/images/system/favicon.png',
   },
-  // Metadados adicionais para otimização
-  viewport: {
-    width: 'device-width',
-    initialScale: 1,
-    maximumScale: 5,
-  },
-  themeColor: '#1D3557',
 };
+
+export const viewport: Viewport = {
+  width: 'device-width',
+  initialScale: 1,
+  maximumScale: 5,
+};
+
+export const themeColor: string = '#1D3557';
 
 export default function RootLayout({
   children,
