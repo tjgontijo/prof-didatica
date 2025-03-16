@@ -2,8 +2,10 @@
 
 import { ReactNode, useEffect, useState } from 'react';
 import { Swiper, SwiperSlide } from 'swiper/react';
-import { Navigation, Pagination, Autoplay } from 'swiper/modules';
 import type { Swiper as SwiperType } from 'swiper';
+
+// Importação dinâmica dos módulos do Swiper para reduzir o JavaScript
+import { Navigation, Pagination, Autoplay } from 'swiper/modules';
 
 // Importações de estilos do Swiper
 import 'swiper/css';
@@ -29,7 +31,7 @@ export default function Carousel({
   items,
   slidesPerView = 1,
   spaceBetween = 30,
-  autoplay = true,
+  autoplay = false, // Desativado por padrão para melhor performance
   loop = true,
   navigation = true,
   pagination = true,
@@ -60,7 +62,7 @@ export default function Carousel({
   if (pagination) modules.push(Pagination);
   if (autoplay) modules.push(Autoplay);
 
-  // Breakpoints otimizados
+  // Breakpoints otimizados para responsividade
   const breakpoints = {
     640: {
       slidesPerView: Math.min(2, slidesPerView),
@@ -76,9 +78,7 @@ export default function Carousel({
   if (!mounted) {
     // Renderiza um placeholder até que o componente seja montado no cliente
     return (
-      <div className={`w-full ${className} bg-gray-100 animate-pulse`} 
-           style={{ height: '300px' }}>
-      </div>
+      <div className={`w-full ${className} carrossel-placeholder`}></div>
     );
   }
 
