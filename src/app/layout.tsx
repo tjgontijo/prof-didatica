@@ -44,7 +44,7 @@ export default function RootLayout({
         <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
         
         {/* Precarregar recursos críticos */}
-        <link rel="preload" as="image" href="/images/carrossel/2.png" />
+        <link rel="preload" as="image" href="/images/carrossel/1.webp" />
       </head>
       <body className="antialiased">
         {children}
