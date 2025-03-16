@@ -1,3 +1,5 @@
+import CarrosselProjeto from "@/components/carrossel/CarrosselProjeto";
+
 export default function ProjetoLiterario() {
   return (
     <div className="flex flex-col min-h-screen bg-[#f8f9fa]">
@@ -7,17 +9,16 @@ export default function ProjetoLiterario() {
           {/* Hero Section */}
           <section className="text-center mb-20">
             <h1 className="text-3xl md:text-4xl font-bold text-[#1D3557] mb-6">
-              Projeto Literário: O Método que Faz seus Alunos se Apaixonarem pela Leitura!
+              Conheça o Método que Vai Fazer seus Alunos se Apaixonarem pela Leitura!
             </h1>
             <h2 className="text-xl md:text-2xl text-[#457B9D] mb-4 max-w-3xl mx-auto">
               Transforme suas aulas com um sistema que faz os alunos pedirem para ler o próximo livro!
             </h2>
-            <p className="text-xs text-[#1D3557] italic mb-2">
-              Veja como funciona na prática:
-            </p>
-            {/* Espaço para vídeo */}
-            <div className="bg-gray-200 w-full max-w-2xl mx-auto h-64 md:h-96 flex items-center justify-center mb-10 rounded-lg shadow-md">
-              <p className="text-gray-600">[Espaço para vídeo]</p>
+            <p className="text-xs text-[#1D3557] italic mb-0">
+              Conheça o Projeto Literário:            </p>
+            {/* Carrossel de imagens */}
+            <div className="w-full max-w-2xl mx-auto mb-10">
+              <CarrosselProjeto />
             </div>
           </section>
 
@@ -364,7 +365,7 @@ export default function ProjetoLiterario() {
               <div className="text-center mb-6">
                 <div className="inline-block relative">
                   <span className="absolute -top-3 -right-12 bg-[#e63946] text-white text-xs font-bold py-1 px-2 rounded-full transform rotate-12">37% OFF</span>
-                  <span className="text-6xl font-black text-[#1D3557]">R$17</span>
+                  <span className="text-6xl font-black text-[#1D3557]">R$15</span>
                 </div>
                 <p className="text-xs text-gray-600 mt-2 italic">
                   Aproveite antes que volte para R$27
@@ -403,7 +404,7 @@ export default function ProjetoLiterario() {
                   <summary className="flex items-center justify-between gap-3 p-4 bg-[#f8f9fa] cursor-pointer">
                     <span className="font-medium text-[#1D3557] text-lg">Para qual faixa etária esse material é indicado?</span>
                     <span className="transition-transform duration-300 group-open:rotate-180">
-                      <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 text-[#457B9D]" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 text-[#457B9D]" fill="currentColor" viewBox="0 0 24 24" stroke="currentColor">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
                       </svg>
                     </span>
@@ -420,7 +421,7 @@ export default function ProjetoLiterario() {
                   <summary className="flex items-center justify-between gap-3 p-4 bg-[#f8f9fa] cursor-pointer">
                     <span className="font-medium text-[#1D3557] text-lg">O material é digital ou físico?</span>
                     <span className="transition-transform duration-300 group-open:rotate-180">
-                      <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 text-[#457B9D]" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 text-[#457B9D]" fill="currentColor" viewBox="0 0 24 24" stroke="currentColor">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
                       </svg>
                     </span>
@@ -437,7 +438,7 @@ export default function ProjetoLiterario() {
                   <summary className="flex items-center justify-between gap-3 p-4 bg-[#f8f9fa] cursor-pointer">
                     <span className="font-medium text-[#1D3557] text-lg">Preciso de muito tempo para aplicar esse sistema?</span>
                     <span className="transition-transform duration-300 group-open:rotate-180">
-                      <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 text-[#457B9D]" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 text-[#457B9D]" fill="currentColor" viewBox="0 0 24 24" stroke="currentColor">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
                       </svg>
                     </span>
@@ -454,7 +455,7 @@ export default function ProjetoLiterario() {
                   <summary className="flex items-center justify-between gap-3 p-4 bg-[#f8f9fa] cursor-pointer">
                     <span className="font-medium text-[#1D3557] text-lg">Como recebo o material após a compra?</span>
                     <span className="transition-transform duration-300 group-open:rotate-180">
-                      <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 text-[#457B9D]" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 text-[#457B9D]" fill="currentColor" viewBox="0 0 24 24" stroke="currentColor">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
                       </svg>
                     </span>
@@ -471,7 +472,7 @@ export default function ProjetoLiterario() {
                   <summary className="flex items-center justify-between gap-3 p-4 bg-[#f8f9fa] cursor-pointer">
                     <span className="font-medium text-[#1D3557] text-lg">Posso usar o material com toda a minha turma?</span>
                     <span className="transition-transform duration-300 group-open:rotate-180">
-                      <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 text-[#457B9D]" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 text-[#457B9D]" fill="currentColor" viewBox="0 0 24 24" stroke="currentColor">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
                       </svg>
                     </span>
