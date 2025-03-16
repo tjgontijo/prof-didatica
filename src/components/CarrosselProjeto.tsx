@@ -1,8 +1,8 @@
 'use client';
 
-import Image from 'next/image';
 import dynamic from 'next/dynamic';
 import { useState, useEffect } from 'react';
+import LazyImage from './LazyImage';
 import './carrossel/carrossel-projeto-otimizado.css'; 
 
 // Importação dinâmica do componente Carousel para reduzir o JavaScript inicial
@@ -27,13 +27,14 @@ export default function CarrosselProjeto() {
       id: 1,
       content: (
         <div className="relative aspect-square w-full">
-          <Image 
+          <LazyImage 
             src="/images/carrossel/1.webp" 
             alt="Projeto Literário - Imagem 1"
             fill
             sizes="(max-width: 768px) 100vw, 600px"
             priority={true}
             className="object-contain"
+            placeholderColor="#f0f0f0"
           />
         </div>
       ),
@@ -42,13 +43,14 @@ export default function CarrosselProjeto() {
       id: 2,
       content: (
         <div className="relative aspect-square w-full">
-          <Image 
+          <LazyImage 
             src="/images/carrossel/2.webp" 
             alt="Projeto Literário - Imagem 2"
             fill
             sizes="(max-width: 768px) 100vw, 600px"
             loading="lazy"
             className="object-contain"
+            placeholderColor="#f0f0f0"
           />
         </div>
       ),
@@ -57,13 +59,14 @@ export default function CarrosselProjeto() {
       id: 3,
       content: (
         <div className="relative aspect-square w-full">
-          <Image 
+          <LazyImage 
             src="/images/carrossel/3.webp" 
             alt="Projeto Literário - Imagem 3"
             fill
             sizes="(max-width: 768px) 100vw, 600px"
             loading="lazy"
             className="object-contain"
+            placeholderColor="#f0f0f0"
           />
         </div>
       ),
@@ -72,13 +75,14 @@ export default function CarrosselProjeto() {
       id: 4,
       content: (
         <div className="relative aspect-square w-full">
-          <Image 
+          <LazyImage 
             src="/images/carrossel/4.webp" 
             alt="Projeto Literário - Imagem 4"
             fill
             sizes="(max-width: 768px) 100vw, 600px"
             loading="lazy"
             className="object-contain"
+            placeholderColor="#f0f0f0"
           />
         </div>
       ),
@@ -87,13 +91,14 @@ export default function CarrosselProjeto() {
       id: 5,
       content: (
         <div className="relative aspect-square w-full">
-          <Image 
+          <LazyImage 
             src="/images/carrossel/5.webp" 
             alt="Projeto Literário - Imagem 5"
             fill
             sizes="(max-width: 768px) 100vw, 600px"
             loading="lazy"
             className="object-contain"
+            placeholderColor="#f0f0f0"
           />
         </div>
       ),
@@ -102,13 +107,14 @@ export default function CarrosselProjeto() {
       id: 6,
       content: (
         <div className="relative aspect-square w-full">
-          <Image 
+          <LazyImage 
             src="/images/carrossel/6.webp" 
             alt="Projeto Literário - Imagem 6"
             fill
             sizes="(max-width: 768px) 100vw, 600px"
             loading="lazy"
             className="object-contain"
+            placeholderColor="#f0f0f0"
           />
         </div>
       ),
@@ -117,13 +123,14 @@ export default function CarrosselProjeto() {
       id: 7,
       content: (
         <div className="relative aspect-square w-full">
-          <Image 
+          <LazyImage 
             src="/images/carrossel/7.webp" 
             alt="Projeto Literário - Imagem 7"
             fill
             sizes="(max-width: 768px) 100vw, 600px"
             loading="lazy"
             className="object-contain"
+            placeholderColor="#f0f0f0"
           />
         </div>
       ),
@@ -132,13 +139,14 @@ export default function CarrosselProjeto() {
       id: 8,
       content: (
         <div className="relative aspect-square w-full">
-          <Image 
+          <LazyImage 
             src="/images/carrossel/8.webp" 
             alt="Projeto Literário - Imagem 8"
             fill
             sizes="(max-width: 768px) 100vw, 600px"
             loading="lazy"
             className="object-contain"
+            placeholderColor="#f0f0f0"
           />
         </div>
       ),
@@ -147,13 +155,14 @@ export default function CarrosselProjeto() {
       id: 9,
       content: (
         <div className="relative aspect-square w-full">
-          <Image 
+          <LazyImage 
             src="/images/carrossel/9.webp" 
             alt="Projeto Literário - Imagem 9"
             fill
             sizes="(max-width: 768px) 100vw, 600px"
             loading="lazy"
             className="object-contain"
+            placeholderColor="#f0f0f0"
           />
         </div>
       ),
