@@ -36,7 +36,7 @@ echo "⚙️ Configurando Nginx..."
 sudo bash -c 'cat > /etc/nginx/sites-available/profdidatica <<EOF
 server {
     listen 80;
-    server_name profdidatica.com.br www.profdidatica.com.br;
+    server_name lp.profdidatica.com.br;
 
     location / {
         proxy_pass http://127.0.0.1:3001;
