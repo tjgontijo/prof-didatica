@@ -1,13 +1,25 @@
 'use client';
 
 import Image from 'next/image';
-import Carousel from './carrossel/Carousel';
-import { useState } from 'react';
-import './carrossel/carrossel-projeto.css'; 
+import dynamic from 'next/dynamic';
+import { useState, useEffect } from 'react';
+import './carrossel/carrossel-projeto-otimizado.css'; 
+
+// Importação dinâmica do componente Carousel para reduzir o JavaScript inicial
+const Carousel = dynamic(() => import('./carrossel/Carousel'), {
+  loading: () => <div className="carrossel-placeholder"></div>,
+  ssr: false
+});
 
 export default function CarrosselProjeto() {
   // Estado para controlar a paginação externa
   const [activeIndex, setActiveIndex] = useState(0);
+  const [isClient, setIsClient] = useState(false);
+  
+  // Garantir que o componente só seja renderizado no cliente
+  useEffect(() => {
+    setIsClient(true);
+  }, []);
   
   // Array com as imagens do carrossel
   const imagens = [
@@ -19,6 +31,8 @@ export default function CarrosselProjeto() {
             src="/images/carrossel/2.png" 
             alt="Projeto Literário - Imagem 1"
             fill
+            sizes="(max-width: 768px) 100vw, 600px"
+            priority={true}
             className="object-contain"
           />
         </div>
@@ -32,6 +46,8 @@ export default function CarrosselProjeto() {
             src="/images/carrossel/3.png" 
             alt="Projeto Literário - Imagem 2"
             fill
+            sizes="(max-width: 768px) 100vw, 600px"
+            loading="lazy"
             className="object-contain"
           />
         </div>
@@ -45,6 +61,8 @@ export default function CarrosselProjeto() {
             src="/images/carrossel/5.png" 
             alt="Projeto Literário - Imagem 3"
             fill
+            sizes="(max-width: 768px) 100vw, 600px"
+            loading="lazy"
             className="object-contain"
           />
         </div>
@@ -58,6 +76,8 @@ export default function CarrosselProjeto() {
             src="/images/carrossel/6.png" 
             alt="Projeto Literário - Imagem 4"
             fill
+            sizes="(max-width: 768px) 100vw, 600px"
+            loading="lazy"
             className="object-contain"
           />
         </div>
@@ -71,6 +91,8 @@ export default function CarrosselProjeto() {
             src="/images/carrossel/8.png" 
             alt="Projeto Literário - Imagem 5"
             fill
+            sizes="(max-width: 768px) 100vw, 600px"
+            loading="lazy"
             className="object-contain"
           />
         </div>
@@ -84,6 +106,8 @@ export default function CarrosselProjeto() {
             src="/images/carrossel/9.png" 
             alt="Projeto Literário - Imagem 6"
             fill
+            sizes="(max-width: 768px) 100vw, 600px"
+            loading="lazy"
             className="object-contain"
           />
         </div>
@@ -97,6 +121,8 @@ export default function CarrosselProjeto() {
             src="/images/carrossel/10.png" 
             alt="Projeto Literário - Imagem 7"
             fill
+            sizes="(max-width: 768px) 100vw, 600px"
+            loading="lazy"
             className="object-contain"
           />
         </div>
@@ -110,12 +136,19 @@ export default function CarrosselProjeto() {
             src="/images/carrossel/11.png" 
             alt="Projeto Literário - Imagem 8"
             fill
+            sizes="(max-width: 768px) 100vw, 600px"
+            loading="lazy"
             className="object-contain"
           />
         </div>
       ),
     },
   ];
+
+  // Se não estiver no cliente, mostra um placeholder
+  if (!isClient) {
+    return <div className="carrossel-placeholder"></div>;
+  }
 
   return (
     <div className="carrossel-projeto">
