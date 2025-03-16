@@ -27,7 +27,7 @@ export default function ProjetoLiterario() {
             <h2 className="text-2xl md:text-3xl font-bold text-[#1D3557] mb-8 border-b-2 border-[#a8dadc] pb-3 uppercase text-center">
               Benefícios para seus alunos
             </h2>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
+            <div className="grid grid-cols-1  gap-6 mb-8">
               <div className="bg-gradient-to-r from-[#f8f9fa] to-[#e9ecef] p-5 rounded-lg border-l-4 border-[#6bbbed] shadow-md">
                 <div className="flex items-start gap-3 mb-3">
                   <div className="text-2xl text-[#457B9D] mt-1">📖</div>
@@ -124,16 +124,14 @@ export default function ProjetoLiterario() {
           <span className="absolute -right-2 -bottom-2 text-3xl">💭</span>
         </h2>
       </div>
-            <div className="flex flex-col md:flex-row gap-8 items-center mb-6">
-              <div className="md:w-1/2">
+            <div className="flex flex-col gap-8 items-center mb-6">
                 <p className="text-gray-800 text-xl mb-4">
                 Aquele aluno que dizia que ler é chato, agora mal pode esperar a próxima aula para contar sobre o livro que acabou de terminar.
                 </p>
                 <p className="text-gray-800 text-xl mb-4">
                   Com o Projeto Literário, a leitura se transforma em um desafio saudável, envolvente e motivador. Seus alunos podem competir entre eles ou até com outras salas.
                 </p>
-              </div>
-              <div className="md:w-1/2 bg-gradient-to-br from-[#457B9D] to-[#1D3557] p-6 rounded-lg shadow-lg border-l-4 border-[#E63946]">
+              <div className="bg-gradient-to-br from-[#457B9D] to-[#1D3557] p-6 rounded-lg shadow-lg border-l-4 border-[#E63946]">
                 <div className="flex items-start gap-3">
                   <div className="bg-white rounded-full p-2 shadow-md">
                     <span className="text-2xl">👩‍🏫</span>
@@ -152,7 +150,7 @@ export default function ProjetoLiterario() {
             <h2 className="text-2xl md:text-3xl font-bold text-[#1D3557] mb-8 border-b-2 border-[#a8dadc] pb-3 uppercase text-center">
               O que está incluído no Projeto Literário?
             </h2>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-8 mb-8">
+            <div className="grid grid-cols-1 gap-8 mb-8">
               <div className="bg-[#f8f9fa] p-6 rounded-lg shadow-md hover:shadow-lg transition-shadow">
                 <div className="flex flex-col items-center">
                   <div className="text-4xl mb-3">📚</div>
@@ -203,7 +201,7 @@ export default function ProjetoLiterario() {
             <h2 className="text-2xl md:text-3xl font-bold text-[#1D3557] mb-8 border-b-2 border-[#a8dadc] pb-3 uppercase text-center">
               Como funciona na prática?
             </h2>
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8 mb-10">
+            <div className="grid grid-cols-1 gap-8 mb-10">
               <div className="bg-gradient-to-br from-[#6bbbed] to-[#457B9D] text-white p-6 rounded-xl shadow-lg text-center transform transition-all duration-300 hover:scale-105 hover:shadow-xl flex flex-col items-center justify-center border-b-4 border-[#1D3557]">
                 <div className="bg-white text-[#1D3557] w-12 h-12 rounded-full flex items-center justify-center text-2xl font-bold mb-4 shadow-md">1</div>
                 <p className="font-medium text-lg">O aluno recebe um livro e uma ficha literária</p>
@@ -268,7 +266,7 @@ export default function ProjetoLiterario() {
             </div>
             <div className="bg-[#457B9D] text-white p-6 rounded-lg mb-8">
               <h3 className="font-bold text-xl mb-6 text-center border-b border-white pb-3">💬 Veja o que professoras estão dizendo:</h3>
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+              <div className="grid grid-cols-1 gap-6">
                 <div className="bg-white text-gray-800 p-5 rounded-lg shadow-md">
                   <p className="italic mb-3">&ldquo;Meus alunos que não gostavam de ler agora competem para ver quem lê mais! Nunca vi um resultado tão rápido!&rdquo;</p>
                   <p className="text-right font-medium text-[#1D3557]">– Prof. Ana S.</p>
@@ -293,7 +291,7 @@ export default function ProjetoLiterario() {
             <p className="text-xl text-[#1D3557] mb-8 text-left">
               Enquanto outros professores lutam para fazer os alunos lerem um livro por semestre, os seus vão querer ler um por semana!
             </p>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-8 mb-8">
+            <div className="grid grid-cols-1 gap-8 mb-8">
               <div className="bg-[#f8f9fa] p-6 rounded-lg border-l-4 border-[#e63946]">
                 <p className="font-bold text-lg mb-4 text-[#1D3557]">❌ Método tradicional</p>
                 <ul className="space-y-2 text-gray-800">
