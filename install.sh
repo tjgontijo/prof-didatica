@@ -79,7 +79,7 @@ fi
 
 # Configurar HTTPS com Certbot
 echo "🔒 Configurando HTTPS com Let's Encrypt..."
-sudo certbot --nginx -d profdidatica.com.br -d www.profdidatica.com.br --non-interactive --agree-tos --redirect -m tjgontijo@gmail.com
+sudo certbot --nginx -d lp.profdidatica.com.br --non-interactive --agree-tos --redirect -m tjgontijo@gmail.com
 
 # Finalização
 echo "🔄 Reiniciando serviços..."
