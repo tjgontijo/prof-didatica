@@ -28,7 +28,7 @@ export default function CarrosselProjeto() {
       content: (
         <div className="relative aspect-square w-full">
           <Image 
-            src="/images/carrossel/2.png" 
+            src="/images/carrossel/1.webp" 
             alt="Projeto Literário - Imagem 1"
             fill
             sizes="(max-width: 768px) 100vw, 600px"
@@ -43,7 +43,7 @@ export default function CarrosselProjeto() {
       content: (
         <div className="relative aspect-square w-full">
           <Image 
-            src="/images/carrossel/3.png" 
+            src="/images/carrossel/2.webp" 
             alt="Projeto Literário - Imagem 2"
             fill
             sizes="(max-width: 768px) 100vw, 600px"
@@ -58,7 +58,7 @@ export default function CarrosselProjeto() {
       content: (
         <div className="relative aspect-square w-full">
           <Image 
-            src="/images/carrossel/5.png" 
+            src="/images/carrossel/3.webp" 
             alt="Projeto Literário - Imagem 3"
             fill
             sizes="(max-width: 768px) 100vw, 600px"
@@ -73,7 +73,7 @@ export default function CarrosselProjeto() {
       content: (
         <div className="relative aspect-square w-full">
           <Image 
-            src="/images/carrossel/6.png" 
+            src="/images/carrossel/4.webp" 
             alt="Projeto Literário - Imagem 4"
             fill
             sizes="(max-width: 768px) 100vw, 600px"
@@ -88,7 +88,7 @@ export default function CarrosselProjeto() {
       content: (
         <div className="relative aspect-square w-full">
           <Image 
-            src="/images/carrossel/8.png" 
+            src="/images/carrossel/5.webp" 
             alt="Projeto Literário - Imagem 5"
             fill
             sizes="(max-width: 768px) 100vw, 600px"
@@ -103,7 +103,7 @@ export default function CarrosselProjeto() {
       content: (
         <div className="relative aspect-square w-full">
           <Image 
-            src="/images/carrossel/9.png" 
+            src="/images/carrossel/6.webp" 
             alt="Projeto Literário - Imagem 6"
             fill
             sizes="(max-width: 768px) 100vw, 600px"
@@ -118,7 +118,7 @@ export default function CarrosselProjeto() {
       content: (
         <div className="relative aspect-square w-full">
           <Image 
-            src="/images/carrossel/10.png" 
+            src="/images/carrossel/7.webp" 
             alt="Projeto Literário - Imagem 7"
             fill
             sizes="(max-width: 768px) 100vw, 600px"
@@ -133,8 +133,23 @@ export default function CarrosselProjeto() {
       content: (
         <div className="relative aspect-square w-full">
           <Image 
-            src="/images/carrossel/11.png" 
+            src="/images/carrossel/8.webp" 
             alt="Projeto Literário - Imagem 8"
+            fill
+            sizes="(max-width: 768px) 100vw, 600px"
+            loading="lazy"
+            className="object-contain"
+          />
+        </div>
+      ),
+    },
+    {
+      id: 9,
+      content: (
+        <div className="relative aspect-square w-full">
+          <Image 
+            src="/images/carrossel/9.webp" 
+            alt="Projeto Literário - Imagem 9"
             fill
             sizes="(max-width: 768px) 100vw, 600px"
             loading="lazy"
@@ -157,7 +172,7 @@ export default function CarrosselProjeto() {
         slidesPerView={1}
         navigation={true}
         pagination={false} 
-        autoplay={true}
+        autoplay={false}
         loop={true}
         className="py-4 carrossel-personalizado"
         onSlideChange={(swiper) => setActiveIndex(swiper.realIndex)}
