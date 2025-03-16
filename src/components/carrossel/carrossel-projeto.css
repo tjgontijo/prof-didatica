@@ -1,0 +1,45 @@
+/* Estilos personalizados para o carrossel do projeto literário */
+
+/* Estilo para as setas de navegação - mais discretas */
+.carrossel-projeto .swiper-button-next,
+.carrossel-projeto .swiper-button-prev {
+  color: rgba(29, 53, 87, 0.5); /* Cor #1D3557 com transparência */
+  width: 30px;
+  height: 30px;
+}
+
+.carrossel-projeto .swiper-button-next:after,
+.carrossel-projeto .swiper-button-prev:after {
+  font-size: 20px; /* Tamanho menor para as setas */
+  font-weight: bold;
+}
+
+.carrossel-projeto .swiper-button-next:hover,
+.carrossel-projeto .swiper-button-prev:hover {
+  color: rgba(29, 53, 87, 0.8); /* Mais escuro no hover */
+}
+
+/* Estilo para os botões de paginação externa */
+.carrossel-projeto .flex button {
+  transition: all 0.3s ease;
+}
+
+/* Ajuste para proporção 1:1 */
+.carrossel-projeto .aspect-square {
+  position: relative;
+  width: 100%;
+  padding-bottom: 100%; /* Cria um quadrado perfeito */
+  border-radius: 8px; /* Bordas arredondadas de 8px */
+  overflow: hidden; /* Garante que a imagem respeite o border-radius */
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1); /* Sombra leve */
+}
+
+.carrossel-projeto .aspect-square img {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  border-radius: 8px; /* Bordas arredondadas de 8px */
+}
