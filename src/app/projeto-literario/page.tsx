@@ -364,7 +364,7 @@ export default function ProjetoLiterario() {
 
               <div className="text-center mb-6">
                 <div className="inline-block relative">
-                  <span className="absolute -top-3 -right-12 bg-[#e63946] text-white text-xs font-bold py-1 px-2 rounded-full transform rotate-12">37% OFF</span>
+                  <span className="absolute -top-3 -right-12 bg-[#e63946] text-white text-xs font-bold py-1 px-2 rounded-full transform rotate-12">55% OFF</span>
                   <span className="text-6xl font-black text-[#1D3557]">R$15</span>
                 </div>
                 <p className="text-xs text-gray-600 mt-2 italic">
