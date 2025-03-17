@@ -1,4 +1,4 @@
-import CarrosselProjeto from "@/components/carrossel/CarrosselProjeto";
+import CarrosselProjeto from "@/components/carrossel/carrosselProjeto";
 
 export default function ProjetoLiterario() {
   return (
