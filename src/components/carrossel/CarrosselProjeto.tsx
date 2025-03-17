@@ -73,7 +73,7 @@ function LazyImage({
 }
 
 // Importação dinâmica do componente Carousel para reduzir o JavaScript inicial
-const Carousel = dynamic(() => import('./Carousel'), {
+const Carousel = dynamic(() => import('./carousel'), {
   loading: () => <div className="carrossel-placeholder"></div>,
   ssr: false
 });
