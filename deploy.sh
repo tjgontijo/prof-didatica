@@ -49,6 +49,12 @@ fi
 echo "==> Executando build do Next.js..."
 npm run build
 
+# Verifica se o build foi bem-sucedido
+if [ $? -ne 0 ]; then
+  echo "==> ERRO: O build falhou! Interrompendo o deploy."
+  exit 1
+fi
+
 # Verifica se o serviço existe no PM2
 if pm2 list | grep -q "$APP_NAME"; then
     echo "==> Serviço encontrado no PM2. Parando e reiniciando..."
