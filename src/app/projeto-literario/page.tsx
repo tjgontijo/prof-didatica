@@ -501,8 +501,7 @@ export default function ProjetoLiterario() {
               </p>
             </div>
             <a 
-              href="https://seguro.profdidatica.com.br/r/HDJYH7SZJ6"
-              target="_blank"
+              href="https://seguro.profdidatica.com.br/r/HDJYH7SZJ6"              
               className="inline-block bg-[#e63946] hover:bg-[#d62c3b] text-white font-bold py-4 px-10 rounded-lg text-xl transition-all transform hover:scale-105 shadow-lg hover:shadow-xl"
             >
               Quero o Projeto Literário Agora
