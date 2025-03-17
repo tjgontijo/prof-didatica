@@ -1,5 +1,6 @@
 import CarrosselProjeto from "@/components/carrossel/carrosselProjeto";
 
+
 export default function ProjetoLiterario() {
   return (
     <div className="flex flex-col min-h-screen bg-[#f8f9fa]">
