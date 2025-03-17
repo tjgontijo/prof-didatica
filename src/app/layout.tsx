@@ -1,7 +1,8 @@
 import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
+import { UtmifyScripts } from '@/components/scripts/utmifyScripts';
+import { Claritycript } from '@/components/scripts/clarityScripts';
 import "./globals.css";
-import UtmifyScripts from '@/components/utmfy-scripts';
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -26,6 +27,7 @@ export default function RootLayout({
   return (
     <html lang="pt-BR">
       <head>
+        <Claritycript />
         <UtmifyScripts />
       </head>
       <body
