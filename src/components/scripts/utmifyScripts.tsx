@@ -1,11 +1,6 @@
 'use client';
 import { useEffect } from 'react';
 
-// Interface para estender o PerformanceEntry com propriedades específicas
-interface ExtendedPerformanceEntry extends PerformanceEntry {
-  initiatorType?: string;
-}
-
 export const UtmifyScripts = () => {
   useEffect(() => {
     const loadSha256Script = () => {
@@ -71,36 +66,22 @@ export const UtmifyScripts = () => {
       window.pixelId = '67c070919d1ed74e56ee2eda';
     };
 
-    // Primeiro garante que sha256 está disponível, depois carrega os scripts do UTMify
-    loadSha256Script()
-      .then(() => {
-        console.log('SHA-256 pronto, carregando UTMify...');
-        loadUtmifyScripts();
-      })
-      .catch(error => {
-        console.error('Falha no carregamento do SHA-256:', error);
-        console.warn('Tentando carregar UTMify scripts mesmo com erro no SHA-256');
-        loadUtmifyScripts();
-      });
+    const loadScripts = async () => {
+      try {
+        await Promise.all([
+          loadSha256Script(),
+          loadUtmifyScripts()
+        ]);
+      } catch (error) {
+        console.error('Erro ao carregar scripts:', error);
+      }
+    };
 
-    // Adiciona log de depuração para recursos pré-carregados
-    const observer = new PerformanceObserver((list) => {
-      list.getEntries().forEach((entry: ExtendedPerformanceEntry) => {
-        if (entry.initiatorType === 'link' && entry.entryType === 'resource') {
-          console.warn('Recurso pré-carregado não utilizado:', {
-            name: entry.name,
-            initiatorType: entry.initiatorType,
-            duration: entry.duration
-          });
-        }
-      });
-    });
-
-    observer.observe({ type: 'resource', buffered: true });
+    loadScripts();
 
     // Limpeza do observer
     return () => {
-      observer.disconnect();
+      // observer.disconnect();
     };
   }, []);
 
