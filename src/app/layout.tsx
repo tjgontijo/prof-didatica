@@ -27,8 +27,8 @@ export default function RootLayout({
   return (
     <html lang="pt-BR">
       <head>
-        <Claritycript />
         <UtmifyScripts />
+        <Claritycript />        
       </head>
       <body
         className={`${geistSans.variable} ${geistMono.variable} antialiased`}
