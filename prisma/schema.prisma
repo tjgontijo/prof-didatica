@@ -1,0 +1,80 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+// Modelo para armazenar informações sobre os testes A/B
+model AbTest {
+  id          String    @id @default(uuid())
+  testId      String    @unique // Identificador do teste (ex: "projeto-literario")
+  name        String    // Nome amigável do teste
+  description String?   // Descrição opcional do teste
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+  events      AbEvent[]
+  variants    Variant[]
+}
+
+// Modelo para armazenar as variantes de um teste
+model Variant {
+  id          String    @id @default(uuid())
+  variantId   String    // Identificador da variante (ex: "A", "B")
+  name        String    // Nome amigável da variante
+  weight      Float     @default(1.0) // Peso da variante para distribuição
+  test        AbTest    @relation(fields: [testId], references: [id], onDelete: Cascade)
+  testId      String
+  events      AbEvent[]
+
+  @@unique([testId, variantId])
+}
+
+// Modelo para armazenar eventos de testes A/B
+model AbEvent {
+  id            String    @id @default(uuid())
+  testId        String
+  variantId     String
+  eventType     String
+  sessionId     String
+  eventTime     DateTime  @default(now())
+  createdAt     DateTime  @default(now())
+  url           String?
+  
+  // Dados de localização
+  country       String?
+  state         String?
+  city          String?
+  latitude      Float?
+  longitude     Float?
+  
+  // Dados de UTM
+  utmSource     String?
+  utmMedium     String?
+  utmCampaign   String?
+  utmTerm       String?
+  utmContent    String?
+  
+  // Dados do lead
+  leadId        String?
+  leadEmail     String?
+  leadName      String?
+  leadPhone     String?
+  
+  // Relações
+  test          AbTest    @relation(fields: [testId], references: [id], onDelete: Cascade)
+  variant       Variant   @relation(fields: [variantId], references: [id], onDelete: Cascade)
+
+  @@index([testId, eventType])
+  @@index([sessionId])
+  @@index([createdAt])
+  @@index([leadEmail])
+  @@index([leadId])
+  @@index([utmSource, utmMedium, utmCampaign])
+  @@index([country, state, city])
+}
