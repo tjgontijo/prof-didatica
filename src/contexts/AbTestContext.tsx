@@ -43,17 +43,17 @@ export function AbTestProvider({ children, tests }: AbTestProviderProps) {
       event_source_url: window.location.href,
       traffic_source: document.referrer || undefined,
       parameters: window.location.search,
-      external_id: utmifyLead._id || undefined,
-      em: utmifyLead.email || undefined,
-      ph: utmifyLead.phone || undefined,
-      fn: utmifyLead.firstName || undefined,
-      ln: utmifyLead.lastName || undefined,
-      country: utmifyLead.geolocation?.country || undefined,
-      ct: utmifyLead.geolocation?.city || undefined,
-      st: utmifyLead.geolocation?.state || undefined,
-      zp: utmifyLead.geolocation?.zipcode || undefined,
+      external_id: utmifyLead && utmifyLead._id || undefined,
+      em: utmifyLead && utmifyLead.email || undefined,
+      ph: utmifyLead && utmifyLead.phone || undefined,
+      fn: utmifyLead && utmifyLead.firstName || undefined,
+      ln: utmifyLead && utmifyLead.lastName || undefined,
+      country: utmifyLead && utmifyLead.geolocation && utmifyLead.geolocation.country || undefined,
+      ct: utmifyLead && utmifyLead.geolocation && utmifyLead.geolocation.city || undefined,
+      st: utmifyLead && utmifyLead.geolocation && utmifyLead.geolocation.state || undefined,
+      zp: utmifyLead && utmifyLead.geolocation && utmifyLead.geolocation.zipcode || undefined,
       client_user_agent: navigator.userAgent,
-      client_ip_address: utmifyLead.ip || utmifyLead.ipv6 || undefined,
+      client_ip_address: utmifyLead && (utmifyLead.ip || utmifyLead.ipv6) || undefined,
     };
   };
 
@@ -125,6 +125,8 @@ export function AbTestProvider({ children, tests }: AbTestProviderProps) {
       };
       
       localStorage.setItem(`ab_test_${test.testId}`, JSON.stringify(variantData));
+      // Armazenar também o ID da variante separadamente para facilitar o acesso
+      localStorage.setItem(`ab_test_variant_${test.testId}`, selectedVariant.id);
       newActiveVariants[test.testId] = selectedVariant;
     });
     
@@ -144,34 +146,26 @@ export function AbTestProvider({ children, tests }: AbTestProviderProps) {
     const baseData = getUtmifyData();
     
     try {
-      // 2. Enviar para nossa API local para armazenar no banco de dados
-      const localApiPromise = fetch('/api/ab-test', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          testId,
-          variantId: variant.id,
-          eventType: eventName,
-          
-          // Dados do evento
+      // Importar dinamicamente o utilitário de armazenamento
+      const { saveAbTestEvent } = await import('@/utils/storage');
+      
+      // Salvar o evento localmente
+      saveAbTestEvent({
+        testId,
+        variantId: variant.id,
+        eventType: eventName,
+        timestamp: Date.now(),
+        additionalData: {
+          ...additionalData,
           eventTime: baseData.event_time,
           url: baseData.event_source_url,
           referrer: baseData.traffic_source,
           parameters: baseData.parameters,
           userAgent: baseData.client_user_agent,
-          
-          // Dados do lead
-          lead: JSON.parse(localStorage.getItem('lead') || '{}'),
-          
-          // Metadados adicionais
-          metadata: additionalData
-        }),
+        }
       });
       
-      // Aguardar requisição
-      await localApiPromise;
+      console.log(`Evento ${eventName} para teste ${testId} registrado com sucesso`);
     } catch (error) {
       console.error('Erro ao enviar evento:', error);
     }
