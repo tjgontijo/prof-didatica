@@ -63,14 +63,28 @@ export function AbTestProvider({ children, tests }: AbTestProviderProps) {
     
     tests.forEach(test => {
       // Verificar se já existe uma variante atribuída para este teste
-      const storedVariantId = localStorage.getItem(`ab_test_${test.testId}`);
+      const storedVariantData = localStorage.getItem(`ab_test_${test.testId}`);
       
-      if (storedVariantId) {
-        // Encontrar a variante armazenada
-        const storedVariant = test.variants.find(v => v.id === storedVariantId);
-        if (storedVariant) {
-          newActiveVariants[test.testId] = storedVariant;
-          return;
+      if (storedVariantData) {
+        try {
+          // Parsear os dados armazenados (variante e timestamp)
+          const { variantId, timestamp } = JSON.parse(storedVariantData);
+          
+          // Verificar se o timestamp é válido e se não passou do timeout (6 horas = 21600000 ms)
+          const now = Date.now();
+          const isValid = timestamp && (now - timestamp < 6 * 60 * 60 * 1000);
+          
+          if (isValid) {
+            // Encontrar a variante armazenada
+            const storedVariant = test.variants.find(v => v.id === variantId);
+            if (storedVariant) {
+              newActiveVariants[test.testId] = storedVariant;
+              return;
+            }
+          }
+        } catch (error) {
+          // Se houver erro ao parsear, ignorar e selecionar uma nova variante
+          console.error('Erro ao parsear dados de variante:', error);
         }
       }
       
@@ -104,8 +118,13 @@ export function AbTestProvider({ children, tests }: AbTestProviderProps) {
         selectedVariant = test.variants[randomIndex];
       }
       
-      // Armazenar a variante selecionada
-      localStorage.setItem(`ab_test_${test.testId}`, selectedVariant.id);
+      // Armazenar a variante selecionada com o timestamp atual
+      const variantData = {
+        variantId: selectedVariant.id,
+        timestamp: Date.now()
+      };
+      
+      localStorage.setItem(`ab_test_${test.testId}`, JSON.stringify(variantData));
       newActiveVariants[test.testId] = selectedVariant;
     });
     
@@ -123,24 +142,8 @@ export function AbTestProvider({ children, tests }: AbTestProviderProps) {
     if (!variant) return;
     
     const baseData = getUtmifyData();
-    const payload = {
-      event_name: eventName,
-      test_id: testId,
-      variant_id: variant.id,
-      ...baseData,
-      ...additionalData
-    };
     
     try {
-      // 1. Enviar para o webhook externo (manter o comportamento atual)
-      const webhookPromise = fetch('https://webhook.elev8.com.br/webhook/5d8792ad-79be-412a-8f06-a81ff381f036', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(payload),
-      });
-      
       // 2. Enviar para nossa API local para armazenar no banco de dados
       const localApiPromise = fetch('/api/ab-test', {
         method: 'POST',
@@ -167,9 +170,8 @@ export function AbTestProvider({ children, tests }: AbTestProviderProps) {
         }),
       });
       
-      // Aguardar ambas as requisições
-      await Promise.allSettled([webhookPromise, localApiPromise]);
-      
+      // Aguardar requisição
+      await localApiPromise;
     } catch (error) {
       console.error('Erro ao enviar evento:', error);
     }
