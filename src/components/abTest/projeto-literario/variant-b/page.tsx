@@ -75,7 +75,7 @@ export default function VariantB({ testId }: VariantBProps) {
       clearInterval(timer);
       clearInterval(estoqueTimer);
     };
-  }, [produtosRestantes, ofertaExpirada]);
+  }, [produtosRestantes, ofertaExpirada, trackPurchaseClick]);
 
   // Formatar o tempo para exibição
   const formatTime = (time: number) => {
