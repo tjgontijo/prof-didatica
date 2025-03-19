@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect } from 'react';
+import { useEffect, useRef } from 'react';
 import { useAbTest } from '@/contexts/AbTestContext';
 
 type AbTestRendererProps = {
@@ -11,15 +11,19 @@ type AbTestRendererProps = {
 export default function AbTestRenderer({ testId, fallback }: AbTestRendererProps) {
   const { getVariant, trackEvent } = useAbTest();
   const variant = getVariant(testId);
+  const isTrackingRef = useRef(false);
   
   // Rastrear visualização da página
   useEffect(() => {
-    if (!variant) return;
+    if (!variant || isTrackingRef.current) return;
     
-    // Registrar visualização da página sem restrições
+    // Marcar que estamos rastreando para evitar duplicatas durante o ciclo de vida do componente
+    isTrackingRef.current = true;
+    
+    // Pequeno debounce para garantir que a página foi carregada completamente
     const timer = setTimeout(() => {
       trackEvent(testId, 'pageview');
-    }, 500);
+    }, 300);
     
     return () => clearTimeout(timer);
   }, [testId, trackEvent, variant]);
