@@ -334,12 +334,12 @@ export default function VariantA({ testId }: VariantAProps) {
           </section>
 
           {/* Pricing Section */}
-          <section id="oferta-especial" className="bg-white rounded-lg shadow-lg p-6 mb-20">
+          <section id="oferta-especial" className="bg-white rounded-lg shadow-lg py-16 px-8 mb-20">
             <h2 className="text-2xl md:text-3xl font-bold text-[#1D3557] mb-8 border-b-2 border-[#a8dadc] pb-3 uppercase text-center">
               Oferta Especial
             </h2>
             
-            <div className="bg-white rounded-2xl p-4 relative transform transition-all duration-300 hover:scale-[1.02] border-2 border-[#a8dadc] shadow-[0_8px_40px_-12px_rgba(69,123,157,0.5)] max-w-3xl mx-auto">
+            
               <div className="text-center mb-6 pt-4">
                 <h3 className="text-2xl font-bold text-[#457B9D] uppercase tracking-wider">Projeto Literário Completo</h3>
               </div>
@@ -384,7 +384,7 @@ export default function VariantA({ testId }: VariantAProps) {
 
               <div className="text-center mb-6">
                 <div className="inline-block relative">
-                  <span className="absolute -top-3 -right-12 bg-[#e63946] text-white text-xs font-bold py-1 px-2 rounded-full transform rotate-12">55% OFF</span>
+                  <span className="absolute -top-3 -right-10 bg-[#457B9D] text-white text-xs font-bold py-1 px-2 rounded-full transform rotate-12">45% OFF</span>
                   <span className="text-6xl font-black text-[#1D3557]">R$15</span>
                 </div>
                 <p className="text-xs text-gray-600 mt-2 italic">
@@ -400,21 +400,13 @@ export default function VariantA({ testId }: VariantAProps) {
                   console.log('Botão de compra clicado - variant A');
                   handlePurchaseClick();
                 }}
-                className="block w-full bg-[#e63946] hover:bg-[#d62c3b] text-white text-lg font-bold py-4 px-8 rounded-xl shadow-lg transform transition-all duration-300 hover:scale-[1.02] hover:shadow-xl relative overflow-hidden group text-center"
+                className="block w-full bg-gradient-to-r from-[#457B9D] to-[#1D3557] hover:from-[#1D3557] hover:to-[#457B9D] text-white text-base sm:text-lg font-bold py-3 sm:py-4 px-6 sm:px-8 rounded-xl shadow-lg transform transition-all duration-300 hover:scale-[1.02] hover:shadow-xl relative overflow-hidden group text-center"
               >
                 <div className="absolute inset-0 bg-white/20 rounded-xl opacity-0 group-hover:opacity-100 transition-opacity text-center"></div>
                 <span className="relative">
                 GARANTIR MEU PROJETO LITERÁRIO AGORA
                 </span>
               </a>
-            </div>
-
-            {/* Texto de Justificativa */}
-            <div className="mt-8 mb-4 text-center max-w-2xl mx-auto">
-              <p className="text-gray-600 text-sm">
-              ATENÇÃO: Esta oferta especial está disponível apenas por tempo limitado para os próximos 50 professores determinados a transformar suas aulas de leitura.
-              </p>
-            </div>
           </section>
 
           {/* FAQ Section */}
