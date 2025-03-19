@@ -12,9 +12,11 @@ export default function VariantA({ testId }: VariantAProps) {
   
   // Função para lidar com o clique no botão de compra
   const handlePurchaseClick = () => {
+    console.log('Botão de compra clicado - variant A');
     trackPurchaseClick({
       product: 'projeto-literario',
-      price: 15.00
+      price: 15.00,
+      variant: 'A'
     });
   };
   
@@ -394,8 +396,11 @@ export default function VariantA({ testId }: VariantAProps) {
                 href="https://seguro.profdidatica.com.br/r/HDJYH7SZJ6"
                 target="_blank"
                 rel="noopener noreferrer"
-                onClick={handlePurchaseClick}
-                className="block w-full bg-gradient-to-r from-[#457B9D] to-[#1D3557] hover:from-[#1D3557] hover:to-[#457B9D] text-white text-lg font-bold py-4 px-8 rounded-xl shadow-lg transform transition-all duration-300 hover:scale-[1.02] hover:shadow-xl relative overflow-hidden group text-center"
+                onClick={() => {
+                  console.log('Botão de compra clicado - variant A');
+                  handlePurchaseClick();
+                }}
+                className="block w-full bg-[#e63946] hover:bg-[#d62c3b] text-white text-lg font-bold py-4 px-8 rounded-xl shadow-lg transform transition-all duration-300 hover:scale-[1.02] hover:shadow-xl relative overflow-hidden group text-center"
               >
                 <div className="absolute inset-0 bg-white/20 rounded-xl opacity-0 group-hover:opacity-100 transition-opacity text-center"></div>
                 <span className="relative">
