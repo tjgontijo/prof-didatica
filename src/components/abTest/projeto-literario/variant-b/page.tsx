@@ -13,9 +13,11 @@ export default function VariantB({ testId }: VariantBProps) {
   
   // Função para lidar com o clique no botão de compra
   const handlePurchaseClick = () => {
+    console.log('Botão de compra clicado - variant B');
     trackPurchaseClick({
       product: 'projeto-literario',
-      price: 15.00
+      price: 15.00,
+      variant: 'B'
     });
   };
   
@@ -29,9 +31,6 @@ export default function VariantB({ testId }: VariantBProps) {
   // Estado para a quantidade de produtos
   const [produtosRestantes, setProdutosRestantes] = useState(9);
   
-  // Estado para controlar se a oferta expirou
-  const [ofertaExpirada, setOfertaExpirada] = useState(false);
-
   // Efeito para o contador regressivo
   useEffect(() => {
     const timer = setInterval(() => {
@@ -54,19 +53,21 @@ export default function VariantB({ testId }: VariantBProps) {
           return { hours: newHours, minutes: 59, seconds: 59 };
         }
         
-        // Quando o timer chegar a zero
-        setOfertaExpirada(true);
-        setProdutosRestantes(2);
-        
-        // Manter em zero quando acabar
-        return { hours: 0, minutes: 0, seconds: 0 };
+        // Quando o timer chegar a zero, reiniciar para 8 minutos
+        return { hours: 0, minutes: 8, seconds: 0 };
       });
     }, 1000);
     
     // Simular diminuição gradual do estoque
     const estoqueTimer = setInterval(() => {
-      if (produtosRestantes > 3 && !ofertaExpirada) {
-        setProdutosRestantes(prev => Math.max(prev - 1, 3));
+      if (produtosRestantes > 3) {
+        setProdutosRestantes(prev => {
+          // Se chegar a 3, reiniciar para 9
+          if (prev <= 3) {
+            return 9;
+          }
+          return prev - 1;
+        });
       }
     }, 30000); // A cada 30 segundos diminui 1 produto
     
@@ -75,7 +76,7 @@ export default function VariantB({ testId }: VariantBProps) {
       clearInterval(timer);
       clearInterval(estoqueTimer);
     };
-  }, [produtosRestantes, ofertaExpirada, trackPurchaseClick]);
+  }, [produtosRestantes, trackPurchaseClick]);
 
   // Formatar o tempo para exibição
   const formatTime = (time: number) => {
@@ -86,7 +87,7 @@ export default function VariantB({ testId }: VariantBProps) {
   const estoquePercentual = (produtosRestantes / 10) * 100;
   
   // Verificar se está nos últimos minutos da oferta
-  const urgencia = timeLeft.hours === 0 && timeLeft.minutes < 5 && !ofertaExpirada;
+  const urgencia = timeLeft.hours === 0 && timeLeft.minutes < 5;
 
   return (
     <div className="flex flex-col min-h-screen bg-[#f8f9fa]">
@@ -121,7 +122,7 @@ export default function VariantB({ testId }: VariantBProps) {
             <div className={`w-full bg-white rounded-lg shadow-xl p-4 border-2 ${urgencia ? 'border-[#e63946] animate-pulse' : 'border-[#e9ecef]'} my-6 relative`}>
               {/* Badge de oferta por tempo limitado */}
               <div className="absolute -top-6 left-1/2 transform -translate-x-1/2 bg-[#e63946] text-white px-3 py-1 rounded-full text-sm font-bold shadow-md">
-                {ofertaExpirada ? "Últimas unidades!" : "Oferta por tempo limitado!"}
+                Oferta por tempo limitado!
               </div>
               
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6 items-center">
@@ -200,7 +201,7 @@ export default function VariantB({ testId }: VariantBProps) {
                   {/* Timer */}
                   <div className="mb-6">
                     <p className="text-sm font-medium text-[#1D3557] mb-2">
-                      {ofertaExpirada ? "Oferta especial encerrada:" : "Oferta termina em:"}
+                      Oferta termina em:
                     </p>
                     <div className="flex justify-center gap-2">
                       <div className={`${urgencia ? 'bg-[#e63946]' : 'bg-[#1D3557]'} text-white rounded-md p-2 w-16 text-center`}>
@@ -211,7 +212,7 @@ export default function VariantB({ testId }: VariantBProps) {
                         <span className="text-xl font-bold block">{formatTime(timeLeft.minutes)}</span>
                         <span className="text-xs">Minutos</span>
                       </div>
-                      <div className={`${urgencia ? 'bg-[#e63946]' : 'bg-[#1D3557]'} text-white rounded-md p-2 w-16 text-center ${urgencia && !ofertaExpirada ? 'animate-pulse' : ''}`}>
+                      <div className={`${urgencia ? 'bg-[#e63946]' : 'bg-[#1D3557]'} text-white rounded-md p-2 w-16 text-center ${urgencia ? 'animate-pulse' : ''}`}>
                         <span className="text-xl font-bold block">{formatTime(timeLeft.seconds)}</span>
                         <span className="text-xs">Segundos</span>
                       </div>
@@ -223,10 +224,13 @@ export default function VariantB({ testId }: VariantBProps) {
                     href="https://seguro.profdidatica.com.br/r/HDJYH7SZJ6"
                     target="_blank"
                     rel="noopener noreferrer"
-                    onClick={handlePurchaseClick}
-                    className={`block w-full ${urgencia ? 'bg-[#d62c3b] hover:bg-[#c01f2e]' : 'bg-[#e63946] hover:bg-[#d62c3b]'} text-white font-bold py-4 px-6 rounded-md text-center text-lg uppercase tracking-wide transition-all transform hover:scale-105 shadow-lg hover:shadow-xl ${urgencia && !ofertaExpirada ? 'animate-bounce' : ''}`}
+                    onClick={() => {
+                      console.log('Primeiro botão de compra clicado - variant B');
+                      handlePurchaseClick();
+                    }}
+                    className={`block w-full ${urgencia ? 'bg-[#d62c3b] hover:bg-[#c01f2e]' : 'bg-[#e63946] hover:bg-[#d62c3b]'} text-white font-bold py-4 px-6 rounded-md text-center text-lg uppercase tracking-wide transition-all transform hover:scale-105 shadow-lg hover:shadow-xl ${urgencia ? 'animate-bounce' : ''}`}
                   >
-                    {ofertaExpirada ? "Garantir Últimas Unidades" : "Comprar Agora"}
+                    Comprar Agora
                   </a>
                   
                   {/* Garantias */}
@@ -488,7 +492,9 @@ export default function VariantB({ testId }: VariantBProps) {
               </div>
             </div>
             <div className="bg-[#457B9D] text-white p-6 rounded-lg mb-8">
-              <h3 className="font-bold text-xl mb-6 text-center border-b border-white pb-3">💬 Veja o que professoras estão dizendo:</h3>
+              <h3 className="font-bold text-xl mb-6 text-center border-b border-white pb-3">
+                💬 Veja o que professoras estão dizendo:
+              </h3>
               <div className="grid grid-cols-1 gap-6">
                 <div className="bg-white text-gray-800 p-5 rounded-lg shadow-md">
                   <p className="italic mb-3">&ldquo;Meus alunos que não gostavam de ler agora competem para ver quem lê mais! Nunca vi um resultado tão rápido!&rdquo;</p>
@@ -589,7 +595,7 @@ export default function VariantB({ testId }: VariantBProps) {
                   <span className="text-6xl font-black text-[#1D3557]">R$15</span>
                 </div>
                 <p className="text-xs text-gray-600 mt-2 italic">
-                  Aproveite antes que volte para R$27
+                  Aproveite antes que o estoque acabe
                 </p>
               </div>
 
@@ -728,7 +734,10 @@ export default function VariantB({ testId }: VariantBProps) {
               href="https://seguro.profdidatica.com.br/r/HDJYH7SZJ6"              
               target="_blank"
               rel="noopener noreferrer"
-              onClick={handlePurchaseClick}
+              onClick={() => {
+                console.log('Botão final de compra clicado - variant B');
+                handlePurchaseClick();
+              }}
               className="inline-block bg-[#e63946] hover:bg-[#d62c3b] text-white font-bold py-4 px-10 rounded-lg text-xl transition-all transform hover:scale-105 shadow-lg hover:shadow-xl"
             >
               Quero o Projeto Literário Agora
