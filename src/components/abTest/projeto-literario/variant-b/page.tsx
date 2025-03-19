@@ -23,7 +23,6 @@ export default function VariantB({ testId }: VariantBProps) {
   
   // Estado para o contador regressivo
   const [timeLeft, setTimeLeft] = useState({
-    hours: 0,
     minutes: 8,
     seconds: 0
   });
@@ -44,17 +43,11 @@ export default function VariantB({ testId }: VariantBProps) {
         const newMinutes = prevTime.minutes - 1;
         
         if (newMinutes >= 0) {
-          return { ...prevTime, minutes: newMinutes, seconds: 59 };
-        }
-        
-        const newHours = prevTime.hours - 1;
-        
-        if (newHours >= 0) {
-          return { hours: newHours, minutes: 59, seconds: 59 };
+          return { minutes: newMinutes, seconds: 59 };
         }
         
         // Quando o timer chegar a zero, reiniciar para 8 minutos
-        return { hours: 0, minutes: 8, seconds: 0 };
+        return { minutes: 8, seconds: 0 };
       });
     }, 1000);
     
@@ -87,7 +80,7 @@ export default function VariantB({ testId }: VariantBProps) {
   const estoquePercentual = (produtosRestantes / 10) * 100;
   
   // Verificar se está nos últimos minutos da oferta
-  const urgencia = timeLeft.hours === 0 && timeLeft.minutes < 5;
+  const urgencia = timeLeft.minutes < 5;
 
   return (
     <div className="flex flex-col min-h-screen bg-[#f8f9fa]">
@@ -119,16 +112,16 @@ export default function VariantB({ testId }: VariantBProps) {
             </div>
             
             {/* Bloco de preço e checkout - Versão melhorada */}
-            <div className={`w-full bg-white rounded-lg shadow-xl p-4 border-2 ${urgencia ? 'border-[#e63946] animate-pulse' : 'border-[#e9ecef]'} my-6 relative`}>
+            <div className="w-full bg-white rounded-lg shadow-xl p-4 border-2 border-[#a8dadc] my-20 relative max-w-3xl mx-auto">
               {/* Badge de oferta por tempo limitado */}
-              <div className="absolute -top-6 left-1/2 transform -translate-x-1/2 bg-[#e63946] text-white px-3 py-1 rounded-full text-sm font-bold shadow-md">
+              <div className="absolute -top-6 left-1/2 transform -translate-x-1/2 bg-[#457B9D] text-white mt-1 px-4 py-2 rounded-full text-sm font-bold shadow-md">
                 Oferta por tempo limitado!
               </div>
               
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6 items-center">
+              <div className="grid grid-cols-1 gap-6 items-center">
                 {/* Coluna de informações do produto */}
                 <div className="text-left">                  
-                  <h3 className="text-3xl font-bold text-[#1D3557] mt-6 mb-2">Projeto Literário</h3>                  
+                  <h3 className="text-2xl sm:text-3xl font-bold text-[#1D3557] mt-6 mb-2">Projeto Literário</h3>                  
                   <div className="flex items-center mb-4">
                     <div className="flex text-yellow-400">
                       <span>★</span><span>★</span><span>★</span><span>★</span><span>★</span>
@@ -139,9 +132,9 @@ export default function VariantB({ testId }: VariantBProps) {
                   <div className="mb-4">
                     <div className="flex items-center gap-3 mb-1">
                       <span className="text-base line-through text-gray-500">R$ 27,00</span>
-                      <span className="bg-[#e63946] text-white text-xs px-2 py-1 rounded-md font-bold">-45%</span>
+                      <span className="bg-[#457B9D] text-white text-xs px-2 py-1 rounded-md font-bold">-45%</span>
                     </div>
-                    <div className="text-[#e63946] text-4xl font-bold mb-1">R$ 15,00</div>
+                    <div className="text-[#457B9D] text-4xl font-bold mb-1">R$ 15,00</div>
                     <p className="text-sm text-gray-600">ou 3x de R$ 5,49</p>
                   </div>
                   
@@ -176,23 +169,34 @@ export default function VariantB({ testId }: VariantBProps) {
                       </li>
                     </ul>
                   </div>
+                  
+                  {/* Bônus */}
+                  <div className="bg-[#a8dadc]/20 p-3 rounded-lg mb-4">
+                    <p className="font-medium text-[#1D3557] mb-2 text-sm">Bônus especial:</p>
+                    <div className="flex items-start text-sm">
+                      <svg className="w-4 h-4 text-[#457B9D] mr-2 mt-0.5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 8v13m0-13V6a2 2 0 112 2h-2zm0 0V5.5A2.5 2.5 0 109.5 8H12zm-7 4h14M5 12a2 2 0 110-4h14a2 2 0 110 4M5 12v7a2 2 0 002 2h10a2 2 0 002-2v-7"/>
+                      </svg>
+                      <span className="text-zinc-700">Apostila com 50 páginas para criação de frases e textos</span>
+                    </div>
+                  </div>
                 </div>
                 
                 {/* Coluna de ação de compra */}
-                <div className={`${urgencia ? 'bg-[#fff8f8]' : 'bg-[#f8f9fa]'} p-6 rounded-lg border ${urgencia ? 'border-[#e63946]' : 'border-[#e9ecef]'} shadow-md`}>
+                <div className="bg-[#f8f9fa] p-4 sm:p-6 rounded-lg border border-[#a8dadc] shadow-md">
                   {/* Contador de estoque */}
                   <div className="mb-4">
                     <div className="flex justify-between items-center mb-2">
                       <p className="text-sm font-medium text-[#1D3557]">
-                        Apenas <span className="font-bold text-[#e63946]">{produtosRestantes}</span> {produtosRestantes === 1 ? 'produto' : 'produtos'} em estoque
+                        Apenas <span className="font-bold text-[#457B9D]">{produtosRestantes}</span> {produtosRestantes === 1 ? 'produto' : 'produtos'} em estoque
                       </p>
-                      <span className={`text-xs ${produtosRestantes <= 3 ? 'bg-red-100 text-red-800' : 'bg-yellow-100 text-yellow-800'} px-2 py-1 rounded font-medium`}>
+                      <span className={`text-xs ${produtosRestantes <= 3 ? 'bg-blue-100 text-blue-800' : 'bg-yellow-100 text-yellow-800'} px-2 py-1 rounded font-medium`}>
                         {produtosRestantes <= 3 ? 'Acabando!' : 'Limitado'}
                       </span>
                     </div>
                     <div className="w-full bg-gray-200 rounded-full h-2.5 overflow-hidden">
                       <div 
-                        className={`${produtosRestantes <= 3 ? 'bg-red-500' : 'bg-yellow-400'} h-2.5 rounded-full transition-all duration-500`}
+                        className={`${produtosRestantes <= 3 ? 'bg-[#457B9D]' : 'bg-[#6bbbed]'} h-2.5 rounded-full transition-all duration-500`}
                         style={{ width: `${estoquePercentual}%` }}
                       ></div>
                     </div>
@@ -204,16 +208,12 @@ export default function VariantB({ testId }: VariantBProps) {
                       Oferta termina em:
                     </p>
                     <div className="flex justify-center gap-2">
-                      <div className={`${urgencia ? 'bg-[#e63946]' : 'bg-[#1D3557]'} text-white rounded-md p-2 w-16 text-center`}>
-                        <span className="text-xl font-bold block">{formatTime(timeLeft.hours)}</span>
-                        <span className="text-xs">Horas</span>
-                      </div>
-                      <div className={`${urgencia ? 'bg-[#e63946]' : 'bg-[#1D3557]'} text-white rounded-md p-2 w-16 text-center`}>
-                        <span className="text-xl font-bold block">{formatTime(timeLeft.minutes)}</span>
+                      <div className="bg-[#1D3557] text-white rounded-md p-2 w-20 sm:w-24 text-center">
+                        <span className="text-lg sm:text-xl font-bold block">{formatTime(timeLeft.minutes)}</span>
                         <span className="text-xs">Minutos</span>
                       </div>
-                      <div className={`${urgencia ? 'bg-[#e63946]' : 'bg-[#1D3557]'} text-white rounded-md p-2 w-16 text-center ${urgencia ? 'animate-pulse' : ''}`}>
-                        <span className="text-xl font-bold block">{formatTime(timeLeft.seconds)}</span>
+                      <div className={`bg-[#1D3557] text-white rounded-md p-2 w-20 sm:w-24 text-center ${urgencia ? 'animate-pulse' : ''}`}>
+                        <span className="text-lg sm:text-xl font-bold block">{formatTime(timeLeft.seconds)}</span>
                         <span className="text-xs">Segundos</span>
                       </div>
                     </div>
@@ -228,7 +228,7 @@ export default function VariantB({ testId }: VariantBProps) {
                       console.log('Primeiro botão de compra clicado - variant B');
                       handlePurchaseClick();
                     }}
-                    className={`block w-full ${urgencia ? 'bg-[#d62c3b] hover:bg-[#c01f2e]' : 'bg-[#e63946] hover:bg-[#d62c3b]'} text-white font-bold py-4 px-6 rounded-md text-center text-lg uppercase tracking-wide transition-all transform hover:scale-105 shadow-lg hover:shadow-xl ${urgencia ? 'animate-bounce' : ''}`}
+                    className={`block w-full bg-gradient-to-r from-[#457B9D] to-[#1D3557] hover:from-[#1D3557] hover:to-[#457B9D] text-white font-bold py-3 sm:py-4 px-4 sm:px-6 rounded-md text-center text-base sm:text-lg uppercase tracking-wide transition-all transform hover:scale-105 shadow-lg hover:shadow-xl`}
                   >
                     Comprar Agora
                   </a>
@@ -546,9 +546,9 @@ export default function VariantB({ testId }: VariantBProps) {
               Oferta Especial
             </h2>
             
-            <div className="bg-white rounded-2xl p-4 relative transform transition-all duration-300 hover:scale-[1.02] border-2 border-[#a8dadc] shadow-[0_8px_40px_-12px_rgba(69,123,157,0.5)] max-w-3xl mx-auto">
+            
               <div className="text-center mb-6 pt-4">
-                <h3 className="text-2xl font-bold text-[#457B9D] uppercase tracking-wider">Projeto Literário Completo</h3>
+                <h3 className="text-xl sm:text-2xl font-bold text-[#457B9D] uppercase tracking-wider">Projeto Literário Completo</h3>
               </div>
               
               <ul className="space-y-4 mb-8">
@@ -591,8 +591,8 @@ export default function VariantB({ testId }: VariantBProps) {
 
               <div className="text-center mb-6">
                 <div className="inline-block relative">
-                  <span className="absolute -top-3 -right-12 bg-[#e63946] text-white text-xs font-bold py-1 px-2 rounded-full transform rotate-12">55% OFF</span>
-                  <span className="text-6xl font-black text-[#1D3557]">R$15</span>
+                  <span className="absolute -top-3 -right-12 bg-[#457B9D] text-white text-xs font-bold py-1 px-2 rounded-full transform rotate-12">45% OFF</span>
+                  <span className="text-5xl sm:text-6xl font-black text-[#1D3557]">R$15</span>
                 </div>
                 <p className="text-xs text-gray-600 mt-2 italic">
                   Aproveite antes que o estoque acabe
@@ -604,21 +604,13 @@ export default function VariantB({ testId }: VariantBProps) {
                 target="_blank"
                 rel="noopener noreferrer"
                 onClick={handlePurchaseClick}
-                className="block w-full bg-gradient-to-r from-[#457B9D] to-[#1D3557] hover:from-[#1D3557] hover:to-[#457B9D] text-white text-lg font-bold py-4 px-8 rounded-xl shadow-lg transform transition-all duration-300 hover:scale-[1.02] hover:shadow-xl relative overflow-hidden group text-center"
+                className="block w-full bg-gradient-to-r from-[#457B9D] to-[#1D3557] hover:from-[#1D3557] hover:to-[#457B9D] text-white text-base sm:text-lg font-bold py-3 sm:py-4 px-6 sm:px-8 rounded-xl shadow-lg transform transition-all duration-300 hover:scale-[1.02] hover:shadow-xl relative overflow-hidden group text-center"
               >
                 <div className="absolute inset-0 bg-white/20 rounded-xl opacity-0 group-hover:opacity-100 transition-opacity text-center"></div>
                 <span className="relative">
                 GARANTIR MEU PROJETO LITERÁRIO AGORA
                 </span>
-              </a>
-            </div>
-
-            {/* Texto de Justificativa */}
-            <div className="mt-8 mb-4 text-center max-w-2xl mx-auto">
-              <p className="text-gray-600 text-sm">
-              ATENÇÃO: Esta oferta especial está disponível apenas por tempo limitado para os próximos 50 professores determinados a transformar suas aulas de leitura.
-              </p>
-            </div>
+              </a>            
           </section>
 
           {/* FAQ Section */}
