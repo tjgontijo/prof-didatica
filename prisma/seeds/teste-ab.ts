@@ -13,21 +13,20 @@ export const seedAbTests = async () => {
     
     // Criar teste A/B para projeto literário
     const test = await prisma.abTest.create({
-      data: {
-        testId: 'projeto-literario',
-        name: 'Projeto Literário',
+      data: {        
+        name: 'projeto-literario',
         description: 'Teste A/B para a página do projeto literário',
         variants: {
           create: [
             {
-              variantId: 'A',
-              name: 'Variante A',
-              weight: 0.5,
+                name: 'projeto-literario-a',
+                description: 'Variante A do projeto literario',
+                weight: 0.5,
             },
             {
-              variantId: 'B',
-              name: 'Variante B',
-              weight: 0.5,
+                name: 'projeto-literario-b',
+                description: 'Variante B do projeto literario',
+                weight: 0.5,
             }
           ]
         }

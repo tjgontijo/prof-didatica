@@ -10,9 +10,8 @@ generator client {
 
 // Modelo para armazenar informações sobre os testes A/B
 model AbTest {
-  id          String    @id @default(uuid())
-  testId      String    @unique // Identificador do teste (ex: "projeto-literario")
-  name        String    // Nome amigável do teste
+  id          String    @id @default(uuid())  
+  name        String    @unique // Identificador do teste (ex: "projeto-literario")
   description String?   // Descrição opcional do teste
   createdAt   DateTime  @default(now())
   updatedAt   DateTime  @updatedAt
@@ -23,14 +22,14 @@ model AbTest {
 // Modelo para armazenar as variantes de um teste
 model Variant {
   id          String    @id @default(uuid())
-  variantId   String    // Identificador da variante (ex: "A", "B")
-  name        String    // Nome amigável da variante
+  name        String    // Nome da variante (ex: "projeto-literario-a")
+  description String?   // Descrição da variante
   weight      Float     @default(1.0) // Peso da variante para distribuição
   test        AbTest    @relation(fields: [testId], references: [id], onDelete: Cascade)
   testId      String
   events      AbEvent[]
 
-  @@unique([testId, variantId])
+  @@unique([testId, name])
 }
 
 // Modelo para armazenar eventos de testes A/B
@@ -48,21 +47,13 @@ model AbEvent {
   country       String?
   state         String?
   city          String?
-  latitude      Float?
-  longitude     Float?
-  
+    
   // Dados de UTM
   utmSource     String?
   utmMedium     String?
   utmCampaign   String?
   utmTerm       String?
   utmContent    String?
-  
-  // Dados do lead
-  leadId        String?
-  leadEmail     String?
-  leadName      String?
-  leadPhone     String?
   
   // Relações
   test          AbTest    @relation(fields: [testId], references: [id], onDelete: Cascade)
@@ -71,8 +62,6 @@ model AbEvent {
   @@index([testId, eventType])
   @@index([sessionId])
   @@index([createdAt])
-  @@index([leadEmail])
-  @@index([leadId])
   @@index([utmSource, utmMedium, utmCampaign])
   @@index([country, state, city])
 }

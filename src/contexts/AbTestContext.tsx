@@ -34,103 +34,130 @@ type AbTestProviderProps = {
 export function AbTestProvider({ children, tests }: AbTestProviderProps) {
   const [activeVariants, setActiveVariants] = useState<Record<string, TestVariant>>({});
 
-  // Função para obter dados da utmify
-  const getUtmifyData = () => {
-    const utmifyLead = JSON.parse(localStorage.getItem('lead') || '{}');
-    
-    return {
-      event_time: Math.floor(new Date().getTime() / 1000),
-      event_source_url: window.location.href,
-      traffic_source: document.referrer || undefined,
-      parameters: window.location.search,
-      external_id: utmifyLead && utmifyLead._id ? utmifyLead._id : undefined,
-      em: utmifyLead && utmifyLead.email ? utmifyLead.email : undefined,
-      ph: utmifyLead && utmifyLead.phone ? utmifyLead.phone : undefined,
-      fn: utmifyLead && utmifyLead.firstName ? utmifyLead.firstName : undefined,
-      ln: utmifyLead && utmifyLead.lastName ? utmifyLead.lastName : undefined,
-      country: utmifyLead && utmifyLead.geolocation && utmifyLead.geolocation.country ? utmifyLead.geolocation.country : undefined,
-      ct: utmifyLead && utmifyLead.geolocation && utmifyLead.geolocation.city ? utmifyLead.geolocation.city : undefined,
-      st: utmifyLead && utmifyLead.geolocation && utmifyLead.geolocation.state ? utmifyLead.geolocation.state : undefined,
-      zp: utmifyLead && utmifyLead.geolocation && utmifyLead.geolocation.zipcode ? utmifyLead.geolocation.zipcode : undefined,
-      client_user_agent: navigator.userAgent,
-      client_ip_address: utmifyLead && (utmifyLead.ip || utmifyLead.ipv6) ? utmifyLead.ip || utmifyLead.ipv6 : undefined,
-    };
-  };
-
-  // Inicializar variantes ativas para cada teste
   useEffect(() => {
-    const newActiveVariants: Record<string, TestVariant> = {};
+    console.log('Inicializando seleção de variantes...');
     
-    tests.forEach(test => {
-      // Verificar se já existe uma variante atribuída para este teste
-      const storedVariantData = localStorage.getItem(`ab_test_${test.testId}`);
+    // Função para selecionar variantes com base na distribuição atual
+    const selectVariants = async () => {
+      // Objeto para armazenar as variantes ativas
+      const newActiveVariants: Record<string, TestVariant> = {};
       
-      if (storedVariantData) {
+      // Para cada teste, consultar a distribuição atual e selecionar uma variante
+      for (const test of tests) {
+        console.log(`Selecionando variante para o teste ${test.testId}...`);
+        
+        // Verificar se há variantes disponíveis
+        if (!test.variants || test.variants.length === 0) {
+          console.warn(`Nenhuma variante disponível para o teste ${test.testId}`);
+          continue;
+        }
+        
         try {
-          // Parsear os dados armazenados (variante e timestamp)
-          const { variantId, timestamp } = JSON.parse(storedVariantData);
+          // Obter a distribuição atual das variantes do banco de dados
+          const { getVariantDistribution } = await import('@/lib/actions/abTest');
+          const distributionResult = await getVariantDistribution(test.testId);
           
-          // Verificar se o timestamp é válido e se não passou do timeout (6 horas = 21600000 ms)
-          const now = Date.now();
-          const isValid = timestamp && (now - timestamp < 6 * 60 * 60 * 1000);
+          console.log(`Distribuição atual para o teste ${test.testId}:`, distributionResult);
           
-          if (isValid) {
-            // Encontrar a variante armazenada
-            const storedVariant = test.variants.find(v => v.id === variantId);
-            if (storedVariant) {
-              newActiveVariants[test.testId] = storedVariant;
-              return;
+          let selectedVariant: TestVariant | null = null;
+          
+          if (distributionResult.success && distributionResult.distribution) {
+            // Calcular qual variante está com menos visualizações em relação ao seu peso
+            const distribution = distributionResult.distribution;
+            
+            // Se não houver dados suficientes (menos de 10 pageviews no total), usar seleção aleatória
+            const totalCount = distribution.reduce((sum, v) => sum + v.count, 0);
+            
+            if (totalCount < 10) {
+              console.log(`Poucos dados (${totalCount} pageviews), usando seleção aleatória`);
+              
+              // Calcular pesos para seleção aleatória
+              const variants = test.variants;
+              const totalWeight = variants.reduce((sum, variant) => sum + (variant.weight || 1), 0);
+              
+              // Gerar número aleatório entre 0 e o peso total
+              const random = Math.random() * totalWeight;
+              console.log(`Número aleatório gerado: ${random} (peso total: ${totalWeight})`);
+              
+              // Selecionar variante com base no número aleatório
+              let cumulativeWeight = 0;
+              
+              for (const variant of variants) {
+                cumulativeWeight += variant.weight || 1;
+                console.log(`Variante ${variant.id}: peso acumulado ${cumulativeWeight}`);
+                
+                if (random <= cumulativeWeight) {
+                  selectedVariant = variant;
+                  break;
+                }
+              }
+            } else {
+              // Calcular a diferença entre a porcentagem atual e o peso desejado
+              const variantScores = test.variants.map(variant => {
+                const variantDist = distribution.find(d => d.variantId === variant.id);
+                const currentPercentage = variantDist ? variantDist.percentage : 0;
+                const targetPercentage = (variant.weight || 1) / test.variants.reduce((sum, v) => sum + (v.weight || 1), 0) * 100;
+                
+                // Quanto maior a diferença negativa, mais prioritária é a variante
+                const score = targetPercentage - currentPercentage;
+                
+                return {
+                  variant,
+                  score
+                };
+              });
+              
+              // Ordenar por score (maior score = maior prioridade)
+              variantScores.sort((a, b) => b.score - a.score);
+              
+              console.log('Scores das variantes:', variantScores.map(v => ({ 
+                id: v.variant.id, 
+                score: v.score 
+              })));
+              
+              // Selecionar a variante com maior score (mais subrepresentada)
+              selectedVariant = variantScores[0].variant;
             }
+          } else {
+            // Fallback para seleção aleatória se não conseguir obter a distribuição
+            console.log('Usando seleção aleatória (fallback)');
+            
+            const randomIndex = Math.floor(Math.random() * test.variants.length);
+            selectedVariant = test.variants[randomIndex];
+          }
+          
+          if (selectedVariant) {
+            console.log(`Variante selecionada para o teste ${test.testId}: ${selectedVariant.id}`);
+            newActiveVariants[test.testId] = selectedVariant;
           }
         } catch (error) {
-          // Se houver erro ao parsear, ignorar e selecionar uma nova variante
-          console.error('Erro ao parsear dados de variante:', error);
+          console.error(`Erro ao selecionar variante para o teste ${test.testId}:`, error);
+          
+          // Fallback para seleção aleatória em caso de erro
+          const randomIndex = Math.floor(Math.random() * test.variants.length);
+          const fallbackVariant = test.variants[randomIndex];
+          
+          console.log(`Fallback para variante aleatória: ${fallbackVariant.id}`);
+          newActiveVariants[test.testId] = fallbackVariant;
         }
       }
       
-      // Atribuir aleatoriamente uma variante com base nos pesos
-      let selectedVariant: TestVariant;
+      // Atualizar estado com as variantes selecionadas
+      setActiveVariants(newActiveVariants);
       
-      // Verificar se alguma variante tem peso definido
-      const hasWeights = test.variants.some(v => v.weight !== undefined);
+      // Salvar no localStorage para consistência entre páginas
+      localStorage.setItem('ab_test_variants', JSON.stringify(
+        Object.entries(newActiveVariants).reduce((acc, [testId, variant]) => {
+          acc[testId] = variant.id;
+          return acc;
+        }, {} as Record<string, string>)
+      ));
       
-      if (hasWeights) {
-        // Obter os pesos (usando 1 como padrão se não for definido)
-        const weights = test.variants.map(v => v.weight || 1);
-        const totalWeight = weights.reduce((sum, weight) => sum + weight, 0);
-        const random = Math.random() * totalWeight;
-        
-        let cumulativeWeight = 0;
-        let selectedIndex = 0;
-        
-        for (let i = 0; i < weights.length; i++) {
-          cumulativeWeight += weights[i];
-          if (random <= cumulativeWeight) {
-            selectedIndex = i;
-            break;
-          }
-        }
-        
-        selectedVariant = test.variants[selectedIndex];
-      } else {
-        // Distribuição uniforme se nenhum peso for definido
-        const randomIndex = Math.floor(Math.random() * test.variants.length);
-        selectedVariant = test.variants[randomIndex];
-      }
-      
-      // Armazenar a variante selecionada com o timestamp atual
-      const variantData = {
-        variantId: selectedVariant.id,
-        timestamp: Date.now()
-      };
-      
-      localStorage.setItem(`ab_test_${test.testId}`, JSON.stringify(variantData));
-      // Armazenar também o ID da variante separadamente para facilitar o acesso
-      localStorage.setItem(`ab_test_variant_${test.testId}`, selectedVariant.id);
-      newActiveVariants[test.testId] = selectedVariant;
-    });
+      console.log('Seleção de variantes concluída:', newActiveVariants);
+    };
     
-    setActiveVariants(newActiveVariants);
+    // Executar a seleção de variantes
+    selectVariants();
   }, [tests]);
 
   // Função para obter a variante ativa para um teste específico
@@ -138,36 +165,51 @@ export function AbTestProvider({ children, tests }: AbTestProviderProps) {
     return activeVariants[testId] || null;
   };
 
-  // Função para rastrear eventos
-  const trackEvent = async (testId: string, eventName: string, additionalData = {}) => {
-    const variant = activeVariants[testId];
-    if (!variant) return;
-    
-    const baseData = getUtmifyData();
-    
+  // Rastrear evento
+  const trackEvent = async (testId: string, eventName: string, additionalData?: Record<string, unknown>) => {
     try {
-      // Importar dinamicamente o utilitário de armazenamento
-      const { saveAbTestEvent } = await import('@/utils/storage');
+      console.log(`Rastreando evento ${eventName} para o teste ${testId}`);
       
-      // Salvar o evento localmente
-      saveAbTestEvent({
+      // Obter a variante ativa para o teste
+      const variant = getVariant(testId);
+      
+      if (!variant) {
+        console.warn(`Não foi possível rastrear o evento: nenhuma variante ativa para o teste ${testId}`);
+        return;
+      }
+      
+      console.log(`Variante ativa: ${variant.id}`);
+      
+      // Importar dinamicamente a função de salvamento no banco
+      const { saveEventToDatabase, processFailedEvents } = await import('@/lib/actions/abTest');
+      
+      // Processar eventos que falharam anteriormente
+      processFailedEvents();
+      
+      // Salvar evento no banco de dados
+      await saveEventToDatabase({
         testId,
         variantId: variant.id,
         eventType: eventName,
-        timestamp: Date.now(),
-        additionalData: {
-          ...additionalData,
-          eventTime: baseData.event_time,
-          url: baseData.event_source_url,
-          referrer: baseData.traffic_source,
-          parameters: baseData.parameters,
-          userAgent: baseData.client_user_agent,
-        }
+        url: window.location.href,
+        
+        // Dados de localização
+        country: undefined,
+        state: undefined,
+        city: undefined,
+        
+        // Dados de UTM
+        utmSource: undefined,
+        utmMedium: undefined,
+        utmCampaign: undefined,
+        utmTerm: undefined,
+        utmContent: undefined,
+        
+        // Incluir dados adicionais se necessário
+        ...additionalData
       });
-      
-      console.log(`Evento ${eventName} para teste ${testId} registrado com sucesso`);
     } catch (error) {
-      console.error('Erro ao enviar evento:', error);
+      console.error('Erro ao rastrear evento:', error);
     }
   };
 

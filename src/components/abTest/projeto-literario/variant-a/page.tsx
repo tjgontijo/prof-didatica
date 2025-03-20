@@ -13,11 +13,16 @@ export default function VariantA({ testId }: VariantAProps) {
   // Função para lidar com o clique no botão de compra
   const handlePurchaseClick = () => {
     console.log('Botão de compra clicado - variant A');
-    trackPurchaseClick({
-      product: 'projeto-literario',
-      price: 15.00,
-      variant: 'A'
-    });
+    try {
+      trackPurchaseClick({
+        product: 'projeto-literario',
+        price: 15.00,
+        variant: 'A'
+      });
+      console.log('Evento de compra enviado com sucesso');
+    } catch (error) {
+      console.error('Erro ao enviar evento de compra:', error);
+    }
   };
   
   return (

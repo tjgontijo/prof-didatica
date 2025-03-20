@@ -14,11 +14,16 @@ export default function VariantB({ testId }: VariantBProps) {
   // Função para lidar com o clique no botão de compra
   const handlePurchaseClick = () => {
     console.log('Botão de compra clicado - variant B');
-    trackPurchaseClick({
-      product: 'projeto-literario',
-      price: 15.00,
-      variant: 'B'
-    });
+    try {
+      trackPurchaseClick({
+        product: 'projeto-literario',
+        price: 15.00,
+        variant: 'B'
+      });
+      console.log('Evento de compra enviado com sucesso');
+    } catch (error) {
+      console.error('Erro ao enviar evento de compra:', error);
+    }
   };
   
   // Estado para o contador regressivo
