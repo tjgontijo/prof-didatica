@@ -198,7 +198,7 @@ export default function Page() {
                   
                   {/* Botão de compra */}
                   <a 
-                    href="https://seguro.profdidatica.com.br/r/HDJYH7SZJ6"
+                    href="https://seguro.profdidatica.com.br/r/HDJYH7SZJ6?promocode=PL45OFF"
                     target="_blank"
                     rel="noopener noreferrer"
                     className={`block w-full bg-gradient-to-r from-[#457B9D] to-[#1D3557] hover:from-[#1D3557] hover:to-[#457B9D] text-white font-bold py-3 sm:py-4 px-4 sm:px-6 rounded-md text-center text-base sm:text-lg uppercase tracking-wide transition-all transform hover:scale-105 shadow-lg hover:shadow-xl`}
@@ -573,7 +573,7 @@ export default function Page() {
               </div>
 
               <a 
-                href="https://seguro.profdidatica.com.br/r/HDJYH7SZJ6"
+                href="https://seguro.profdidatica.com.br/r/HDJYH7SZJ6?promocode=PL45OFF"
                 target="_blank"
                 rel="noopener noreferrer"
                 className="block w-full bg-gradient-to-r from-[#457B9D] to-[#1D3557] hover:from-[#1D3557] hover:to-[#457B9D] text-white text-base sm:text-lg font-bold py-3 sm:py-4 px-6 sm:px-8 rounded-xl shadow-lg transform transition-all duration-300 hover:scale-[1.02] hover:shadow-xl relative overflow-hidden group text-center"
@@ -685,7 +685,7 @@ export default function Page() {
               </p>
             </div>
             <a 
-              href="https://seguro.profdidatica.com.br/r/HDJYH7SZJ6"              
+              href="https://seguro.profdidatica.com.br/r/HDJYH7SZJ6?promocode=PL45OFF"              
               target="_blank"
               rel="noopener noreferrer"
               className="inline-block bg-[#e63946] hover:bg-[#d62c3b] text-white font-bold py-4 px-10 rounded-lg text-xl transition-all transform hover:scale-105 shadow-lg hover:shadow-xl"
