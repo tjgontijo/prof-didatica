@@ -27,8 +27,12 @@ export default function RootLayout({
   return (
     <html lang="pt-BR">
       <head>
-        <UtmifyScripts />
-        <Claritycript />        
+        {process.env.NODE_ENV === 'production' && (
+          <>
+            <UtmifyScripts />
+            <Claritycript />
+          </>
+        )}
       </head>
       <body
         className={`${geistSans.variable} ${geistMono.variable} antialiased`}
