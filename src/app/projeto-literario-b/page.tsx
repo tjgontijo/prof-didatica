@@ -1,55 +1,228 @@
 "use client";
 
-import { useAbTestEvents } from '@/hooks/useAbTestEvents';
 import CarrosselProjeto from "@/components/carrossel/carrosselProjeto";
+import { FaChevronDown } from 'react-icons/fa';
+import { useEffect, useState } from "react";
 
-type VariantAProps = {
-  testId: string;
-};
+export default function Page() {
+  // Estado para o contador regressivo
+  const [timeLeft, setTimeLeft] = useState({
+    minutes: 8,
+    seconds: 0
+  });
 
-export default function VariantA({ testId }: VariantAProps) {
-  const { trackPurchaseClick } = useAbTestEvents(testId);
+  // Estado para a quantidade de produtos
+  const [produtosRestantes, setProdutosRestantes] = useState(9);
   
-  // Função para lidar com o clique no botão de compra
-  const handlePurchaseClick = () => {
-    console.log('Botão de compra clicado - variant A');
-    try {
-      trackPurchaseClick({
-        product: 'projeto-literario',
-        price: 15.00,
-        variant: 'A'
+  // Efeito para o contador regressivo
+  useEffect(() => {
+    const timer = setInterval(() => {
+      setTimeLeft(prevTime => {
+        const newSeconds = prevTime.seconds - 1;
+        
+        if (newSeconds >= 0) {
+          return { ...prevTime, seconds: newSeconds };
+        }
+        
+        const newMinutes = prevTime.minutes - 1;
+        
+        if (newMinutes >= 0) {
+          return { minutes: newMinutes, seconds: 59 };
+        }
+        
+        // Quando o timer chegar a zero, reiniciar para 8 minutos
+        return { minutes: 8, seconds: 0 };
       });
-      console.log('Evento de compra enviado com sucesso');
-    } catch (error) {
-      console.error('Erro ao enviar evento de compra:', error);
-    }
+    }, 1000);
+    
+    // Simular diminuição gradual do estoque
+    const estoqueTimer = setInterval(() => {
+      if (produtosRestantes > 3) {
+        setProdutosRestantes(prev => {
+          // Se chegar a 3, reiniciar para 9
+          if (prev <= 3) {
+            return 9;
+          }
+          return prev - 1;
+        });
+      }
+    }, 30000); // A cada 30 segundos diminui 1 produto
+    
+    // Limpar os intervalos quando o componente for desmontado
+    return () => {
+      clearInterval(timer);
+      clearInterval(estoqueTimer);
+    };
+  }, [produtosRestantes]);
+
+  // Formatar o tempo para exibição
+  const formatTime = (time: number) => {
+    return time.toString().padStart(2, '0');
   };
+
+  // Calcular a porcentagem de produtos restantes para a barra de progresso
+  const estoquePercentual = (produtosRestantes / 10) * 100;
   
+  // Verificar se está nos últimos minutos da oferta
+  const urgencia = timeLeft.minutes < 5;
+
   return (
     <div className="flex flex-col min-h-screen bg-[#f8f9fa]">
-      {/* Indicador de variante (visível apenas em desenvolvimento) */}
-      {process.env.NODE_ENV === 'development' && (
-        <div className="fixed top-2 right-2 bg-green-600 text-white px-3 py-1 rounded-full text-xs font-bold shadow-lg z-50">
-          Variante A
-        </div>
-      )}
-      
       {/* Main Content */}
       <main className="flex-1 flex flex-col items-center py-10">
         <div className="w-full max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
           {/* Hero Section */}
           <section className="text-center mb-20">
             <h1 className="text-3xl md:text-4xl font-bold text-[#1D3557] mb-6">
-              Conheça o Método que Vai Fazer seus Alunos se Apaixonarem pela Leitura!
+              Transforme seus Alunos em Leitores Apaixonados!
             </h1>
             <h2 className="text-xl md:text-2xl text-[#457B9D] mb-4 max-w-3xl mx-auto">
-              Transforme suas aulas com um sistema que faz os alunos pedirem para ler o próximo livro!
+              Método comprovado que faz seus alunos competirem para ler mais livros!
             </h2>
-            <p className="text-xs text-[#1D3557] italic mb-0">
-              Conheça o Projeto Literário:            </p>
+            
             {/* Carrossel de imagens */}
-            <div className="w-full max-w-2xl mx-auto mb-10">
+            <div className="w-full max-w-2xl mx-auto mb-8">
+              <p className="text-xs text-[#1D3557] italic mb-2">
+                Conheça o Projeto Literário:
+              </p>
               <CarrosselProjeto />
+            </div>
+            
+            {/* Bloco de preço e checkout - Versão melhorada */}
+            <div className="w-full bg-white rounded-lg shadow-xl p-4 border-2 border-[#a8dadc] my-20 relative max-w-3xl mx-auto">
+              {/* Badge de oferta por tempo limitado */}
+              <div className="absolute -top-6 left-1/2 transform -translate-x-1/2 bg-[#457B9D] text-white mt-1 px-4 py-2 rounded-full text-sm font-bold shadow-md">
+                Oferta por tempo limitado!
+              </div>
+              
+              <div className="grid grid-cols-1 gap-6 items-center">
+                {/* Coluna de informações do produto */}
+                <div className="text-left">                  
+                  <h3 className="text-2xl sm:text-3xl font-bold text-[#1D3557] mt-6 mb-2">Projeto Literário</h3>                  
+                  <div className="flex items-center mb-4">
+                    <div className="flex text-yellow-400">
+                      <span>★</span><span>★</span><span>★</span><span>★</span><span>★</span>
+                    </div>
+                    <span className="text-sm text-gray-500 ml-2">(368 avaliações)</span>
+                  </div>
+                  
+                  <div className="mb-4">
+                    <div className="flex items-center gap-3 mb-1">
+                      <span className="text-base line-through text-gray-500">R$ 27,00</span>
+                      <span className="bg-[#457B9D] text-white text-xs px-2 py-1 rounded-md font-bold">-45%</span>
+                    </div>
+                    <div className="text-[#457B9D] text-4xl font-bold mb-1">R$ 15,00</div>
+                    <p className="text-sm text-gray-600">ou 3x de R$ 5,49</p>
+                  </div>
+                  
+                  <div className="flex items-center text-sm text-gray-700 mb-4">
+                    <svg className="w-5 h-5 mr-2 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                    </svg>
+                    Ganhe <span className="text-green-600 font-medium">20% de cashback</span> na sua próxima compra
+                  </div>
+                  
+                  {/* Benefícios rápidos */}
+                  <div className="bg-[#f8f9fa] p-3 rounded-lg mb-4">
+                    <p className="font-medium text-[#1D3557] mb-2 text-sm">O que você recebe:</p>
+                    <ul className="space-y-1">
+                      <li className="flex items-start text-sm">
+                        <svg className="w-4 h-4 text-green-600 mr-2 mt-0.5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 13l4 4L19 7"></path>
+                        </svg>
+                        <span className="text-zinc-700">15 fichas literárias completas</span>
+                      </li>
+                      <li className="flex items-start text-sm">
+                        <svg className="w-4 h-4 text-green-600 mr-2 mt-0.5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 13l4 4L19 7"></path>
+                        </svg>
+                        <span className="text-zinc-700">Estante interativa para acompanhamento</span>
+                      </li>
+                      <li className="flex items-start text-sm">
+                        <svg className="w-4 h-4 text-green-600 mr-2 mt-0.5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 13l4 4L19 7"></path>
+                        </svg>
+                        <span className="text-zinc-700">Acesso imediato após a compra</span>
+                      </li>
+                    </ul>
+                  </div>
+                  
+                  {/* Bônus */}
+                  <div className="bg-[#a8dadc]/20 p-3 rounded-lg mb-4">
+                    <p className="font-medium text-[#1D3557] mb-2 text-sm">Bônus especial:</p>
+                    <div className="flex items-start text-sm">
+                      <svg className="w-4 h-4 text-[#457B9D] mr-2 mt-0.5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 8v13m0-13V6a2 2 0 112 2h-2zm0 0V5.5A2.5 2.5 0 109.5 8H12zm-7 4h14M5 12a2 2 0 110-4h14a2 2 0 110 4M5 12v7a2 2 0 002 2h10a2 2 0 002-2v-7"/>
+                      </svg>
+                      <span className="text-zinc-700">Apostila com 50 páginas para criação de frases e textos</span>
+                    </div>
+                  </div>
+                </div>
+                
+                {/* Coluna de ação de compra */}
+                <div className="bg-[#f8f9fa] p-4 sm:p-6 rounded-lg border border-[#a8dadc] shadow-md">
+                  {/* Contador de estoque */}
+                  <div className="mb-4">
+                    <div className="flex justify-between items-center mb-2">
+                      <p className="text-sm font-medium text-[#1D3557]">
+                        Apenas <span className="font-bold text-[#457B9D]">{produtosRestantes}</span> {produtosRestantes === 1 ? 'produto' : 'produtos'} em estoque
+                      </p>
+                      <span className={`text-xs ${produtosRestantes <= 3 ? 'bg-blue-100 text-blue-800' : 'bg-yellow-100 text-yellow-800'} px-2 py-1 rounded font-medium`}>
+                        {produtosRestantes <= 3 ? 'Acabando!' : 'Limitado'}
+                      </span>
+                    </div>
+                    <div className="w-full bg-gray-200 rounded-full h-2.5 overflow-hidden">
+                      <div 
+                        className={`${produtosRestantes <= 3 ? 'bg-[#457B9D]' : 'bg-[#6bbbed]'} h-2.5 rounded-full transition-all duration-500`}
+                        style={{ width: `${estoquePercentual}%` }}
+                      ></div>
+                    </div>
+                  </div>
+                  
+                  {/* Timer */}
+                  <div className="mb-6">
+                    <p className="text-sm font-medium text-[#1D3557] mb-2">
+                      Oferta termina em:
+                    </p>
+                    <div className="flex justify-center gap-2">
+                      <div className="bg-[#1D3557] text-white rounded-md p-2 w-20 sm:w-24 text-center">
+                        <span className="text-lg sm:text-xl font-bold block">{formatTime(timeLeft.minutes)}</span>
+                        <span className="text-xs">Minutos</span>
+                      </div>
+                      <div className={`bg-[#1D3557] text-white rounded-md p-2 w-20 sm:w-24 text-center ${urgencia ? 'animate-pulse' : ''}`}>
+                        <span className="text-lg sm:text-xl font-bold block">{formatTime(timeLeft.seconds)}</span>
+                        <span className="text-xs">Segundos</span>
+                      </div>
+                    </div>
+                  </div>
+                  
+                  {/* Botão de compra */}
+                  <a 
+                    href="https://seguro.profdidatica.com.br/r/HDJYH7SZJ6"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className={`block w-full bg-gradient-to-r from-[#457B9D] to-[#1D3557] hover:from-[#1D3557] hover:to-[#457B9D] text-white font-bold py-3 sm:py-4 px-4 sm:px-6 rounded-md text-center text-base sm:text-lg uppercase tracking-wide transition-all transform hover:scale-105 shadow-lg hover:shadow-xl`}
+                  >
+                    Comprar Agora
+                  </a>
+                  
+                  {/* Garantias */}
+                  <div className="mt-4 flex flex-col items-center justify-center space-y-2">
+                    <div className="flex items-center text-sm text-gray-600">
+                      <svg className="w-4 h-4 mr-1 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"></path>
+                      </svg>
+                      Compra 100% segura
+                    </div>
+                    <div className="flex items-center text-sm text-gray-600">
+                      <svg className="w-4 h-4 mr-1 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z"></path>
+                      </svg>
+                      Pagamento facilitado
+                    </div>
+                  </div>
+                </div>
+              </div>
             </div>
           </section>
 
@@ -292,7 +465,9 @@ export default function VariantA({ testId }: VariantAProps) {
               </div>
             </div>
             <div className="bg-[#457B9D] text-white p-6 rounded-lg mb-8">
-              <h3 className="font-bold text-xl mb-6 text-center border-b border-white pb-3">💬 Veja o que professoras estão dizendo:</h3>
+              <h3 className="font-bold text-xl mb-6 text-center border-b border-white pb-3">
+                💬 Veja o que professoras estão dizendo:
+              </h3>
               <div className="grid grid-cols-1 gap-6">
                 <div className="bg-white text-gray-800 p-5 rounded-lg shadow-md">
                   <p className="italic mb-3">&ldquo;Meus alunos que não gostavam de ler agora competem para ver quem lê mais! Nunca vi um resultado tão rápido!&rdquo;</p>
@@ -339,14 +514,14 @@ export default function VariantA({ testId }: VariantAProps) {
           </section>
 
           {/* Pricing Section */}
-          <section id="oferta-especial" className="bg-white rounded-lg shadow-lg py-16 px-8 mb-20">
+          <section id="oferta-especial" className="bg-white rounded-lg shadow-lg p-6 mb-20">
             <h2 className="text-2xl md:text-3xl font-bold text-[#1D3557] mb-8 border-b-2 border-[#a8dadc] pb-3 uppercase text-center">
               Oferta Especial
             </h2>
             
             
               <div className="text-center mb-6 pt-4">
-                <h3 className="text-2xl font-bold text-[#457B9D] uppercase tracking-wider">Projeto Literário Completo</h3>
+                <h3 className="text-xl sm:text-2xl font-bold text-[#457B9D] uppercase tracking-wider">Projeto Literário Completo</h3>
               </div>
               
               <ul className="space-y-4 mb-8">
@@ -389,11 +564,11 @@ export default function VariantA({ testId }: VariantAProps) {
 
               <div className="text-center mb-6">
                 <div className="inline-block relative">
-                  <span className="absolute -top-3 -right-10 bg-[#457B9D] text-white text-xs font-bold py-1 px-2 rounded-full transform rotate-12">45% OFF</span>
-                  <span className="text-6xl font-black text-[#1D3557]">R$15</span>
+                  <span className="absolute -top-3 -right-12 bg-[#457B9D] text-white text-xs font-bold py-1 px-2 rounded-full transform rotate-12">45% OFF</span>
+                  <span className="text-5xl sm:text-6xl font-black text-[#1D3557]">R$15</span>
                 </div>
                 <p className="text-xs text-gray-600 mt-2 italic">
-                  Aproveite antes que volte para R$27
+                  Aproveite antes que o estoque acabe
                 </p>
               </div>
 
@@ -401,17 +576,13 @@ export default function VariantA({ testId }: VariantAProps) {
                 href="https://seguro.profdidatica.com.br/r/HDJYH7SZJ6"
                 target="_blank"
                 rel="noopener noreferrer"
-                onClick={() => {
-                  console.log('Botão de compra clicado - variant A');
-                  handlePurchaseClick();
-                }}
                 className="block w-full bg-gradient-to-r from-[#457B9D] to-[#1D3557] hover:from-[#1D3557] hover:to-[#457B9D] text-white text-base sm:text-lg font-bold py-3 sm:py-4 px-6 sm:px-8 rounded-xl shadow-lg transform transition-all duration-300 hover:scale-[1.02] hover:shadow-xl relative overflow-hidden group text-center"
               >
                 <div className="absolute inset-0 bg-white/20 rounded-xl opacity-0 group-hover:opacity-100 transition-opacity text-center"></div>
                 <span className="relative">
                 GARANTIR MEU PROJETO LITERÁRIO AGORA
                 </span>
-              </a>
+              </a>            
           </section>
 
           {/* FAQ Section */}
@@ -426,9 +597,7 @@ export default function VariantA({ testId }: VariantAProps) {
                   <summary className="flex items-center justify-between gap-3 p-4 bg-[#f8f9fa] cursor-pointer">
                     <span className="font-medium text-[#1D3557] text-lg">Para qual faixa etária esse material é indicado?</span>
                     <span className="transition-transform duration-300 group-open:rotate-180">
-                      <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 text-[#457B9D]" fill="currentColor" viewBox="0 0 24 24" stroke="currentColor">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
-                      </svg>
+                      <FaChevronDown className="h-5 w-5 text-[#457B9D]" />
                     </span>
                   </summary>
                   <div className="p-4 bg-white">
@@ -443,9 +612,7 @@ export default function VariantA({ testId }: VariantAProps) {
                   <summary className="flex items-center justify-between gap-3 p-4 bg-[#f8f9fa] cursor-pointer">
                     <span className="font-medium text-[#1D3557] text-lg">O material é digital ou físico?</span>
                     <span className="transition-transform duration-300 group-open:rotate-180">
-                      <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 text-[#457B9D]" fill="currentColor" viewBox="0 0 24 24" stroke="currentColor">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
-                      </svg>
+                      <FaChevronDown className="h-5 w-5 text-[#457B9D]" />
                     </span>
                   </summary>
                   <div className="p-4 bg-white">
@@ -460,9 +627,7 @@ export default function VariantA({ testId }: VariantAProps) {
                   <summary className="flex items-center justify-between gap-3 p-4 bg-[#f8f9fa] cursor-pointer">
                     <span className="font-medium text-[#1D3557] text-lg">Preciso de muito tempo para aplicar esse sistema?</span>
                     <span className="transition-transform duration-300 group-open:rotate-180">
-                      <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 text-[#457B9D]" fill="currentColor" viewBox="0 0 24 24" stroke="currentColor">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
-                      </svg>
+                      <FaChevronDown className="h-5 w-5 text-[#457B9D]" />
                     </span>
                   </summary>
                   <div className="p-4 bg-white">
@@ -477,9 +642,7 @@ export default function VariantA({ testId }: VariantAProps) {
                   <summary className="flex items-center justify-between gap-3 p-4 bg-[#f8f9fa] cursor-pointer">
                     <span className="font-medium text-[#1D3557] text-lg">Como recebo o material após a compra?</span>
                     <span className="transition-transform duration-300 group-open:rotate-180">
-                      <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 text-[#457B9D]" fill="currentColor" viewBox="0 0 24 24" stroke="currentColor">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
-                      </svg>
+                      <FaChevronDown className="h-5 w-5 text-[#457B9D]" />
                     </span>
                   </summary>
                   <div className="p-4 bg-white">
@@ -494,9 +657,7 @@ export default function VariantA({ testId }: VariantAProps) {
                   <summary className="flex items-center justify-between gap-3 p-4 bg-[#f8f9fa] cursor-pointer">
                     <span className="font-medium text-[#1D3557] text-lg">Posso usar o material com toda a minha turma?</span>
                     <span className="transition-transform duration-300 group-open:rotate-180">
-                      <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 text-[#457B9D]" fill="currentColor" viewBox="0 0 24 24" stroke="currentColor">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
-                      </svg>
+                      <FaChevronDown className="h-5 w-5 text-[#457B9D]" />
                     </span>
                   </summary>
                   <div className="p-4 bg-white">
@@ -517,8 +678,7 @@ export default function VariantA({ testId }: VariantAProps) {
                 Você pode continuar insistindo nas mesmas estratégias sem resultado...
               </p>
               <p className="text-xl text-gray-800 mb-4">
-  
-                    Ou pode implementar um método já testado que vai transformar o interesse dos seus alunos pela leitura.
+                Ou pode implementar um método já testado que vai transformar o interesse dos seus alunos pela leitura.
               </p>
               <p className="font-bold text-[#1D3557] bg-[#f8f9fa] p-3 rounded-lg">
                 📌 O valor promocional e o bônus gratuito só estão disponíveis por tempo limitado!
@@ -526,13 +686,16 @@ export default function VariantA({ testId }: VariantAProps) {
             </div>
             <a 
               href="https://seguro.profdidatica.com.br/r/HDJYH7SZJ6"              
+              target="_blank"
+              rel="noopener noreferrer"
               className="inline-block bg-[#e63946] hover:bg-[#d62c3b] text-white font-bold py-4 px-10 rounded-lg text-xl transition-all transform hover:scale-105 shadow-lg hover:shadow-xl"
             >
-              Quero o Projeto Literário Agora
+              Quero Meu Projeto Literário Agora
             </a>
           </section>
         </div>
       </main>
+      
       {/* Footer */}
       <footer className="bg-[#6bbbed] py-4 text-center text-white">
         <div className="container mx-auto px-4">

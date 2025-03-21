@@ -1,32 +1,24 @@
 {
   "name": "prof-didatica",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "private": true,
   "scripts": {
-    "dev": "next dev -p 3001",
+    "dev": "next dev",
     "build": "next build",
     "start": "next start -p 3001",
     "lint": "next lint"
   },
   "dependencies": {
-    "@prisma/client": "^6.5.0",
-    "chart.js": "^4.4.8",
-    "leaflet": "^1.9.4",
     "next": "15.2.2",
-    "prisma": "^6.5.0",
     "react": "^18.2.0",
-    "react-chartjs-2": "^5.3.0",
     "react-dom": "^18.2.0",
-    "react-leaflet": "^4.2.1",
-    "swiper": "^11.2.5",
-    "uuid": "^11.1.0"
+    "react-icons": "^5.5.0",
+    "swiper": "^11.2.5"    
   },
-  "devDependencies": {
-    "@types/leaflet": "^1.9.16",
+  "devDependencies": {    
     "@types/node": "^20.17.24",
     "@types/react": "^18",
-    "@types/react-dom": "^18",
-    "@types/uuid": "^10.0.0",
+    "@types/react-dom": "^18",    
     "autoprefixer": "^10.4.21",
     "eslint": "^8.46.0",
     "eslint-config-next": "15.2.2",
@@ -34,8 +26,5 @@
     "tailwindcss": "^3.4.17",
     "ts-node": "^10.9.2",
     "typescript": "^5.8.2"
-  },
-  "prisma": {
-    "seed": "ts-node --project prisma/tsconfig.json -r tsconfig-paths/register prisma/seed.ts"
   }
 }
