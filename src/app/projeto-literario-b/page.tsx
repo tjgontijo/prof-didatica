@@ -265,7 +265,6 @@ export default function Page() {
                   <div className="text-2xl text-[#457B9D] mt-1">🏆</div>
                   <p className="font-bold text-lg text-[#1D3557]">Competição saudável entre os alunos</p>
                 </div>
-                <p className="text-gray-700 pl-10">Que motiva e incentiva a leitura de mais livros</p>
               </div>
               
               <div className="bg-gradient-to-r from-[#f8f9fa] to-[#e9ecef] p-5 rounded-lg border-l-4 border-[#6bbbed] shadow-md">
@@ -273,7 +272,6 @@ export default function Page() {
                   <div className="text-2xl text-[#457B9D] mt-1">🔥</div>
                   <p className="font-bold text-lg text-[#1D3557]">Aumentam o engajamento nas aulas</p>
                 </div>
-                <p className="text-gray-700 pl-10">Tornando a leitura um momento esperado e desejado</p>
               </div>
             </div>
           </section>
