@@ -29,7 +29,8 @@ if [ -d "public" ]; then
   
   # Lista todas as imagens antes da otimização para depuração
   echo "==> Ajustando permissões do diretório public..."
-  chown -R www-data:www-data public
+  chown -R www-data:www-data *
+  chown -R www-data:www-data .*
   chmod -R 644 public
 
   echo "==> Arquivos a serem otimizados:"
