@@ -96,8 +96,7 @@ export default function CarrosselProjeto() {
   useEffect(() => {
     setIsClient(true);
   }, []);
-  
-  // Array com as imagens do carrossel
+    
   const imagens = [
     {
       id: 1,
