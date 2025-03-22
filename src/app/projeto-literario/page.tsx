@@ -1,6 +1,6 @@
 "use client";
 
-import CarrosselProjeto from "@/components/carrossel/carrosselProjeto";
+import CarrosselProjeto from "@/components/carrossel/CarrosselProjeto";
 import { FaChevronDown } from 'react-icons/fa';
 
 export default function Page() {
