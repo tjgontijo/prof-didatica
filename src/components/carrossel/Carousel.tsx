@@ -49,7 +49,7 @@ export default function Carousel({
   const autoplayConfig = autoplay
     ? {
         delay: 3000,
-        disableOnInteraction: false,
+        disableOnInteraction: true,
       }
     : false;
 

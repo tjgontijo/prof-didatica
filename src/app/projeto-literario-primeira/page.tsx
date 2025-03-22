@@ -10,74 +10,71 @@ export default function Page() {
       <main className="flex-1 flex flex-col items-center py-10">
         <div className="w-full max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
           {/* Hero Section */}
-          <section className="text-center mb-12">
-            <h1 className="text-3xl md:text-4xl font-bold text-[#1D3557] mb-6 uppercase">
+          <section className="text-center mb-20">
+            <h1 className="text-3xl md:text-4xl font-bold text-[#1D3557] mb-6">
               Conheça o Método que Vai Fazer seus Alunos se Apaixonarem pela Leitura!
             </h1>
             <h2 className="text-xl md:text-2xl text-[#457B9D] mb-4 max-w-3xl mx-auto">
               Transforme suas aulas com um sistema que faz os alunos pedirem para ler o próximo livro!
             </h2>
+            <p className="text-xs text-[#1D3557] italic mb-0">
+              Passe para o lado e conheça uma parte do <strong>Projeto Literário</strong>:
+            </p>
+            {/* Carrossel de imagens */}
+            <div className="w-full max-w-2xl mx-auto mb-0">
+              <CarrosselProjeto />
+            </div>
           </section>
 
           {/* Benefícios Section */}
-          <section className="bg-white rounded-lg shadow-lg py-8 px-3 mb-20">
+          <section className="bg-white rounded-lg shadow-lg p-8 mb-20">
             <h2 className="text-2xl md:text-3xl font-bold text-[#1D3557] mb-8 border-b-2 border-[#a8dadc] pb-3 uppercase text-center">
               Benefícios para seus alunos
             </h2>
             <div className="grid grid-cols-1  gap-6 mb-8">
               <div className="bg-gradient-to-r from-[#f8f9fa] to-[#e9ecef] p-5 rounded-lg border-l-4 border-[#6bbbed] shadow-md">
-                <div className="flex items-start gap-2">
+                <div className="flex items-start gap-3 mb-3">
                   <div className="text-2xl text-[#457B9D] mt-1">📖</div>
                   <p className="font-bold text-lg text-[#1D3557]">Desenvolvem o hábito e o gosto pela leitura</p>
                 </div>                
               </div>
               
               <div className="bg-gradient-to-r from-[#f8f9fa] to-[#e9ecef] p-5 rounded-lg border-l-4 border-[#6bbbed] shadow-md">
-                <div className="flex items-start gap-2">
+                <div className="flex items-start gap-3 mb-3">
                   <div className="text-2xl text-[#457B9D] mt-1">🔍</div>
                   <p className="font-bold text-lg text-[#1D3557]">Ampliam o vocabulário e a compreensão leitora</p>
                 </div>
               </div>
               
               <div className="bg-gradient-to-r from-[#f8f9fa] to-[#e9ecef] p-5 rounded-lg border-l-4 border-[#6bbbed] shadow-md">
-                <div className="flex items-start gap-2">
+                <div className="flex items-start gap-3 mb-3">
                   <div className="text-2xl text-[#457B9D] mt-1">✨</div>
                   <p className="font-bold text-lg text-[#1D3557]">Estimulam a criatividade e imaginação</p>
                 </div>
               </div>
               
               <div className="bg-gradient-to-r from-[#f8f9fa] to-[#e9ecef] p-5 rounded-lg border-l-4 border-[#6bbbed] shadow-md">
-                <div className="flex items-start gap-2">
+                <div className="flex items-start gap-3 mb-3">
                   <div className="text-2xl text-[#457B9D] mt-1">✏️</div>
                   <p className="font-bold text-lg text-[#1D3557]">Aprimoram as habilidades de escrita</p>
                 </div>
               </div>
               
               <div className="bg-gradient-to-r from-[#f8f9fa] to-[#e9ecef] p-5 rounded-lg border-l-4 border-[#6bbbed] shadow-md">
-                <div className="flex items-start gap-2">
+                <div className="flex items-start gap-3 mb-3">
                   <div className="text-2xl text-[#457B9D] mt-1">🏆</div>
                   <p className="font-bold text-lg text-[#1D3557]">Competição saudável entre os alunos</p>
                 </div>
+                <p className="text-gray-700 pl-10">Que motiva e incentiva a leitura de mais livros</p>
               </div>
               
               <div className="bg-gradient-to-r from-[#f8f9fa] to-[#e9ecef] p-5 rounded-lg border-l-4 border-[#6bbbed] shadow-md">
-                <div className="flex items-start gap-2">
+                <div className="flex items-start gap-3 mb-3">
                   <div className="text-2xl text-[#457B9D] mt-1">🔥</div>
                   <p className="font-bold text-lg text-[#1D3557]">Aumentam o engajamento nas aulas</p>
-                </div>                
+                </div>
+                <p className="text-gray-700 pl-10">Tornando a leitura um momento esperado e desejado</p>
               </div>
-            </div>
-          </section>
-          <section className="text-center mb-20">
-            <h1 className="text-3xl md:text-4xl font-bold text-[#1D3557] mb-6">
-              Conheça o Projeto Literário por Dentro
-            </h1>           
-            <p className="text-xs text-[#1D3557] italic mb-1">
-              Passe para o lado e conheça uma parte do recurso:
-            </p>
-            {/* Carrossel de imagens */}
-            <div className="w-full max-w-2xl mx-auto mb-0">
-              <CarrosselProjeto />
             </div>
           </section>
 

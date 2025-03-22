@@ -74,7 +74,16 @@ function LazyImage({
 
 // Importação dinâmica do componente Carousel para reduzir o JavaScript inicial
 const Carousel = dynamic(() => import('./carousel'), {
-  loading: () => <div className="carrossel-placeholder"></div>,
+  loading: () => (
+    <div 
+      className="carrossel-placeholder relative aspect-[7/10] w-full bg-gray-200 animate-pulse rounded-md"
+      aria-label="Carregando carrossel"
+    >
+      <div className="absolute inset-0 flex items-center justify-center text-gray-500">
+        <span className="text-sm">Carregando...</span>
+      </div>
+    </div>
+  ),
   ssr: false
 });
 
@@ -93,14 +102,17 @@ export default function CarrosselProjeto() {
     {
       id: 1,
       content: (
-        <div className="relative aspect-square w-full">
+        <div className="relative aspect-[7/10] w-full rounded-md">
           <LazyImage 
             src="/images/carrossel/1.webp" 
             alt="Projeto Literário - Imagem 1"
             fill
-            sizes="(max-width: 768px) 100vw, 600px"
+            sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 700px"
             priority={true}
             className="object-contain"
+            placeholder="blur"
+            blurDataURL="/images/carrossel/1-placeholder.webp"
+            quality={80}
             placeholderColor="#f0f0f0"
           />
         </div>
@@ -109,14 +121,17 @@ export default function CarrosselProjeto() {
     {
       id: 2,
       content: (
-        <div className="relative aspect-square w-full">
+        <div className="relative aspect-[7/10] w-full rounded-md">
           <LazyImage 
             src="/images/carrossel/2.webp" 
             alt="Projeto Literário - Imagem 2"
             fill
-            sizes="(max-width: 768px) 100vw, 600px"
+            sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 700px"
             loading="lazy"
             className="object-contain"
+            placeholder="blur"
+            blurDataURL="/images/carrossel/2-placeholder.webp"
+            quality={80}
             placeholderColor="#f0f0f0"
           />
         </div>
@@ -125,14 +140,17 @@ export default function CarrosselProjeto() {
     {
       id: 3,
       content: (
-        <div className="relative aspect-square w-full">
+        <div className="relative aspect-[7/10] w-full rounded-md">
           <LazyImage 
             src="/images/carrossel/3.webp" 
             alt="Projeto Literário - Imagem 3"
             fill
-            sizes="(max-width: 768px) 100vw, 600px"
+            sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 700px"
             loading="lazy"
             className="object-contain"
+            placeholder="blur"
+            blurDataURL="/images/carrossel/3-placeholder.webp"
+            quality={80}
             placeholderColor="#f0f0f0"
           />
         </div>
@@ -141,14 +159,17 @@ export default function CarrosselProjeto() {
     {
       id: 4,
       content: (
-        <div className="relative aspect-square w-full">
+        <div className="relative aspect-[7/10] w-full rounded-md">
           <LazyImage 
             src="/images/carrossel/4.webp" 
             alt="Projeto Literário - Imagem 4"
             fill
-            sizes="(max-width: 768px) 100vw, 600px"
+            sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 700px"
             loading="lazy"
             className="object-contain"
+            placeholder="blur"
+            blurDataURL="/images/carrossel/4-placeholder.webp"
+            quality={80}
             placeholderColor="#f0f0f0"
           />
         </div>
@@ -157,83 +178,22 @@ export default function CarrosselProjeto() {
     {
       id: 5,
       content: (
-        <div className="relative aspect-square w-full">
+        <div className="relative aspect-[7/10] w-full rounded-md">
           <LazyImage 
             src="/images/carrossel/5.webp" 
             alt="Projeto Literário - Imagem 5"
             fill
-            sizes="(max-width: 768px) 100vw, 600px"
+            sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 700px"
             loading="lazy"
             className="object-contain"
+            placeholder="blur"
+            blurDataURL="/images/carrossel/5-placeholder.webp"
+            quality={80}
             placeholderColor="#f0f0f0"
           />
         </div>
-      ),
-    },
-    {
-      id: 6,
-      content: (
-        <div className="relative aspect-square w-full">
-          <LazyImage 
-            src="/images/carrossel/6.webp" 
-            alt="Projeto Literário - Imagem 6"
-            fill
-            sizes="(max-width: 768px) 100vw, 600px"
-            loading="lazy"
-            className="object-contain"
-            placeholderColor="#f0f0f0"
-          />
-        </div>
-      ),
-    },
-    {
-      id: 7,
-      content: (
-        <div className="relative aspect-square w-full">
-          <LazyImage 
-            src="/images/carrossel/7.webp" 
-            alt="Projeto Literário - Imagem 7"
-            fill
-            sizes="(max-width: 768px) 100vw, 600px"
-            loading="lazy"
-            className="object-contain"
-            placeholderColor="#f0f0f0"
-          />
-        </div>
-      ),
-    },
-    {
-      id: 8,
-      content: (
-        <div className="relative aspect-square w-full">
-          <LazyImage 
-            src="/images/carrossel/8.webp" 
-            alt="Projeto Literário - Imagem 8"
-            fill
-            sizes="(max-width: 768px) 100vw, 600px"
-            loading="lazy"
-            className="object-contain"
-            placeholderColor="#f0f0f0"
-          />
-        </div>
-      ),
-    },
-    {
-      id: 9,
-      content: (
-        <div className="relative aspect-square w-full">
-          <LazyImage 
-            src="/images/carrossel/9.webp" 
-            alt="Projeto Literário - Imagem 9"
-            fill
-            sizes="(max-width: 768px) 100vw, 600px"
-            loading="lazy"
-            className="object-contain"
-            placeholderColor="#f0f0f0"
-          />
-        </div>
-      ),
-    },
+      )
+    }
   ];
 
   // Se não estiver no cliente, mostra um placeholder
@@ -242,20 +202,20 @@ export default function CarrosselProjeto() {
   }
 
   return (
-    <div className="carrossel-projeto">
+    <div className="carrossel-projeto space-y-2">
       <Carousel 
         items={imagens} 
         slidesPerView={1}
-        navigation={true}
+        navigation={false}
         pagination={false} 
-        autoplay={false}
+        autoplay={true}
         loop={true}
-        className="py-4 carrossel-personalizado"
+        className="carrossel-personalizado"
         onSlideChange={(swiper) => setActiveIndex(swiper.realIndex)}
       />
       
       {/* Paginação externa */}
-      <div className="flex justify-center gap-2 mt-4">
+      <div className="flex justify-center gap-2">
         {imagens.map((_, index) => (
           <button
             key={index}
@@ -263,12 +223,10 @@ export default function CarrosselProjeto() {
             className={`w-2 h-2 rounded-full transition-all ${
               activeIndex === index 
                 ? 'bg-[#1D3557] w-4' 
-                : 'bg-[#A8DADC]'
+                : 'bg-gray-300'
             }`}
-            aria-label={`Ir para slide ${index + 1}`}
           />
         ))}
-      </div>
-    </div>
+      </div>    </div>
   );
 }
