@@ -14,7 +14,7 @@ sudo apt install -y curl git unzip nginx certbot python3-certbot-nginx
 # Clonar o repositório
 echo "📥 Clonando o repositório do projeto..."
 cd /var/www
-sudo git clone https://github.com.br/tjgontijo/prof-didatica.git profdidatica
+sudo git clone https://github.com/tjgontijo/prof-didatica.git profdidatica
 cd profdidatica
 
 # Instalar dependências
