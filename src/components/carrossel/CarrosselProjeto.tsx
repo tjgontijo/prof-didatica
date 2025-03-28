@@ -110,7 +110,7 @@ export default function CarrosselProjeto() {
             priority={true}
             className="object-contain"
             placeholder="blur"
-            blurDataURL="/images/carrossel/1-placeholder.webp"
+            blurDataURL="/images/carrossel/placeholder.webp"
             quality={80}
             placeholderColor="#f0f0f0"
           />
@@ -129,7 +129,7 @@ export default function CarrosselProjeto() {
             loading="lazy"
             className="object-contain"
             placeholder="blur"
-            blurDataURL="/images/carrossel/2-placeholder.webp"
+            blurDataURL="/images/carrossel/placeholder.webp"
             quality={80}
             placeholderColor="#f0f0f0"
           />
@@ -148,7 +148,7 @@ export default function CarrosselProjeto() {
             loading="lazy"
             className="object-contain"
             placeholder="blur"
-            blurDataURL="/images/carrossel/3-placeholder.webp"
+            blurDataURL="/images/carrossel/placeholder.webp"
             quality={80}
             placeholderColor="#f0f0f0"
           />
@@ -167,7 +167,7 @@ export default function CarrosselProjeto() {
             loading="lazy"
             className="object-contain"
             placeholder="blur"
-            blurDataURL="/images/carrossel/4-placeholder.webp"
+            blurDataURL="/images/carrossel/placeholder.webp"
             quality={80}
             placeholderColor="#f0f0f0"
           />
@@ -186,7 +186,45 @@ export default function CarrosselProjeto() {
             loading="lazy"
             className="object-contain"
             placeholder="blur"
-            blurDataURL="/images/carrossel/5-placeholder.webp"
+            blurDataURL="/images/carrossel/placeholder.webp"
+            quality={80}
+            placeholderColor="#f0f0f0"
+          />
+        </div>
+      )
+    },
+    {
+      id: 6,
+      content: (
+        <div className="relative aspect-[7/10] w-full rounded-md">
+          <LazyImage 
+            src="/images/carrossel/6.webp" 
+            alt="Projeto Literário - Imagem 6"
+            fill
+            sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 700px"
+            loading="lazy"
+            className="object-contain"
+            placeholder="blur"
+            blurDataURL="/images/carrossel/placeholder.webp"
+            quality={80}
+            placeholderColor="#f0f0f0"
+          />
+        </div>
+      )
+    },
+    {
+      id: 7,
+      content: (
+        <div className="relative aspect-[7/10] w-full rounded-md">
+          <LazyImage 
+            src="/images/carrossel/6.webp" 
+            alt="Projeto Literário - Imagem 7"
+            fill
+            sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 700px"
+            loading="lazy"
+            className="object-contain"
+            placeholder="blur"
+            blurDataURL="/images/carrossel/placeholder.webp"
             quality={80}
             placeholderColor="#f0f0f0"
           />
