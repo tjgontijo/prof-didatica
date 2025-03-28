@@ -7,7 +7,7 @@ export default function Home() {
       {/* Header */}
       <header className="bg-[#6bbbed] py-2 flex justify-center items-center shadow-md">
         <Image
-          src="/images/system/logo_transparent.png"
+          src="/images/system/logo_transparent.webp"
           alt="Logo Prof Didática"
           width={100}
           height={40}
@@ -26,10 +26,10 @@ export default function Home() {
           >
             <div className="overflow-hidden rounded-lg shadow-lg hover:shadow-xl transition-shadow duration-300">
               <Image
-                src="/images/banner/banner_pixel.jpg"
+                src="/images/banner/banner_pixel.webp"
                 alt="Banner Pixel"
-                width={480}
-                height={150}
+                width={540}
+                height={180}
                 className="w-full h-auto"
               />
             </div>
@@ -41,10 +41,10 @@ export default function Home() {
           >
             <div className="overflow-hidden rounded-lg shadow-lg hover:shadow-xl transition-shadow duration-300">
               <Image
-                src="/images/banner/banner_projeto.jpg"
+                src="/images/banner/banner_projeto.webp"
                 alt="Banner Projeto"
-                width={480}
-                height={150}
+                width={540}
+                height={180}
                 className="w-full h-auto"
               />
             </div>
@@ -58,10 +58,10 @@ export default function Home() {
           >
             <div className="overflow-hidden rounded-lg shadow-lg hover:shadow-xl transition-shadow duration-300">
               <Image
-                src="/images/banner/banner_suporte.jpg"
+                src="/images/banner/banner_suporte.webp"
                 alt="Banner Suporte"
-                width={480}
-                height={150}
+                width={540}
+                height={180}
                 className="w-full h-auto"
               />
             </div>
@@ -75,10 +75,10 @@ export default function Home() {
           >
             <div className="overflow-hidden rounded-lg shadow-lg hover:shadow-xl transition-shadow duration-300">
               <Image
-                src="/images/banner/banner_loja.jpg"
+                src="/images/banner/banner_loja.webp"
                 alt="Banner Loja"
-                width={480}
-                height={150}
+                width={540}
+                height={180}
                 className="w-full h-auto"
               />
             </div>
