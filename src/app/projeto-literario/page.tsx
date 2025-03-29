@@ -1,9 +1,46 @@
-"use client";
+'use client'
 
+
+import React from 'react';
 import { useState, useEffect } from 'react';
 import CarrosselProjeto from "@/components/carrossel/CarrosselProjeto";
 import { FaChevronDown, FaCheck } from 'react-icons/fa';
 import Image from 'next/image';
+
+const CityDisplay = () => {
+  const checkLocalStorage = () => {
+    const lead = localStorage.getItem('lead');
+    if (lead) {
+      try {
+        const parsedLead = JSON.parse(lead);
+        return parsedLead?.geolocation?.city || 'Valinhos - SP';
+      } catch {
+        return 'Valinhos - SP';
+      }
+    }
+    return null;
+  };
+
+  const [city, setCity] = React.useState('Valinhos - SP');
+
+  React.useEffect(() => {
+    const initialCheck = checkLocalStorage();
+    if (initialCheck) {
+      setCity(initialCheck);
+    } else {
+      const timer = setTimeout(() => {
+        const secondCheck = checkLocalStorage();
+        if (secondCheck) {
+          setCity(secondCheck);
+        }
+      }, 5000);
+
+      return () => clearTimeout(timer);
+    }
+  }, []);
+
+  return <>{city}</>;
+};
 
 export default function Page() {
   const [isVisible, setIsVisible] = useState(false);
@@ -12,7 +49,7 @@ export default function Page() {
   useEffect(() => {
     const toggleVisibility = () => {
       // Marca como atingido uma vez que passe dos 1500 pixels
-      if (window.scrollY > 1500) {
+      if (window.scrollY > 2000) {
         setHasReachedThreshold(true);
       }
 
@@ -39,10 +76,9 @@ export default function Page() {
             <h1 className="text-4xl md:text-5xl font-black mb-6 leading-tight tracking-tight relative text-[#1D3557] uppercase">
               <span className="relative z-10">
                 Seus alunos vão 
-                <span className="text-[#457B9D] animate-pulse"> disputar </span>
-                quem lê mais 
-                <br />
-                <span className="text-[#1D3557]">sem você precisar montar nada!</span>
+                <span className="text-[#457B9D] animate-pulse "> disputar </span>
+                <span className='underline'>quem lê mais</span>,
+                <span className="text-[#1D3557]"> sem você precisar montar nada!</span>
               </span>
             </h1>
             <h2 className="text-lg md:text-xl text-[#1D3557] mb-6 max-w-3xl mx-auto font-normal leading-relaxed text-left">
@@ -138,13 +174,13 @@ export default function Page() {
             </h2>
             
             <div className="max-w-2xl mx-auto text-left space-y-6">
-              <p className="text-gray-800 text-xl mt-12 mb-6">
+              <p className="text-gray-800 text-xl mt-12 mb-6 leading-relaxed">
                 Você entra na sala com tudo pronto.           
                 O livro foi escolhido com carinho, a atividade pensada nos mínimos detalhes.              
                 Há uma expectativa silenciosa de que, dessa vez, seus alunos se envolvam com a leitura.
               </p>
 
-              <p className="text-gray-800 text-xl">
+              <p className="text-gray-800 text-xl leading-relaxed">
                 Mas assim que a aula começa, a realidade bate.              
                 Metade da turma nem abriu o livro.
                 A outra metade finge que leu.              
@@ -214,13 +250,13 @@ export default function Page() {
           </h2>
         </div>
             <div className="flex flex-col gap-8 items-center mb-6">
-                <p className="text-gray-800 text-xl mb-4">
+                <p className="text-gray-800 text-xl mb-4 leading-relaxed">
                 Aquele aluno que dizia que ler é chato, agora chega animado pra mostrar a ficha preenchida.
                 </p>
-                <p className="text-gray-800 text-xl mb-4">
+                <p className="text-gray-800 text-xl mb-4 leading-relaxed">
                 A turma inteira acompanhando a estante de leitura, comemorando cada livro colorido como uma pequena conquista.
                 </p>
-                <p className="text-gray-800 text-xl mb-4">
+                <p className="text-gray-800 text-xl mb-4 leading-relaxed">
                 E você, sem precisar montar tudo do zero, vendo a leitura acontecer com envolvimento real, e sentindo orgulho por ter feito isso acontecer.
                 </p>
               <div className="bg-gradient-to-br from-[#457B9D] to-[#1D3557] p-4 rounded-lg shadow-lg">
@@ -420,7 +456,7 @@ export default function Page() {
                 </p>
                 <p className="text-right font-medium text-[#1D3557]">– Prof. Carla R.</p>
                 <p className="text-right text-xs text-gray-500 italic">
-                  {typeof window !== 'undefined' && JSON.parse(localStorage.getItem('lead') || '{}')?.geolocation?.city || 'Valinhos - SP'}
+                  <CityDisplay />
                 </p>
               </div>
                 <div className="bg-white text-gray-800 p-5 rounded-lg shadow-md mb-4">
@@ -633,7 +669,7 @@ export default function Page() {
       </footer>
       {/* Botão Fixo */}
       {isVisible && (
-        <div className="fixed bottom-0 left-0 right-0 z-50 py-5 bg-white/90 shadow-2xl backdrop-blur-sm">
+        <div className="fixed bottom-0 left-0 right-0 z-50 py-8 bg-white/90 shadow-2xl backdrop-blur-sm">
           <a 
             href="https://seguro.profdidatica.com.br/r/HDJYH7SZJ6?promocode=PL45OFF"
             target="_blank"
