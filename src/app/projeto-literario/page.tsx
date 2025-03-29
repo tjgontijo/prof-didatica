@@ -523,9 +523,7 @@ export default function Page() {
 <section className="bg-white rounded-lg shadow-lg p-8 mb-20">
   <h2 className="text-2xl md:text-3xl font-bold text-[#1D3557] mb-8 border-b-2 border-[#a8dadc] pb-3 uppercase text-center">
     Agora é sua vez!
-  </h2>
-
-  
+  </h2>  
     <p className="text-xl text-gray-800 mb-4 leading-relaxed">
       Você pode continuar tentando sozinha, montando tudo do zero, insistindo com estratégias que cansam você mais do que engajam os alunos...
     </p>
