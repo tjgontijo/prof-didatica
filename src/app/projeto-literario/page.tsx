@@ -36,7 +36,7 @@ export default function Page() {
         <div className="w-full max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
           {/* Hero Section */}
           <section className="text-center mb-20">
-            <h1 className="text-4xl md:text-5xl font-black mb-6 leading-tight tracking-tight relative text-[#1D3557]">
+            <h1 className="text-4xl md:text-5xl font-black mb-6 leading-tight tracking-tight relative text-[#1D3557] uppercase">
               <span className="relative z-10">
                 Seus alunos vão 
                 <span className="text-[#457B9D] animate-pulse"> disputar </span>
@@ -107,7 +107,7 @@ export default function Page() {
               </ul>
 
               <div className="text-center mb-6">
-              <p className="text-md text-gray-600 mt-2 italic mb-8">Um projeto validado por professores, aplicado com sucesso em mais de 8 mil alunos, agora disponível por menos do que um lanche na cantina. l</p>
+              <p className="text-md text-gray-600 mt-2 italic mb-8">Um projeto validado por professores, aplicado com sucesso em mais de 8 mil alunos, agora disponível por menos do que um lanche na cantina.</p>
                 <div className="inline-block relative">                
                   <span className="absolute -top-3 -right-10 bg-[#457B9D] text-white text-xs font-bold py-1 px-2 rounded-full transform rotate-12">45% OFF</span>
                   <span className="text-6xl font-black text-[#1D3557]">R$15</span>
@@ -209,7 +209,7 @@ export default function Page() {
             Imagine só...
           </div>
           <h2 className="text-2xl md:text-3xl  text-[#1D3557] p-6 bg-[#f8f9fa] rounded-lg shadow-md border-2 border-dashed border-[#a8dadc]">
-            <span className="italic">Seus alunos pedindo pra contar o que leram, disputando pra ser o próximo a apresentarm, e você apenas acompanhando tudo com leveza.</span>
+            <span className="italic">Seus alunos pedindo pra contar o que leram, disputando pra ser o próximo a apresentar, e você apenas acompanhando tudo com gratidão e leveza.</span>
             <span className="absolute -right-2 -bottom-2 text-3xl">💭</span>
           </h2>
         </div>
@@ -380,8 +380,7 @@ export default function Page() {
                 </div>
               </div>
             </div>           
-          </section>
-          
+          </section>          
 
           {/* Results Section */}
           <section className="bg-white rounded-lg shadow-lg p-8 mb-20">
@@ -412,7 +411,7 @@ export default function Page() {
             </div>
             <div className="bg-[#457B9D] text-white p-6 rounded-lg mb-8">
               <h3 className="font-bold text-xl mb-6 text-center border-b border-white pb-3">💬 Veja o que professoras estão dizendo:</h3>
-              <div className="bg-white text-gray-800 p-5 rounded-lg shadow-md mb-2">
+              <div className="bg-white text-gray-800 p-5 rounded-lg shadow-md mb-4">
                 <p className="italic mb-3">
                   &ldquo;Sinceramente? Eu já estava cansada. Sentia que tudo que eu fazia era ignorado.  
                   Quando comecei o projeto, achei que ia ser só mais uma tentativa. Mas não.  
@@ -420,9 +419,11 @@ export default function Page() {
                   Foi a primeira vez em muito tempo que me senti fazendo diferença de novo.&rdquo;
                 </p>
                 <p className="text-right font-medium text-[#1D3557]">– Prof. Carla R.</p>
-                <p className="text-right text-xs text-gray-500 italic">Valinhos - SP</p>
+                <p className="text-right text-xs text-gray-500 italic">
+                  {typeof window !== 'undefined' && JSON.parse(localStorage.getItem('lead') || '{}')?.geolocation?.city || 'Valinhos - SP'}
+                </p>
               </div>
-                <div className="bg-white text-gray-800 p-5 rounded-lg shadow-md mb-2">
+                <div className="bg-white text-gray-800 p-5 rounded-lg shadow-md mb-4">
                   <p className="italic mb-3">
                     &ldquo;Tenho alunos que nunca pegaram um livro sem reclamar.  
                     Depois de duas semanas usando o projeto, eles começaram a pedir mais.  
