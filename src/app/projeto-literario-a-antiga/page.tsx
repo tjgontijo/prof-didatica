@@ -1,191 +1,83 @@
 "use client";
 
-import { useState, useEffect } from 'react';
 import CarrosselProjeto from "@/components/carrossel/CarrosselProjeto";
 import { FaChevronDown } from 'react-icons/fa';
 
 export default function Page() {
-  const [isVisible, setIsVisible] = useState(false);
-  const [hasReachedThreshold, setHasReachedThreshold] = useState(false);
-
-  useEffect(() => {
-    const toggleVisibility = () => {
-      // Marca como atingido uma vez que passe dos 1500 pixels
-      if (window.scrollY > 1500) {
-        setHasReachedThreshold(true);
-      }
-
-      // Mantém visível após atingir o limite
-      if (hasReachedThreshold) {
-        setIsVisible(true);
-      } else {
-        setIsVisible(false);
-      }
-    };
-
-    window.addEventListener('scroll', toggleVisibility);
-
-    return () => window.removeEventListener('scroll', toggleVisibility);
-  }, [hasReachedThreshold]);
-
   return (
-    <div className="flex flex-col min-h-screen bg-[#f8f9fa] relative">
+    <div className="flex flex-col min-h-screen bg-[#f8f9fa]">
       {/* Main Content */}
       <main className="flex-1 flex flex-col items-center py-10">
         <div className="w-full max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
           {/* Hero Section */}
-          <section className="text-center mb-20">
-            <h1 className="text-4xl md:text-5xl font-black mb-6 leading-tight tracking-tight relative text-[#1D3557]">
-              <span className="relative z-10">
-                Seus alunos vão 
-                <span className="text-[#457B9D] animate-pulse"> disputar </span>
-                quem lê mais 
-                <br />
-                <span className="text-[#1D3557]">sem você precisar montar nada!</span>
-              </span>
+          <section className="text-center mb-12">
+            <h1 className="text-3xl md:text-4xl font-bold text-[#1D3557] mb-6 uppercase">
+              Conheça o Método que Vai Fazer seus Alunos se Apaixonarem pela Leitura!
             </h1>
-            <h2 className="text-lg md:text-xl text-[#1D3557] mb-6 max-w-3xl mx-auto font-normal leading-relaxed text-left">
-              Aplique um projeto literário pronto para engajar até os alunos que não gostam de ler. Economize tempo, traga leveza para a sua rotina e veja sua turma lendo mais e com entusiasmo.
+            <h2 className="text-xl md:text-2xl text-[#457B9D] mb-4 max-w-3xl mx-auto">
+              Transforme suas aulas com um sistema que faz os alunos pedirem para ler o próximo livro!
             </h2>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 max-w-xl mx-auto text-left">
-              {[
-                { icon: '📚', text: '15 fichas literárias envolventes' },
-                { icon: '📊', text: 'Estante interativa de leitura' },
-                { icon: '📋', text: 'Manual de aplicação passo a passo' },
-                { icon: '📈', text: 'Tabela de acompanhamento de resultados' }
-              ].map((item, index) => (
-                <div key={index} className="bg-[#f8f9fa] rounded-lg p-4 flex items-center gap-4 shadow-sm hover:shadow-md transition-all duration-300">
-                  <div className="text-3xl opacity-80">{item.icon}</div>
-                  <span className="text-[#1D3557] font-medium">{item.text}</span>
-                </div>
-              ))}
-            </div>
-            <p className="text-xs text-[#1D3557] italic my-4">
-              Passe para o lado e conheça uma parte do <strong>Projeto Literário</strong>:
-            </p>
-            {/* Carrossel de imagens */}
-            <div className="w-full max-w-2xl mx-auto mb-0">
-              <CarrosselProjeto />
-            </div>
-            <div className="bg-white rounded-lg shadow-lg py-16 px-8 mb-20 mt-8">
-            <h2 className="text-2xl md:text-3xl font-bold text-[#1D3557] mb-8 border-b-2 border-[#a8dadc] pb-3 uppercase text-center">
-              Oferta Especial
-            </h2>
-              <div className="text-center mb-6 pt-4">
-                <h3 className="text-2xl font-bold text-[#457B9D] uppercase tracking-wider">Projeto Literário Completo</h3>
-              </div>
-              
-              <ul className="space-y-4 mb-8 text-left">
-                <li className="flex items-start gap-3 p-3 rounded-lg bg-[#f8f9fa]">
-                  <svg className="w-5 h-5 text-[#457B9D] mt-0.5 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
-                    <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd"/>
-                  </svg>
-                  <span className="font-medium text-[#1D3557]">15 fichas literárias envolventes</span>
-                </li>
-                <li className="flex items-start gap-3 p-3 rounded-lg bg-[#f8f9fa]">
-                  <svg className="w-5 h-5 text-[#457B9D] mt-0.5 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
-                    <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd"/>
-                  </svg>
-                  <span className="font-medium text-[#1D3557]">Estante interativa para acompanhar o progresso</span>
-                </li>
-                <li className="flex items-start gap-3 p-3 rounded-lg bg-[#f8f9fa]">
-                  <svg className="w-5 h-5 text-[#457B9D] mt-0.5 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
-                    <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd"/>
-                  </svg>
-                  <span className="font-medium text-[#1D3557]">Tabela de acompanhamento personalizada</span>
-                </li>
-                <li className="flex items-start gap-3 p-3 rounded-lg bg-[#f8f9fa]">
-                  <svg className="w-5 h-5 text-[#457B9D] mt-0.5 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
-                    <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd"/>
-                  </svg>
-                  <span className="font-medium text-[#1D3557]">Manual de aplicação passo a passo</span>
-                </li>
-
-                <div className="mt-2 mb-3">
-                  <span className="text-[#457B9D] font-semibold">+ Você também receberá:</span>
-                </div>
-                
-                <li className="flex items-center gap-3 p-3 rounded-lg bg-[#a8dadc]/20">
-                  <svg className="w-5 h-5 text-[#457B9D] flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 8v13m0-13V6a2 2 0 112 2h-2zm0 0V5.5A2.5 2.5 0 109.5 8H12zm-7 4h14M5 12a2 2 0 110-4h14a2 2 0 110 4M5 12v7a2 2 0 002 2h10a2 2 0 002-2v-7"/>
-                  </svg>
-                  <span className="font-medium text-[#1D3557] text-left">Apostila com 50 páginas para criação de frases e textos.</span>
-                </li>               
-              </ul>
-
-              <div className="text-center mb-6">
-                <div className="inline-block relative">
-                  <span className="absolute -top-3 -right-10 bg-[#457B9D] text-white text-xs font-bold py-1 px-2 rounded-full transform rotate-12">45% OFF</span>
-                  <span className="text-6xl font-black text-[#1D3557]">R$15</span>
-                </div>
-                <p className="text-xs text-gray-600 mt-2 italic">
-                  Aproveite antes que volte para R$27
-                </p>
-              </div>
-
-              <a 
-                href="https://seguro.profdidatica.com.br/r/HDJYH7SZJ6?promocode=PL45OFF"
-                target="_blank"
-                rel="noopener noreferrer"
-                className="block w-full bg-gradient-to-r from-[#457B9D] to-[#1D3557] hover:from-[#1D3557] hover:to-[#457B9D] text-white text-base sm:text-lg font-bold py-3 sm:py-4 px-6 sm:px-8 rounded-xl shadow-lg transform transition-all duration-300 hover:scale-[1.02] hover:shadow-xl relative overflow-hidden group text-center"
-              >
-                <div className="absolute inset-0 bg-white/20 rounded-xl opacity-0 group-hover:opacity-100 transition-opacity text-center"></div>
-                <span className="relative">
-                GARANTIR MEU PROJETO LITERÁRIO AGORA
-                </span>
-              </a>
-              </div>
           </section>
 
           {/* Benefícios Section */}
-          <section className="bg-white rounded-lg shadow-lg p-8 mb-20">
+          <section className="bg-white rounded-lg shadow-lg py-8 px-3 mb-20">
             <h2 className="text-2xl md:text-3xl font-bold text-[#1D3557] mb-8 border-b-2 border-[#a8dadc] pb-3 uppercase text-center">
               Benefícios para seus alunos
             </h2>
-            <div className="grid grid-cols-1 gap-6 mb-8">
+            <div className="grid grid-cols-1  gap-6 mb-8">
               <div className="bg-gradient-to-r from-[#f8f9fa] to-[#e9ecef] p-5 rounded-lg border-l-4 border-[#6bbbed] shadow-md">
-                <div className="flex items-start gap-3 mb-3">
+                <div className="flex items-start gap-2">
                   <div className="text-2xl text-[#457B9D] mt-1">📖</div>
                   <p className="font-bold text-lg text-[#1D3557]">Desenvolvem o hábito e o gosto pela leitura</p>
                 </div>                
               </div>
               
               <div className="bg-gradient-to-r from-[#f8f9fa] to-[#e9ecef] p-5 rounded-lg border-l-4 border-[#6bbbed] shadow-md">
-                <div className="flex items-start gap-3 mb-3">
+                <div className="flex items-start gap-2">
                   <div className="text-2xl text-[#457B9D] mt-1">🔍</div>
                   <p className="font-bold text-lg text-[#1D3557]">Ampliam o vocabulário e a compreensão leitora</p>
                 </div>
               </div>
               
               <div className="bg-gradient-to-r from-[#f8f9fa] to-[#e9ecef] p-5 rounded-lg border-l-4 border-[#6bbbed] shadow-md">
-                <div className="flex items-start gap-3 mb-3">
+                <div className="flex items-start gap-2">
                   <div className="text-2xl text-[#457B9D] mt-1">✨</div>
                   <p className="font-bold text-lg text-[#1D3557]">Estimulam a criatividade e imaginação</p>
                 </div>
               </div>
               
               <div className="bg-gradient-to-r from-[#f8f9fa] to-[#e9ecef] p-5 rounded-lg border-l-4 border-[#6bbbed] shadow-md">
-                <div className="flex items-start gap-3 mb-3">
+                <div className="flex items-start gap-2">
                   <div className="text-2xl text-[#457B9D] mt-1">✏️</div>
                   <p className="font-bold text-lg text-[#1D3557]">Aprimoram as habilidades de escrita</p>
                 </div>
               </div>
               
               <div className="bg-gradient-to-r from-[#f8f9fa] to-[#e9ecef] p-5 rounded-lg border-l-4 border-[#6bbbed] shadow-md">
-                <div className="flex items-start gap-3 mb-3">
+                <div className="flex items-start gap-2">
                   <div className="text-2xl text-[#457B9D] mt-1">🏆</div>
                   <p className="font-bold text-lg text-[#1D3557]">Competição saudável entre os alunos</p>
                 </div>
-                <p className="text-gray-700 pl-10">Que motiva e incentiva a leitura de mais livros</p>
               </div>
               
               <div className="bg-gradient-to-r from-[#f8f9fa] to-[#e9ecef] p-5 rounded-lg border-l-4 border-[#6bbbed] shadow-md">
-                <div className="flex items-start gap-3 mb-3">
+                <div className="flex items-start gap-2">
                   <div className="text-2xl text-[#457B9D] mt-1">🔥</div>
                   <p className="font-bold text-lg text-[#1D3557]">Aumentam o engajamento nas aulas</p>
-                </div>
-                <p className="text-gray-700 pl-10">Tornando a leitura um momento esperado e desejado</p>
+                </div>                
               </div>
+            </div>
+          </section>
+          <section className="text-center mb-20">
+            <h1 className="text-3xl md:text-4xl font-bold text-[#1D3557] mb-6">
+              Conheça o Projeto Literário por Dentro
+            </h1>           
+            <p className="text-xs text-[#1D3557] italic mb-1">
+              Passe para o lado e conheça uma parte do recurso:
+            </p>
+            {/* Carrossel de imagens */}
+            <div className="w-full max-w-2xl mx-auto mb-0">
+              <CarrosselProjeto />
             </div>
           </section>
 
@@ -609,23 +501,6 @@ export default function Page() {
           <p>&copy; {new Date().getFullYear()} Prof Didática - Todos os direitos reservados</p>
         </div>
       </footer>
-      {/* Botão Fixo */}
-      {isVisible && (
-        <div className="fixed bottom-0 left-0 right-0 z-50 py-5 bg-white/90 shadow-2xl backdrop-blur-sm">
-          <a 
-            href="https://seguro.profdidatica.com.br/r/HDJYH7SZJ6?promocode=PL45OFF"
-            target="_blank"
-            rel="noopener noreferrer"
-            className="block w-full max-w-xs mx-auto text-white px-4 py-2 rounded-xl shadow-xl hover:scale-105 transition-all duration-300 text-center text-sm font-semibold 
-            bg-gradient-to-r from-[#457B9D] to-[#1D3557] 
-            animate-gradient-x 
-            bg-[length:200%_auto] 
-            hover:bg-[position:right_center]"
-          >
-            Garantir Projeto Literário
-          </a>
-        </div>
-      )}
     </div>
   );
 }
