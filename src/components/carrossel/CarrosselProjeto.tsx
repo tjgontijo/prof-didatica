@@ -104,7 +104,7 @@ export default function CarrosselProjeto() {
         <div className="relative aspect-[7/10] w-full rounded-md">
           <LazyImage 
             src="/images/carrossel/1.webp" 
-            alt="Projeto Literário - Imagem 1"
+            alt="Missão Literária - Imagem 1"
             fill
             sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 700px"
             priority={true}
@@ -123,7 +123,7 @@ export default function CarrosselProjeto() {
         <div className="relative aspect-[7/10] w-full rounded-md">
           <LazyImage 
             src="/images/carrossel/2.webp" 
-            alt="Projeto Literário - Imagem 2"
+            alt="Missão Literária - Imagem 2"
             fill
             sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 700px"
             loading="lazy"
@@ -142,7 +142,7 @@ export default function CarrosselProjeto() {
         <div className="relative aspect-[7/10] w-full rounded-md">
           <LazyImage 
             src="/images/carrossel/3.webp" 
-            alt="Projeto Literário - Imagem 3"
+            alt="Missão Literária - Imagem 3"
             fill
             sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 700px"
             loading="lazy"
@@ -161,7 +161,7 @@ export default function CarrosselProjeto() {
         <div className="relative aspect-[7/10] w-full rounded-md">
           <LazyImage 
             src="/images/carrossel/4.webp" 
-            alt="Projeto Literário - Imagem 4"
+            alt="Missão Literária - Imagem 4"
             fill
             sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 700px"
             loading="lazy"
@@ -180,7 +180,7 @@ export default function CarrosselProjeto() {
         <div className="relative aspect-[7/10] w-full rounded-md">
           <LazyImage 
             src="/images/carrossel/5.webp" 
-            alt="Projeto Literário - Imagem 5"
+            alt="Missão Literária - Imagem 5"
             fill
             sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 700px"
             loading="lazy"
@@ -191,7 +191,7 @@ export default function CarrosselProjeto() {
             placeholderColor="#f0f0f0"
           />
         </div>
-      )
+      )    
     },
     {
       id: 6,
@@ -199,26 +199,7 @@ export default function CarrosselProjeto() {
         <div className="relative aspect-[7/10] w-full rounded-md">
           <LazyImage 
             src="/images/carrossel/6.webp" 
-            alt="Projeto Literário - Imagem 6"
-            fill
-            sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 700px"
-            loading="lazy"
-            className="object-contain"
-            placeholder="blur"
-            blurDataURL="/images/carrossel/placeholder.webp"
-            quality={80}
-            placeholderColor="#f0f0f0"
-          />
-        </div>
-      )
-    },
-    {
-      id: 7,
-      content: (
-        <div className="relative aspect-[7/10] w-full rounded-md">
-          <LazyImage 
-            src="/images/carrossel/6.webp" 
-            alt="Projeto Literário - Imagem 7"
+            alt="Missão Literária - Imagem 5"
             fill
             sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 700px"
             loading="lazy"

@@ -486,7 +486,7 @@ export default function Page() {
           {/* Why It Works Section */}
 <section className="bg-white rounded-lg shadow-lg p-8 mb-20">
   <h2 className="text-2xl md:text-3xl font-bold text-[#1D3557] mb-8 border-b-2 border-[#a8dadc] pb-3 uppercase text-center">
-    Por que o Projeto Literário funciona?
+    Por que o recurso Missão Literária funciona?
   </h2>
 
   <p className="text-xl text-[#1D3557] mb-8 text-left leading-relaxed">
@@ -508,7 +508,7 @@ export default function Page() {
 
     {/* Projeto Literário - estruturado e emocionalmente envolvente */}
     <div className="bg-[#f8f9fa] p-6 rounded-lg border-l-4 border-[#6bbbed]">
-      <p className="font-bold text-lg mb-4 text-[#1D3557]">💙 Projeto Literário</p>
+      <p className="font-bold text-lg mb-4 text-[#1D3557]">💙 Missão Literária</p>
       <ul className="space-y-2 text-gray-800">
         <li>• Cada ficha guia a leitura de forma estruturada, despertando o lado emocional e imaginativo da criança</li>
         <li>• A estante interativa cria uma competição saudável e visível, os alunos querem avançar por vontade própria</li>
@@ -528,7 +528,7 @@ export default function Page() {
       Você pode continuar tentando sozinha, montando tudo do zero, insistindo com estratégias que cansam você mais do que engajam os alunos...
     </p>
     <p className="text-xl text-gray-800 mb-4 leading-relaxed">
-      Ou pode aplicar um projeto leve, pronto e já validado por milhares de professores que transforma a leitura em algo que seus alunos realmente querem viver.
+      Ou pode aplicar um recurso leve, pronto e já validado por milhares de professores que transforma a leitura em algo que seus alunos realmente querem viver.
     </p>
     <p className="fontext-md italic text-[#1D3557] mb-8 leading-relaxed">
       📌 O acesso com desconto e bônus está liberado só por tempo limitado. Se sentir que é pra você, essa é a hora de fazer diferente.
@@ -539,7 +539,7 @@ export default function Page() {
       rel="noopener noreferrer"
       className="inline-block text-center bg-[#2ecc71] hover:bg-[#27ae60] text-white font-semibold py-4 px-10 rounded-lg text-xl transition-all transform hover:scale-105 shadow-lg hover:shadow-xl"
     >
-      Sim! quero meus alunos empolgados com a leitura
+      Sim! quero meus alunos apaixonados pela leitura
     </a>  
 </section>
 
@@ -559,7 +559,7 @@ export default function Page() {
                     </span>
                   </summary>
                   <div className="p-4 bg-white">
-                    <p className="text-gray-800">O Projeto Literário foi criado especialmente para alunos do Ensino Fundamental I. Já foi aplicado com sucesso do 2º ao 5º ano, com excelente adaptação em diferentes realidades.</p>
+                    <p className="text-gray-800">O recurso Missão Literária foi criado especialmente para alunos do Ensino Fundamental I. Já foi aplicado com sucesso do 2º ao 5º ano, com excelente adaptação em diferentes realidades.</p>
                   </div>
                 </details>
               </div>
@@ -589,7 +589,7 @@ export default function Page() {
                     </span>
                   </summary>
                   <div className="p-4 bg-white">
-                    <p className="text-gray-800">Não. O projeto foi pensado para facilitar a rotina do professor. Você imprime as fichas, segue o passo a passo e já percebe os alunos mais engajados nos primeiros dias.</p>
+                    <p className="text-gray-800">Não. O recurso foi pensado para facilitar a rotina do professor. Você imprime as fichas, segue o passo a passo e já percebe os alunos mais engajados nos primeiros dias.</p>
                   </div>
                 </details>
               </div>
