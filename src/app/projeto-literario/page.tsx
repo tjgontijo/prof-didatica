@@ -82,14 +82,14 @@ export default function Page() {
               </span>
             </h1>
             <h2 className="text-lg md:text-xl text-[#1D3557] mb-6 max-w-3xl mx-auto font-normal leading-relaxed text-left">
-              Aplique um projeto literário pronto para engajar até os alunos que não gostam de ler. Economize tempo, traga leveza para a sua rotina e veja sua turma lendo mais e com entusiasmo.
+              Aplique uma missão literária pronta para engajar até os alunos que não gostam de ler. Economize tempo, traga leveza para a sua rotina e veja sua turma lendo mais e com entusiasmo.
             </h2>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4 max-w-xl mx-auto text-left">
               {[
-                { icon: '📚', text: '15 fichas literárias envolventes' },
-                { icon: '📊', text: 'Estante interativa de leitura' },
-                { icon: '📋', text: 'Manual de aplicação passo a passo' },
-                { icon: '📈', text: 'Tabela de acompanhamento de resultados' }
+                { icon: '📚', text: '20 missões literárias envolventes' },
+                { icon: '📊', text: 'Dois modelos de Leitômetro' },
+                { icon: '📋', text: 'Guia de aplicação passo a passo' },
+                { icon: '📈', text: 'Tabela de acompanhamento de leitura' }
               ].map((item, index) => (
                 <div key={index} className="bg-[#f8f9fa] rounded-lg p-4 flex items-center gap-4 shadow-sm hover:shadow-md transition-all duration-300">
                   <div className="text-xl opacity-80">{item.icon}</div>
@@ -98,7 +98,7 @@ export default function Page() {
               ))}
             </div>
             <p className="text-xs text-[#1D3557] italic my-4">
-              Veja abaixo uma amostra de como são as fichas do projeto:
+              Veja abaixo uma amostra de como são as missões literárias:
             </p>
             {/* Carrossel de imagens */}
             <div className="w-full max-w-2xl mx-auto mb-0">
@@ -109,17 +109,17 @@ export default function Page() {
               Oferta Especial
             </h2>
               <div className="text-center mb-6 pt-4">
-                <h3 className="text-2xl font-bold text-[#457B9D] uppercase tracking-wider">Projeto Literário Completo</h3>
+                <h3 className="text-2xl font-bold text-[#457B9D] uppercase tracking-wider">Missão Literária</h3>
               </div>
               
               <ul className="space-y-4 mb-8 text-left">
                 <li className="flex items-start gap-3 p-3 rounded-lg bg-[#f8f9fa]">
                   <FaCheck className="w-5 h-5 text-[#457B9D] mt-0.5 flex-shrink-0" />
-                  <span className="font-medium text-[#1D3557]">15 fichas literárias envolventes</span>
+                  <span className="font-medium text-[#1D3557]">20 missões literárias envolventes</span>
                 </li>
                 <li className="flex items-start gap-3 p-3 rounded-lg bg-[#f8f9fa]">
                   <FaCheck className="w-5 h-5 text-[#457B9D] mt-0.5 flex-shrink-0" />
-                  <span className="font-medium text-[#1D3557]">Estante interativa para acompanhar o progresso</span>
+                  <span className="font-medium text-[#1D3557]">Dois modelos de Leitômetro para gamificação</span>
                 </li>
                 <li className="flex items-start gap-3 p-3 rounded-lg bg-[#f8f9fa]">
                   <FaCheck className="w-5 h-5 text-[#457B9D] mt-0.5 flex-shrink-0" />
@@ -127,7 +127,7 @@ export default function Page() {
                 </li>
                 <li className="flex items-start gap-3 p-3 rounded-lg bg-[#f8f9fa]">
                   <FaCheck className="w-5 h-5 text-[#457B9D] mt-0.5 flex-shrink-0" />
-                  <span className="font-medium text-[#1D3557]">Manual de aplicação passo a passo</span>
+                  <span className="font-medium text-[#1D3557]">Guia de aplicação passo a passo</span>
                 </li>
 
                 <div className="mt-2 mb-3">
@@ -161,7 +161,7 @@ export default function Page() {
               >
                 <div className="absolute inset-0 bg-white/20 rounded-xl opacity-0 group-hover:opacity-100 transition-opacity"></div>
                 <span className="relative">
-                Quero meus alunos empolgados com a leitura
+                Quero meus alunos apaixonados pela leitura
                 </span>
               </a>
               </div>
@@ -680,7 +680,7 @@ export default function Page() {
           >
             <div className="absolute inset-0 bg-white/20 rounded-xl opacity-0 group-hover:opacity-100 transition-opacity"></div>
             <span className="relative">
-            Quero meus alunos empolgados com a leitura
+            Quero meus alunos apaixonados pela leitura
             </span>
           </a>
         </div>
