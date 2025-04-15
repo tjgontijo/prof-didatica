@@ -1,14 +1,17 @@
 'use client'
 
 
-import React from 'react';
-import { useState, useEffect } from 'react';
-import CarrosselProjeto from "@/components/carrossel/CarrosselProjeto";
+import React, { useState, useEffect, useCallback, Suspense, lazy, memo } from 'react';
 import { FaChevronDown, FaCheck } from 'react-icons/fa';
 import Image from 'next/image';
 
-const CityDisplay = () => {
-  const checkLocalStorage = () => {
+// Lazy load do CarrosselProjeto
+const CarrosselProjeto = lazy(() => import('@/components/carrossel/CarrosselProjeto'));
+
+type CityDisplayProps = Record<string, never>;
+
+const CityDisplay: React.FC<CityDisplayProps> = memo(() => {
+  const checkLocalStorage = useCallback((): string => {
     const lead = localStorage.getItem('lead');
     if (lead) {
       try {
@@ -18,12 +21,12 @@ const CityDisplay = () => {
         return 'Valinhos - SP';
       }
     }
-    return null;
-  };
+    return 'Valinhos - SP';
+  }, []);
 
-  const [city, setCity] = React.useState('Valinhos - SP');
+  const [city, setCity] = useState<string>('Valinhos - SP');
 
-  React.useEffect(() => {
+  useEffect(() => {
     const initialCheck = checkLocalStorage();
     if (initialCheck) {
       setCity(initialCheck);
@@ -34,36 +37,29 @@ const CityDisplay = () => {
           setCity(secondCheck);
         }
       }, 5000);
-
       return () => clearTimeout(timer);
     }
-  }, []);
+  }, [checkLocalStorage]);
 
   return <>{city}</>;
-};
+});
+CityDisplay.displayName = 'CityDisplay';
 
 export default function Page() {
-  const [isVisible, setIsVisible] = useState(false);
-  const [hasReachedThreshold, setHasReachedThreshold] = useState(false);
+  const [isVisible, setIsVisible] = useState<boolean>(false);
+  const [hasReachedThreshold, setHasReachedThreshold] = useState<boolean>(false);
 
   useEffect(() => {
-    const toggleVisibility = () => {
-      // Marca como atingido uma vez que passe dos 1500 pixels
-      if (window.scrollY > 2000) {
+    const handleScroll = () => {
+      if (window.scrollY > 2000 && !hasReachedThreshold) {
         setHasReachedThreshold(true);
-      }
-
-      // Mantém visível após atingir o limite
-      if (hasReachedThreshold) {
         setIsVisible(true);
-      } else {
+      } else if (!hasReachedThreshold) {
         setIsVisible(false);
       }
     };
-
-    window.addEventListener('scroll', toggleVisibility);
-
-    return () => window.removeEventListener('scroll', toggleVisibility);
+    window.addEventListener('scroll', handleScroll);
+    return () => window.removeEventListener('scroll', handleScroll);
   }, [hasReachedThreshold]);
 
   return (
@@ -102,8 +98,10 @@ export default function Page() {
             </p>
             {/* Carrossel de imagens */}
             <div className="w-full max-w-2xl mx-auto mb-0">
-              <CarrosselProjeto />
-            </div>
+  <Suspense fallback={<div>Carregando carrossel...</div>}>
+    <CarrosselProjeto />
+  </Suspense>
+</div>
             <div className="bg-white rounded-lg shadow-lg py-16 px-8 mb-20 mt-8">
             <h2 className="text-2xl md:text-3xl font-bold text-[#1D3557] mb-8 border-b-2 border-[#a8dadc] pb-3 uppercase text-center">
               Oferta Especial
