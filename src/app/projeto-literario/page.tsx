@@ -2,6 +2,7 @@
 
 
 import React, { useState, useEffect, useCallback, Suspense, lazy, memo } from 'react';
+import EstoqueECountdown from '@/components/EstoqueECountdown';
 import { FaChevronDown, FaCheck } from 'react-icons/fa';
 import Image from 'next/image';
 
@@ -85,7 +86,7 @@ export default function Page() {
             <div className="grid grid-cols-1 gap-4 max-w-xl mx-auto text-left mb-8">
               {[
                 { icon: '📚', text: '20 missões literárias envolventes' },
-                { icon: '📊', text: '2 modelos de Leitômetro' },
+                { icon: '📊', text: '2 modelos de Leitômetro para gamificação' },
                 { icon: '📈', text: '2 Tabelas de acompanhamento de leitura' },
                 { icon: '📋', text: 'Guia de aplicação passo a passo' }
               ].map((item, index) => (
@@ -119,11 +120,11 @@ export default function Page() {
                 </li>
                 <li className="flex items-start gap-3 p-3 rounded-lg bg-[#f8f9fa]">
                   <FaCheck className="w-5 h-5 text-[#457B9D] mt-0.5 flex-shrink-0" />
-                  <span className="font-medium text-[#1D3557]">Dois modelos de Leitômetro para gamificação</span>
+                  <span className="font-medium text-[#1D3557]">2 modelos de Leitômetro para gamificação</span>
                 </li>
                 <li className="flex items-start gap-3 p-3 rounded-lg bg-[#f8f9fa]">
                   <FaCheck className="w-5 h-5 text-[#457B9D] mt-0.5 flex-shrink-0" />
-                  <span className="font-medium text-[#1D3557]">Tabela de acompanhamento personalizada</span>
+                  <span className="font-medium text-[#1D3557]">2 Tabelas de acompanhamento de leitura</span>
                 </li>
                 <li className="flex items-start gap-3 p-3 rounded-lg bg-[#f8f9fa]">
                   <FaCheck className="w-5 h-5 text-[#457B9D] mt-0.5 flex-shrink-0" />
@@ -163,6 +164,10 @@ export default function Page() {
                 Quero meus alunos apaixonados pela leitura
                 </span>
               </a>
+              <EstoqueECountdown 
+                estoqueInicial={12} 
+                estoqueTotal={30} 
+              />
               </div>
           </section>
          
@@ -679,7 +684,7 @@ export default function Page() {
             <span className="relative">
             Quero meus alunos apaixonados pela leitura
             </span>
-          </a>
+          </a>          
         </div>
       )}
     </div>
