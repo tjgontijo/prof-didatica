@@ -71,21 +71,23 @@ export default function Page() {
           <section className="text-center mb-20">
             <h1 className="text-4xl md:text-5xl font-black mb-6 leading-tight tracking-tight relative text-[#1D3557] uppercase">
               <span className="relative z-10">
-                Seus alunos vão 
-                <span className="text-[#457B9D] animate-pulse "> disputar </span>
-                <span className='underline'>quem lê mais</span>,
-                <span className="text-[#1D3557]"> sem você precisar montar nada!</span>
+                Transforme seus alunos em <span className="text-[#457B9D] animate-pulse">leitores entusiasmados</span> <span className='underline'>com missões prontas</span>,<span className="text-[#1D3557]"> para aplicar.</span>
               </span>
             </h1>
-            <h2 className="text-lg md:text-xl text-[#1D3557] mb-6 max-w-3xl mx-auto font-normal leading-relaxed text-left">
-              Aplique uma missão literária pronta para engajar até os alunos que não gostam de ler. Economize tempo, traga leveza para a sua rotina e veja sua turma lendo mais e com entusiasmo.
+            <h2 className="text-lg md:text-xl text-[#1D3557] mb-6 max-w-3xl mx-auto font-normal leading-relaxed text-center">
+              Aplique missões literárias prontas para engajar até os alunos que mais reclamam de ler. Economize tempo, traga leveza para a sua rotina e veja sua turma lendo mais e com entusiasmo.
             </h2>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 max-w-xl mx-auto text-left">
+            <div className="mx-auto text-left">
+              <p className="text-md text-[#1D3557] italic my-4 text-left">
+                Você vai receber diretamente no seu WhatsApp e E-mail:
+              </p>
+            </div>           
+            <div className="grid grid-cols-1 gap-4 max-w-xl mx-auto text-left mb-8">
               {[
                 { icon: '📚', text: '20 missões literárias envolventes' },
-                { icon: '📊', text: 'Dois modelos de Leitômetro' },
-                { icon: '📋', text: 'Guia de aplicação passo a passo' },
-                { icon: '📈', text: 'Tabela de acompanhamento de leitura' }
+                { icon: '📊', text: '2 modelos de Leitômetro' },
+                { icon: '📈', text: '2 Tabelas de acompanhamento de leitura' },
+                { icon: '📋', text: 'Guia de aplicação passo a passo' }
               ].map((item, index) => (
                 <div key={index} className="bg-[#f8f9fa] rounded-lg p-4 flex items-center gap-4 shadow-sm hover:shadow-md transition-all duration-300">
                   <div className="text-xl opacity-80">{item.icon}</div>
