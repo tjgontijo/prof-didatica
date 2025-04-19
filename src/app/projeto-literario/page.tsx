@@ -146,8 +146,8 @@ export default function Page() {
               <div className="text-center mb-6">
               <p className="text-md text-gray-600 mt-2 italic mb-8">Um projeto validado por professores, aplicado com sucesso em mais de 8 mil alunos, agora disponível por menos do que um lanche na cantina.</p>
                 <div className="inline-block relative">                
-                  <span className="absolute -top-3 -right-10 bg-[#457B9D] text-white text-xs font-bold py-1 px-2 rounded-full transform rotate-12">40% OFF</span>
-                  <span className="text-6xl font-black text-[#1D3557]">R$10</span>
+                  <span className="absolute -top-3 -right-10 bg-[#457B9D] text-white text-xs font-bold py-1 px-2 rounded-full transform rotate-12">30% OFF</span>
+                  <span className="text-6xl font-black text-[#1D3557]">R$12</span>
                 </div>
                 <p className="text-xs text-gray-600 mt-2 italic">
                   Aproveite antes que volte para R$17

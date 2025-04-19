@@ -5,7 +5,7 @@ export default function Home() {
   return (
     <div className="flex flex-col min-h-screen">
       {/* Header */}
-      <header className="bg-[#6bbbed] py-2 flex justify-center items-center shadow-md">
+      <header className="bg-[#2c4f71] py-2 flex justify-center items-center shadow-md">
         <Image
           src="/images/system/logo_transparent.webp"
           alt="Logo Prof Didática"
@@ -86,7 +86,7 @@ export default function Home() {
         </div>
       </main>
       
-      <footer className="bg-[#6bbbed] py-3 text-center text-sm text-gray-100">
+      <footer className="bg-[#2c4f71] py-3 text-center text-sm text-gray-100">
         &copy; {new Date().getFullYear()} Prof Didática - Todos os direitos reservados
       </footer>
     </div>
