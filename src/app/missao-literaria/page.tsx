@@ -72,7 +72,7 @@ export default function Page() {
           <section className="text-center mb-20">
             <h1 className="text-4xl md:text-5xl font-black mb-6 leading-tight tracking-tight relative text-[#1D3557] uppercase">
               <span className="relative z-10">
-                Transforme seus alunos em <span className="text-[#457B9D] animate-pulse">leitores entusiasmados</span> <span className='underline'>com missões prontas</span><span className="text-[#1D3557]"> para aplicar.</span>
+                Transforme seus alunos em <span className="text-[#457B9D] animate-pulse">leitores entusiasmados</span> <span className='underline'>com missões prontas</span><span className="text-[#1D3557]"> para aplicar</span>
               </span>
             </h1>
             <h2 className="text-lg md:text-xl text-[#1D3557] mb-6 max-w-3xl mx-auto font-normal leading-relaxed text-center">
