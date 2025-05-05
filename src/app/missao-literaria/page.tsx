@@ -46,6 +46,20 @@ const CityDisplay: React.FC<CityDisplayProps> = memo(() => {
 });
 CityDisplay.displayName = 'CityDisplay';
 
+type Offer = {
+  originalPrice: number;
+  promotionalPrice: number;
+  discount: string;
+  paymentLink: string;
+};
+
+const offerData: Offer = {
+  originalPrice: 17,
+  promotionalPrice: 10,
+  discount: '58% OFF',
+  paymentLink: 'https://seguro.profdidatica.com.br/r/HDJYH7SZJ6?promocode=ML58OFF',
+};
+
 export default function Page() {
   const [isVisible, setIsVisible] = useState<boolean>(false);
   const [hasReachedThreshold, setHasReachedThreshold] = useState<boolean>(false);
@@ -146,16 +160,16 @@ export default function Page() {
               <div className="text-center mb-6">
                 <p className="text-md text-gray-600 mt-2 italic mb-8">Um projeto validado por professores, aplicado com sucesso em mais de 8 mil alunos, agora disponível por menos do que um lanche na cantina.</p>
                 <div className="inline-block relative">
-                  <span className="absolute -top-3 -right-10 bg-[#457B9D] text-white text-xs font-bold py-1 px-2 rounded-full transform rotate-12">50% OFF</span>
-                  <span className="text-6xl font-black text-[#1D3557]">R$14</span>
+                  <span className="absolute -top-3 -right-10 bg-[#457B9D] text-white text-xs font-bold py-1 px-2 rounded-full transform rotate-12">{offerData.discount}</span>
+                  <span className="text-6xl font-black text-[#1D3557]">R${offerData.promotionalPrice}</span>
                 </div>
                 <p className="text-xs text-gray-600 mt-2 italic">
-                  Aproveite antes que volte para R$28
+                  Aproveite antes que volte para R${offerData.originalPrice}
                 </p>
               </div>
 
               <a
-                href="https://seguro.profdidatica.com.br/r/HDJYH7SZJ6?promocode=ML50OFF"
+                href={offerData.paymentLink}
                 rel="noopener noreferrer"
                 className="block w-full bg-gradient-to-r from-[#457B9D] to-[#1D3557] hover:from-[#1D3557] hover:to-[#457B9D] text-white text-base sm:text-lg font-bold py-3 sm:py-4 px-6 sm:px-8 rounded-xl shadow-lg transform transition-all duration-300 hover:scale-[1.02] hover:shadow-xl relative overflow-hidden group text-center uppercase"
               >
@@ -165,7 +179,7 @@ export default function Page() {
                 </span>
               </a>
               <EstoqueECountdown
-                estoqueInicial={12}
+                estoqueInicial={11}
                 estoqueTotal={30}
               />
             </div>
@@ -538,7 +552,7 @@ export default function Page() {
               📌 O acesso com desconto e bônus está liberado só por tempo limitado. Se sentir que é pra você, essa é a hora de fazer diferente.
             </p>
             <a
-              href="https://seguro.profdidatica.com.br/r/HDJYH7SZJ6?promocode=ML50OFF"
+              href={offerData.paymentLink}
               rel="noopener noreferrer"
               className="block w-full bg-gradient-to-r from-[#457B9D] to-[#1D3557] hover:from-[#1D3557] hover:to-[#457B9D] text-white text-base sm:text-lg font-bold py-3 sm:py-4 px-6 sm:px-8 rounded-xl shadow-lg transform transition-all duration-300 hover:scale-[1.02] hover:shadow-xl relative overflow-hidden group text-center uppercase"
             >
@@ -672,7 +686,7 @@ export default function Page() {
       {isVisible && (
         <div className="fixed bottom-0 left-0 right-0 z-50 py-8 bg-white/90 shadow-2xl backdrop-blur-sm">
           <a
-            href="https://seguro.profdidatica.com.br/r/HDJYH7SZJ6?promocode=ML50OFF"
+            href={offerData.paymentLink}
             rel="noopener noreferrer"
             className="block w-full max-w-xs mx-auto text-white px-4 py-2 rounded-xl shadow-xl hover:scale-105 transition-all duration-300 text-center text-sm font-semibold uppercase
             bg-gradient-to-r from-[#457B9D] to-[#1D3557] 
