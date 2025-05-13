@@ -57,7 +57,7 @@ const offerData: Offer = {
   originalPrice: 17,
   promotionalPrice: 10,
   discount: '58% OFF',
-  paymentLink: 'https://seguro.profdidatica.com.br/r/HDJYH7SZJ6?promocode=ML58OFF',
+  paymentLink: 'https://checkout.profdidatica.com.br/step/missao-literaria/',
 };
 
 export default function Page() {
