@@ -138,10 +138,6 @@ export default function Page() {
                 </li>
                 <li className="flex items-start gap-3 p-3 rounded-lg bg-[#f8f9fa]">
                   <FaCheck className="w-5 h-5 text-[#457B9D] mt-0.5 flex-shrink-0" />
-                  <span className="font-medium text-[#1D3557]">2 Tabelas de acompanhamento de leitura</span>
-                </li>
-                <li className="flex items-start gap-3 p-3 rounded-lg bg-[#f8f9fa]">
-                  <FaCheck className="w-5 h-5 text-[#457B9D] mt-0.5 flex-shrink-0" />
                   <span className="font-medium text-[#1D3557]">Guia de aplicação passo a passo</span>
                 </li>
 
@@ -154,6 +150,12 @@ export default function Page() {
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 8v13m0-13V6a2 2 0 112 2h-2zm0 0V5.5A2.5 2.5 0 109.5 8H12zm-7 4h14M5 12a2 2 0 110-4h14a2 2 0 110 4M5 12v7a2 2 0 002 2h10a2 2 0 002-2v-7" />
                   </svg>
                   <span className="font-medium text-[#1D3557] text-left">Apostila com 50 páginas para produção textual, perfeita para complementar suas aulas e desenvolver a escrita criativa dos alunos.</span>
+                </li>
+                <li className="flex items-center gap-3 p-3 rounded-lg bg-[#a8dadc]/20">
+                  <svg className="w-5 h-5 text-[#457B9D] flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 8v13m0-13V6a2 2 0 112 2h-2zm0 0V5.5A2.5 2.5 0 109.5 8H12zm-7 4h14M5 12a2 2 0 110-4h14a2 2 0 110 4M5 12v7a2 2 0 002 2h10a2 2 0 002-2v-7" />
+                  </svg>
+                  <span className="font-medium text-[#1D3557] text-left">2 Tabelas de acompanhamento de leitura</span>
                 </li>
               </ul>
 
