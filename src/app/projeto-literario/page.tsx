@@ -57,7 +57,7 @@ const offerData: Offer = {
   originalPrice: 17,
   promotionalPrice: 12,
   discount: '30% OFF',
-  paymentLink: 'https://seguro.profdidatica.com.br/r/HDJYH7SZJ6?promocode=ML50OFF',
+  paymentLink: 'https://seguro.profdidatica.com.br/r/HDJYH7SZJ6?promocode=ML30OFF',
 };
 
 export default function Page() {
