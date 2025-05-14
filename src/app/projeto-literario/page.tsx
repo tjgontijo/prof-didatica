@@ -55,9 +55,9 @@ type Offer = {
 
 const offerData: Offer = {
   originalPrice: 17,
-  promotionalPrice: 10,
-  discount: '58% OFF',
-  paymentLink: 'https://seguro.profdidatica.com.br/r/HDJYH7SZJ6?promocode=ML58OFF',
+  promotionalPrice: 12,
+  discount: '30% OFF',
+  paymentLink: 'https://seguro.profdidatica.com.br/r/HDJYH7SZJ6?promocode=ML50OFF',
 };
 
 export default function Page() {
