@@ -17,35 +17,35 @@ npm cache clean --force
 echo "==> Atualizando o repositório (git pull)..."
 git pull
 
-echo "==> Ajustando permissões do diretório public..."
-if [ -d "public" ]; then
-  chmod -R 644 public
-else
-  echo "Aviso: O diretório 'public' não existe. Pulando otimização de imagens."
-fi
+# echo "==> Ajustando permissões do diretório public..."
+# if [ -d "public" ]; then
+#   chmod -R 644 public
+# else
+#   echo "Aviso: O diretório 'public' não existe. Pulando otimização de imagens."
+# fi
 
-echo "==> Otimizando imagens no diretório public..."
-if [ -d "public" ]; then
+# echo "==> Otimizando imagens no diretório public..."
+# if [ -d "public" ]; then
   
-  # Lista todas as imagens antes da otimização para depuração
-  echo "==> Ajustando permissões do diretório public..."
-  chown -R www-data:www-data *
-  chown -R www-data:www-data .*
-  chmod -R 644 public
+#   # Lista todas as imagens antes da otimização para depuração
+#   echo "==> Ajustando permissões do diretório public..."
+#   chown -R www-data:www-data *
+#   chown -R www-data:www-data .*
+#   chmod -R 644 public
 
-  echo "==> Arquivos a serem otimizados:"
-  find public -type f \( -iname "*.jpg" -o -iname "*.jpeg" -o -iname "*.png" \)
+#   echo "==> Arquivos a serem otimizados:"
+#   find public -type f \( -iname "*.jpg" -o -iname "*.jpeg" -o -iname "*.png" \)
 
-  # Otimiza imagens JPG/JPEG
-  find public -type f \( -iname "*.jpg" -o -iname "*.jpeg" \) -exec jpegoptim --strip-all --max=80 --all-progressive --force {} \;
+#   # Otimiza imagens JPG/JPEG
+#   find public -type f \( -iname "*.jpg" -o -iname "*.jpeg" \) -exec jpegoptim --strip-all --max=80 --all-progressive --force {} \;
 
-  # Otimiza imagens PNG
-  find public -type f -iname "*.png" -exec pngquant --force --verbose --quality=80-90 --skip-if-larger --ext .png {} \;
+#   # Otimiza imagens PNG
+#   find public -type f -iname "*.png" -exec pngquant --force --verbose --quality=80-90 --skip-if-larger --ext .png {} \;
 
-  echo "==> Otimização concluída!"
-else
-  echo "Aviso: O diretório 'public' não existe. Pulando otimização de imagens."
-fi
+#   echo "==> Otimização concluída!"
+# else
+#   echo "Aviso: O diretório 'public' não existe. Pulando otimização de imagens."
+# fi
 
 echo "==> Executando build do Next.js..."
 npm run build
