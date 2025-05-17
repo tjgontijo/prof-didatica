@@ -94,7 +94,7 @@ export default function Page() {
             </h2>
             <div className="mx-auto text-left">
               <p className="text-md text-[#1D3557] italic my-4 text-left">
-                Você vai receber diretamente no seu WhatsApp e E-mail:
+                Você vai receber diretamente no seu WhatsApp:
               </p>
             </div>
             <div className="grid grid-cols-1 gap-4 max-w-xl mx-auto text-left mb-8">
@@ -591,7 +591,7 @@ export default function Page() {
                     </span>
                   </summary>
                   <div className="p-4 bg-white">
-                    <p className="text-gray-800">O material é 100% digital. Assim que a compra é confirmada, você recebe tudo por e-mail e Whatsapp, pronto para baixar e imprimir quantas vezes quiser.</p>
+                    <p className="text-gray-800">O material é 100% digital, em PDF. Assim que a compra é confirmada, você recebe tudo por Whatsapp, pronto para baixar e imprimir quantas vezes quiser.</p>
                   </div>
                 </details>
               </div>
@@ -621,7 +621,7 @@ export default function Page() {
                     </span>
                   </summary>
                   <div className="p-4 bg-white">
-                    <p className="text-gray-800">Depois do pagamento, você recebe um e-mail e uma mensagem no seu Whatsapp com o link para download do Google Drive. É tudo simples, direto e com acesso imediato.</p>
+                    <p className="text-gray-800">Depois do pagamento, você vai receber uma mensagem no seu Whatsapp com o link do Google Drive para baixar seus materiais. É tudo simples, direto e com acesso imediato.</p>
                   </div>
                 </details>
               </div>
