@@ -102,7 +102,7 @@ export default function Page() {
               </span>
             </h1>
             <h2 className="text-lg md:text-xl text-[#1D3557] mb-6 max-w-3xl mx-auto font-normal leading-relaxed text-left">
-              Você recebe no WhatsApp 20 fichas literárias, dois modelos de leitômetro pra transformar a leitura em jogo e dois modelos de tabela pra acompanhar tudo. É só imprimir e usar com a sua turma, sem precisar criar mais nada.
+              Você recebe no WhatsApp 20 fichas literárias, dois modelos de leitômetro pra transformar a leitura em jogo e dois modelos de tabela pra acompanhar tudo. <br/>É só imprimir e usar com a sua turma, sem precisar criar mais nada.
             </h2>
             {/* Carrossel de imagens */}
             <div className="w-full max-w-2xl mx-auto mb-0">
