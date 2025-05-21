@@ -9,11 +9,7 @@ type LazyImageProps = ImageProps & {
   placeholderColor?: string;
 };
 
-function LazyImage({
-  placeholderColor = '#f3f4f6',
-  alt,
-  ...props
-}: LazyImageProps) {
+function LazyImage({ placeholderColor = '#f3f4f6', alt, ...props }: LazyImageProps) {
   const [isLoaded, setIsLoaded] = useState(false);
   const [isClient, setIsClient] = useState(false);
 
@@ -75,7 +71,7 @@ function LazyImage({
 // Importação dinâmica do componente Carousel para reduzir o JavaScript inicial
 const Carousel = dynamic(() => import('./Carousel'), {
   loading: () => (
-    <div 
+    <div
       className="carrossel-placeholder relative aspect-[7/10] w-full bg-gray-200 animate-pulse rounded-md"
       aria-label="Carregando carrossel"
     >
@@ -84,26 +80,26 @@ const Carousel = dynamic(() => import('./Carousel'), {
       </div>
     </div>
   ),
-  ssr: false
+  ssr: false,
 });
 
 export default function CarrosselProjeto() {
   // Estado para controlar a paginação externa
   const [activeIndex, setActiveIndex] = useState(0);
   const [isClient, setIsClient] = useState(false);
-  
+
   // Garantir que o componente só seja renderizado no cliente
   useEffect(() => {
     setIsClient(true);
   }, []);
-    
+
   const imagens = [
     {
       id: 1,
       content: (
         <div className="relative aspect-[7/10] w-full rounded-md">
-          <LazyImage 
-            src="/images/carrossel/1.webp" 
+          <LazyImage
+            src="/images/carrossel/1.webp"
             alt="Missão Literária - Imagem 1"
             fill
             sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 700px"
@@ -121,8 +117,8 @@ export default function CarrosselProjeto() {
       id: 2,
       content: (
         <div className="relative aspect-[7/10] w-full rounded-md">
-          <LazyImage 
-            src="/images/carrossel/2.webp" 
+          <LazyImage
+            src="/images/carrossel/2.webp"
             alt="Missão Literária - Imagem 2"
             fill
             sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 700px"
@@ -140,8 +136,8 @@ export default function CarrosselProjeto() {
       id: 3,
       content: (
         <div className="relative aspect-[7/10] w-full rounded-md">
-          <LazyImage 
-            src="/images/carrossel/3.webp" 
+          <LazyImage
+            src="/images/carrossel/3.webp"
             alt="Missão Literária - Imagem 3"
             fill
             sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 700px"
@@ -159,8 +155,8 @@ export default function CarrosselProjeto() {
       id: 4,
       content: (
         <div className="relative aspect-[7/10] w-full rounded-md">
-          <LazyImage 
-            src="/images/carrossel/4.webp" 
+          <LazyImage
+            src="/images/carrossel/4.webp"
             alt="Missão Literária - Imagem 4"
             fill
             sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 700px"
@@ -178,8 +174,8 @@ export default function CarrosselProjeto() {
       id: 5,
       content: (
         <div className="relative aspect-[7/10] w-full rounded-md">
-          <LazyImage 
-            src="/images/carrossel/5.webp" 
+          <LazyImage
+            src="/images/carrossel/5.webp"
             alt="Missão Literária - Imagem 5"
             fill
             sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 700px"
@@ -191,14 +187,14 @@ export default function CarrosselProjeto() {
             placeholderColor="#f0f0f0"
           />
         </div>
-      )    
+      ),
     },
     {
       id: 6,
       content: (
         <div className="relative aspect-[7/10] w-full rounded-md">
-          <LazyImage 
-            src="/images/carrossel/6.webp" 
+          <LazyImage
+            src="/images/carrossel/6.webp"
             alt="Missão Literária - Imagem 5"
             fill
             sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 700px"
@@ -210,8 +206,8 @@ export default function CarrosselProjeto() {
             placeholderColor="#f0f0f0"
           />
         </div>
-      )
-    }
+      ),
+    },
   ];
 
   // Se não estiver no cliente, mostra um placeholder
@@ -221,17 +217,16 @@ export default function CarrosselProjeto() {
 
   return (
     <div className="carrossel-projeto space-y-2">
-      <Carousel 
-        items={imagens} 
+      <Carousel
+        items={imagens}
         slidesPerView={1}
         navigation={false}
-        pagination={false} 
+        pagination={false}
         autoplay={true}
         loop={true}
         className="carrossel-personalizado"
         onSlideChange={(swiper) => setActiveIndex(swiper.realIndex)}
       />
-      
       {/* Paginação externa */}
       <div className="flex justify-center gap-2">
         {imagens.map((_, index) => (
@@ -239,12 +234,11 @@ export default function CarrosselProjeto() {
             key={index}
             onClick={() => setActiveIndex(index)}
             className={`w-2 h-2 rounded-full transition-all ${
-              activeIndex === index 
-                ? 'bg-[#1D3557] w-4' 
-                : 'bg-gray-300'
+              activeIndex === index ? 'bg-[#1D3557] w-4' : 'bg-gray-300'
             }`}
           />
         ))}
-      </div>    </div>
+      </div>{' '}
+    </div>
   );
 }
