@@ -9,9 +9,7 @@ function formatTempo(restante: number) {
   const horas = Math.floor(restante / 3600);
   const minutos = Math.floor((restante % 3600) / 60);
   const segundos = restante % 60;
-  return [horas, minutos, segundos]
-    .map((n) => n.toString().padStart(2, '0'))
-    .join(' : ');
+  return [horas, minutos, segundos].map((n) => n.toString().padStart(2, '0')).join(' : ');
 }
 
 const EstoqueECountdown: React.FC<EstoqueECountdownProps> = ({ estoqueInicial, estoqueTotal }) => {
@@ -37,9 +35,9 @@ const EstoqueECountdown: React.FC<EstoqueECountdownProps> = ({ estoqueInicial, e
     const minDelay = 15000; // 15 segundos
     const maxDelay = 45000; // 45 segundos
     const delay = Math.floor(Math.random() * (maxDelay - minDelay)) + minDelay;
-    
+
     const timer = setTimeout(() => {
-      setEstoque(prev => Math.max(2, prev - 1)); // Nunca menor que 2
+      setEstoque((prev) => Math.max(2, prev - 1)); // Nunca menor que 2
     }, delay);
 
     return () => clearTimeout(timer);
@@ -51,7 +49,9 @@ const EstoqueECountdown: React.FC<EstoqueECountdownProps> = ({ estoqueInicial, e
     <div className="rounded-lg bg-white p-4 mt-4 border border-[#a8dadc] w-full shadow-sm">
       <div className="flex items-center justify-center mb-2">
         <span className="text-xs text-[#1D3557]">Últimas</span>
-        <span className="mx-1 bg-[#a8dadc]/60 text-[#1D3557] font-bold px-2 py-0.5 rounded-full text-base">{typeof estoque === 'number' && !isNaN(estoque) ? estoque : estoqueInicial}</span>
+        <span className="mx-1 bg-[#a8dadc]/60 text-[#1D3557] font-bold px-2 py-0.5 rounded-full text-base">
+          {typeof estoque === 'number' && !isNaN(estoque) ? estoque : estoqueInicial}
+        </span>
         <span className="text-xs text-[#1D3557]">unidades no valor promocional</span>
       </div>
       <div className="w-full h-2 bg-[#f1faee] rounded-full mb-4">
@@ -62,7 +62,9 @@ const EstoqueECountdown: React.FC<EstoqueECountdownProps> = ({ estoqueInicial, e
       </div>
       <div className="flex flex-col items-center">
         <span className="text-xs text-[#457B9D] mb-1">Oferta acaba em</span>
-        <span className="font-bold text-lg text-[#1D3557] tracking-widest">{formatTempo(tempoRestante)}</span>
+        <span className="font-bold text-lg text-[#1D3557] tracking-widest">
+          {formatTempo(tempoRestante)}
+        </span>
       </div>
     </div>
   );
