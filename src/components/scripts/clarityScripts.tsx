@@ -1,7 +1,7 @@
 'use client';
 
-import Script from "next/script";
-import { useEffect } from "react";
+import Script from 'next/script';
+import { useEffect } from 'react';
 
 // Estendendo a interface Window para incluir o Clarity
 declare global {
@@ -17,28 +17,28 @@ declare global {
 export function Claritycript() {
   useEffect(() => {
     // Log para verificar se o script do Clarity está sendo inicializado
-    console.log("Tentando inicializar o Microsoft Clarity...");
-    
+    console.log('Tentando inicializar o Microsoft Clarity...');
+
     // Verificamos periodicamente se o objeto clarity existe
     const clarityCheckInterval = setInterval(() => {
       if (window.clarity) {
-        console.log("Microsoft Clarity inicializado com sucesso!");
+        console.log('Microsoft Clarity inicializado com sucesso!');
         clearInterval(clarityCheckInterval);
       }
     }, 2000);
-    
+
     // Limpar o intervalo quando o componente for desmontado
     return () => clearInterval(clarityCheckInterval);
   }, []);
-  
+
   return (
     <>
       {/* Microsoft Clarity - Implementação otimizada com alta prioridade */}
-      <Script 
-        id="clarity-script" 
-        strategy="afterInteractive" 
-        onLoad={() => console.log("Script do Clarity carregado via Next.js Script")}
-        onError={(e) => console.error("Erro ao carregar o script do Clarity:", e)}
+      <Script
+        id="clarity-script"
+        strategy="afterInteractive"
+        onLoad={() => console.log('Script do Clarity carregado via Next.js Script')}
+        onError={(e) => console.error('Erro ao carregar o script do Clarity:', e)}
       >
         {`
           try {
