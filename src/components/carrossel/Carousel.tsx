@@ -77,9 +77,7 @@ export default function Carousel({
 
   if (!mounted) {
     // Renderiza um placeholder até que o componente seja montado no cliente
-    return (
-      <div className={`w-full ${className} carrossel-placeholder`}></div>
-    );
+    return <div className={`w-full ${className} carrossel-placeholder`}></div>;
   }
 
   return (
