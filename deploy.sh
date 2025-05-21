@@ -10,7 +10,7 @@ echo "==> Entrando no diretório do projeto: $PROJECT_DIR"
 cd "$PROJECT_DIR" || { echo "Erro: diretório do projeto não encontrado!"; exit 1; }
 
 echo "==> Removendo build anterior (.next)..."
-rm -rf .next
+rm -rf .next 
 
 echo "==> Limpando cache do npm..."
 npm cache clean --force
@@ -22,7 +22,7 @@ echo "==> Resetando o repositório para o estado remoto (origin/master)..."
 git reset --hard origin/master || { echo "Erro ao resetar para origin/master"; exit 1; }
 
 echo "==> Instalando dependências..."
-npm install
+npm ci
 
 echo "==> Ajustando permissões gerais..."
 chown -R www-data:www-data "$PROJECT_DIR"
@@ -31,20 +31,31 @@ find public -type d -exec chmod 755 {} \; 2>/dev/null
 
 if [ "$ENABLE_OPTIMIZATION" = true ]; then
   if [ -d "public" ]; then
-    echo "==> Otimizando imagens no diretório public..."
+    echo "==> Otimizando imagens com base no formato real..."
 
-    echo "==> Arquivos a serem otimizados:"
-    find public -type f \( -iname "*.jpg" -o -iname "*.jpeg" -o -iname "*.png" \)
+    find public -type f \( -iname "*.jpg" -o -iname "*.jpeg" -o -iname "*.png" -o -iname "*.webp" \) | while read -r file; do
+      mime_type=$(file --mime-type -b "$file")
 
-    echo "==> Otimizando JPG/JPEG..."
-    find public -type f \( -iname "*.jpg" -o -iname "*.jpeg" \) \
-      -exec jpegoptim --strip-all --max=80 --all-progressive --force {} \;
+      case "$mime_type" in
+        image/jpeg)
+          echo "📷 Otimizando JPEG: $file"
+          jpegoptim --strip-all --max=80 --all-progressive --force "$file"
+          ;;
+        image/png)
+          echo "🖼️  Otimizando PNG: $file"
+          pngquant --force --verbose --quality=80-90 --skip-if-larger --ext .png "$file"
+          ;;
+        image/webp)
+          echo "🕸️  Otimizando WebP: $file"
+          cwebp -quiet -mt -q 80 "$file" -o "$file"
+          ;;
+        *)
+          echo "⚠️  Ignorado (formato não suportado): $file ($mime_type)"
+          ;;
+      esac
+    done
 
-    echo "==> Otimizando PNG..."
-    find public -type f -iname "*.png" \
-      -exec pngquant --force --verbose --quality=80-90 --skip-if-larger --ext .png {} \;
-
-    echo "==> Otimização concluída!"
+    echo "✅ Otimização de imagens concluída!"
   else
     echo "Aviso: O diretório 'public' não existe. Pulando otimização de imagens."
   fi
@@ -61,11 +72,11 @@ if [ $? -ne 0 ]; then
 fi
 
 if pm2 list | grep -q "$APP_NAME"; then
-    echo "==> Serviço encontrado no PM2. Parando e reiniciando..."
-    pm2 restart "$APP_NAME"
+  echo "==> Serviço encontrado no PM2. Parando e reiniciando..."
+  pm2 restart "$APP_NAME"
 else
-    echo "==> Serviço não encontrado no PM2. Criando nova instância..."
-    pm2 start npm --name "$APP_NAME" -- run start
+  echo "==> Serviço não encontrado no PM2. Criando nova instância..."
+  pm2 start npm --name "$APP_NAME" -- run start
 fi
 
 echo "==> Reiniciando o Nginx..."
