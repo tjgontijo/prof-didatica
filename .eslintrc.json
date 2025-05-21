@@ -1,7 +1,21 @@
 {
-  "extends": "next/core-web-vitals",
-  "rules": {
-    "react/no-unescaped-entities": "off",
-    "react/display-name": "off"
+    "root": true,
+    "parser": "@typescript-eslint/parser",
+    "parserOptions": {
+      "ecmaVersion": 2021,
+      "sourceType": "module",
+      "ecmaFeatures": { "jsx": true }
+    },
+    "settings": {
+      "react": { "version": "detect" }
+    },
+    "extends": [
+      "next/core-web-vitals",
+      "plugin:@typescript-eslint/recommended"
+    ],
+    "rules": {
+      "react/no-unescaped-entities": "off",
+      "react/display-name": "off"
+    }
   }
-}
+  
