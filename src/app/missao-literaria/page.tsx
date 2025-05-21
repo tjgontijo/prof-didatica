@@ -53,6 +53,7 @@ type Offer = {
   paymentLink: string;
 };
 
+
 const offerData: Offer = {
   originalPrice: 17,
   promotionalPrice: 12,
