@@ -57,8 +57,8 @@ const offerData: Offer = {
   originalPrice: 17,
   promotionalPrice: 12,
   discount: '30% OFF',
-  //paymentLink: 'https://seguro.profdidatica.com.br/r/HDJYH7SZJ6?promocode=ML30OFF',
-  paymentLink: 'https://pay.hotmart.com/T99839125R?checkoutMode=10',
+  paymentLink: 'https://seguro.profdidatica.com.br/r/HDJYH7SZJ6?promocode=ML30OFF',
+  //paymentLink: 'https://pay.hotmart.com/T99839125R?checkoutMode=10',
 };
 
 export default function Page() {
