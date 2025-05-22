@@ -5,8 +5,6 @@ import { Prisma } from '@prisma/client';
 
 const checkoutSchema = z.object({
   productId: z.string().uuid(),
-  price: z.number().int().min(0), // Obrigatório no schema
-  priceCurrency: z.string().default('BRL'),
   campaignName: z.string().optional(),
   upsellPageUrl: z.string().url().optional(),
   isActive: z.boolean().optional(),
@@ -57,7 +55,6 @@ export async function POST(request: NextRequest) {
     const checkout = await prisma.checkout.create({
       data: {
         productId: data.productId,
-        price: data.price,
         campaignName: data.campaignName,
         upsellPageUrl: data.upsellPageUrl,
         isActive: data.isActive ?? true,
