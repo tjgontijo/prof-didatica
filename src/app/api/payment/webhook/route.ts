@@ -17,6 +17,7 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
     if (body.action === 'payment.created' || body.action === 'payment.updated') {
       const paymentId = body.data.id;
 
+      console.log('process.env.MERCADOPAGO_ACCESS_TOKEN:', process.env.MERCADOPAGO_ACCESS_TOKEN);
       const client = new MercadoPagoConfig({
         accessToken: process.env.MERCADOPAGO_ACCESS_TOKEN || '',
       });

@@ -7,12 +7,17 @@
     "build": "next build",
     "start": "next start -p 3001",
     "lint": "next lint",
-    "format": "prettier --write \"src/**/*.{js,jsx,ts,tsx,json,css,md}\""
+    "format": "prettier --write \"src/**/*.{js,jsx,ts,tsx,json,css,md}\"",
+    "seed": "ts-node --project prisma/tsconfig.json -r tsconfig-paths/register prisma/seed.ts"
   },
   "dependencies": {
     "@mercadopago/sdk-react": "^1.0.3",
+    "@prisma/client": "^6.8.2",
+    "crypto": "^1.0.1",
+    "logger": "^0.0.1",
     "mercadopago": "^2.7.0",
     "next": "15.3.2",
+    "pino": "^9.7.0",
     "react": "^18.2.0",
     "react-dom": "^18.2.0",
     "react-icons": "^5.5.0",
@@ -34,8 +39,12 @@
     "eslint-plugin-react-hooks": "^5.2.0",
     "postcss": "^8.5.3",
     "prettier": "^3.5.3",
+    "prisma": "^6.8.2",
     "tailwindcss": "^3.4.17",
     "ts-node": "^10.9.2",
     "typescript": "^5.8.2"
+  },
+  "prisma": {
+    "seed": "ts-node --project prisma/tsconfig.json -r tsconfig-paths/register prisma/seed.ts"
   }
 }

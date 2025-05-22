@@ -1,7 +1,7 @@
 import type { Metadata } from 'next';
 import { Geist, Geist_Mono } from 'next/font/google';
-import { UtmifyScripts } from '@/components/scripts/utmifyScripts';
-import { Claritycript } from '@/components/scripts/clarityScripts';
+import { UtmifyScripts } from '../../scripts/utmifyScripts';
+import { Claritycript } from '../../scripts/clarityScripts';
 import './globals.css';
 
 const geistSans = Geist({

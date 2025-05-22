@@ -52,46 +52,25 @@ export type OrderBump = {
   selecionado?: boolean;
 };
 
-// Dados de exemplo (substituir pela API)
-const produtoExemplo: ProdutoInfo = {
-  nome: 'Missão Literária',
-  price: 12.0,
-  imagemUrl: '/images/system/logo_transparent.webp',
-  sku: 'BOOK-001',
-};
+// Não precisamos mais dos dados de exemplo, pois agora recebemos via props
 
-const orderBumpsExemplo: OrderBump[] = [
-  {
-    id: 'ob-1',
-    nome: '40 Textos Para Missões Literárias',
-    descricao:
-      'Coletânea de textos narrativos criados especialmente para serem usados com as fichas do Missão Literária',
-    initialPrice: 12.0,
-    price: 6.0,
-    imagemUrl: '/images/system/logo_transparent.webp',
-    sku: 'BOOK-002',
-    selecionado: false,
-  },
-  {
-    id: 'ob-2',
-    nome: '50 Textos Para Missões Literárias',
-    descricao:
-      'Coletânea de textos narrativos criados especialmente para serem usados com as fichas do Missão Literária',
-    initialPrice: 12.0,
-    price: 8.0,
-    imagemUrl: '/images/system/logo_transparent.webp',
-    sku: 'BOOK-004',
-    selecionado: false,
-  },
-];
+interface CheckoutClientComponentProps {
+  produto: ProdutoInfo;
+  orderBumps: OrderBump[];
+  checkoutId: string;
+}
 
-export default function CheckoutPage() {
+export default function CheckoutClientComponent({
+  produto,
+  orderBumps: initialOrderBumps,
+  checkoutId
+}: CheckoutClientComponentProps) {
   // Referências para os campos do formulário
   const nomeRef = React.useRef<HTMLInputElement>(null);
   const emailRef = React.useRef<HTMLInputElement>(null);
   const telefoneRef = React.useRef<HTMLInputElement>(null);
 
-  const [orderBumps, setOrderBumps] = useState(orderBumpsExemplo);
+  const [orderBumps, setOrderBumps] = useState(initialOrderBumps);
   const [orderBumpsSelecionados, setOrderBumpsSelecionados] = useState<OrderBump[]>([]);
   const [carregando, setCarregando] = useState(false);
   const [erro, setErro] = useState<string | null>(null);
@@ -131,12 +110,12 @@ export default function CheckoutPage() {
 
   // Calcula o valor total
   const valorTotal = React.useMemo(() => {
-    let total = produtoExemplo.price;
-    orderBumpsSelecionados.forEach((bump) => {
+    let total = produto.price;
+    orderBumpsSelecionados.forEach((bump: OrderBump) => {
       total += bump.price;
     });
     return total;
-  }, [orderBumpsSelecionados]);
+  }, [orderBumpsSelecionados, produto.price]);
 
   // Função para formatar o telefone
   const formatarTelefone = (valor: string): string => {
@@ -200,11 +179,12 @@ export default function CheckoutPage() {
       // Preparar items para o pedido (produto principal + order bumps)
       const items = [
         {
-          id: produtoExemplo.sku,
-          title: produtoExemplo.nome,
-          unit_price: produtoExemplo.price,
+          id: produto.sku,
+          title: produto.nome,
+          description: produto.descricao || produto.nome,
           quantity: 1,
-          picture_url: produtoExemplo.imagemUrl,
+          unit_price: produto.price * 100, // Converter para centavos
+          category_id: 'digital_goods',
         },
         ...orderBumpsSelecionados.map((bump) => ({
           id: bump.sku,
@@ -224,11 +204,12 @@ export default function CheckoutPage() {
           telefone: dadosCliente.telefone.replace(/\D/g, ''), // Remove caracteres não numéricos
         },
         valorTotal,
+        checkoutId, // Usar o ID do checkout recebido via props
         external_reference: `PEDIDO-${Date.now()}`,
       };
 
       // Enviar para a API
-      const resposta = await fetch('/api/payment', {
+      const resposta = await fetch('/api/payment/pix', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -343,18 +324,18 @@ export default function CheckoutPage() {
         <div className="bg-white rounded-lg shadow-md p-4 flex items-center gap-3 mb-4 border border-gray-100">
           <div className="w-16 h-16 relative flex-shrink-0">
             <Image
-              src={produtoExemplo.imagemUrl}
-              alt={produtoExemplo.nome}
+              src={produto.imagemUrl}
+              alt={produto.nome}
               fill
               className="object-cover rounded-md"
             />
           </div>
           <div className="flex flex-col justify-center flex-1">
             <span className="text-base font-bold text-gray-900 leading-tight mb-1">
-              {produtoExemplo.nome}
+              {produto.nome}
             </span>
             <span className="text-lg font-bold text-[#1D3557]">
-              R$ {produtoExemplo.price.toFixed(2)}
+              R$ {produto.price.toFixed(2)}
             </span>
           </div>
         </div>
@@ -503,9 +484,9 @@ export default function CheckoutPage() {
           <div className="space-y-3">
             {/* Produto Principal */}
             <div className="flex justify-between items-center text-sm">
-              <span className="text-gray-600">{produtoExemplo.nome}</span>
+              <span className="text-gray-600">{produto.nome}</span>
               <span className="font-medium text-gray-900">
-                R$ {produtoExemplo.price.toFixed(2)}
+                R$ {produto.price.toFixed(2)}
               </span>
             </div>
 
