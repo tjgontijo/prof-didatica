@@ -6,21 +6,21 @@ import Image from 'next/image';
 import { initMercadoPago } from '@mercadopago/sdk-react';
 import { FaWhatsapp, FaSpinner, FaCopy } from 'react-icons/fa';
 
-
-initMercadoPago(process.env.NEXT_PUBLIC_MERCADOPAGO_PUBLIC_KEY || 'TEST-95f388d1-4d79-411f-8f5e-80cf69cb96c4');
-
+initMercadoPago(
+  process.env.NEXT_PUBLIC_MERCADOPAGO_PUBLIC_KEY || 'TEST-95f388d1-4d79-411f-8f5e-80cf69cb96c4',
+);
 
 const clienteSchema = z.object({
-  nome: z.string()
+  nome: z
+    .string()
     .min(1, 'Nome é obrigatório')
     .refine((val) => val.trim().split(/\s+/).length >= 2, {
-      message: 'Informe o nome completo (nome e sobrenome)'
+      message: 'Informe o nome completo (nome e sobrenome)',
     }),
   email: z.string().email('E-mail inválido'),
-  telefone: z.string()
-    .refine((val) => val.replace(/\D/g, '').length >= 11, {
-      message: 'WhatsApp deve ter pelo menos 11 dígitos'
-    })
+  telefone: z.string().refine((val) => val.replace(/\D/g, '').length >= 11, {
+    message: 'WhatsApp deve ter pelo menos 11 dígitos',
+  }),
 });
 
 // Tipo para resposta do PIX
@@ -55,32 +55,34 @@ export type OrderBump = {
 // Dados de exemplo (substituir pela API)
 const produtoExemplo: ProdutoInfo = {
   nome: 'Missão Literária',
-  price: 12.00,
+  price: 12.0,
   imagemUrl: '/images/system/logo_transparent.webp',
-  sku: 'BOOK-001'
+  sku: 'BOOK-001',
 };
 
 const orderBumpsExemplo: OrderBump[] = [
   {
     id: 'ob-1',
     nome: '40 Textos Para Missões Literárias',
-    descricao: 'Coletânea de textos narrativos criados especialmente para serem usados com as fichas do Missão Literária',    
-    initialPrice: 12.00,
-    price: 6.00,
+    descricao:
+      'Coletânea de textos narrativos criados especialmente para serem usados com as fichas do Missão Literária',
+    initialPrice: 12.0,
+    price: 6.0,
     imagemUrl: '/images/system/logo_transparent.webp',
     sku: 'BOOK-002',
-    selecionado: false
+    selecionado: false,
   },
   {
     id: 'ob-2',
     nome: '50 Textos Para Missões Literárias',
-    descricao: 'Coletânea de textos narrativos criados especialmente para serem usados com as fichas do Missão Literária',    
-    initialPrice: 12.00,
-    price: 8.00,
+    descricao:
+      'Coletânea de textos narrativos criados especialmente para serem usados com as fichas do Missão Literária',
+    initialPrice: 12.0,
+    price: 8.0,
     imagemUrl: '/images/system/logo_transparent.webp',
     sku: 'BOOK-004',
-    selecionado: false
-  }
+    selecionado: false,
+  },
 ];
 
 export default function CheckoutPage() {
@@ -88,7 +90,7 @@ export default function CheckoutPage() {
   const nomeRef = React.useRef<HTMLInputElement>(null);
   const emailRef = React.useRef<HTMLInputElement>(null);
   const telefoneRef = React.useRef<HTMLInputElement>(null);
-  
+
   const [orderBumps, setOrderBumps] = useState(orderBumpsExemplo);
   const [orderBumpsSelecionados, setOrderBumpsSelecionados] = useState<OrderBump[]>([]);
   const [carregando, setCarregando] = useState(false);
@@ -101,22 +103,22 @@ export default function CheckoutPage() {
   const [dadosCliente, setDadosCliente] = useState({
     nome: '',
     email: '',
-    telefone: ''
+    telefone: '',
   });
-  
+
   // Função para validar um campo individual
   const validarCampo = (campo: 'nome' | 'email' | 'telefone') => {
     const validacao = clienteSchema.shape[campo].safeParse(dadosCliente[campo]);
-    
+
     if (!validacao.success) {
-      setErrosForm(prev => ({
+      setErrosForm((prev) => ({
         ...prev,
-        [campo]: validacao.error.errors[0].message
+        [campo]: validacao.error.errors[0].message,
       }));
       return false;
     } else {
       // Limpar erro se o campo estiver válido
-      setErrosForm(prev => {
+      setErrosForm((prev) => {
         const novosErros = { ...prev };
         delete novosErros[campo];
         return novosErros;
@@ -130,7 +132,7 @@ export default function CheckoutPage() {
   // Calcula o valor total
   const valorTotal = React.useMemo(() => {
     let total = produtoExemplo.price;
-    orderBumpsSelecionados.forEach(bump => {
+    orderBumpsSelecionados.forEach((bump) => {
       total += bump.price;
     });
     return total;
@@ -153,16 +155,14 @@ export default function CheckoutPage() {
 
   // Atualiza os order bumps selecionados quando mudar a seleção
   useEffect(() => {
-    const selecionados = orderBumps.filter(bump => bump.selecionado);
+    const selecionados = orderBumps.filter((bump) => bump.selecionado);
     setOrderBumpsSelecionados(selecionados);
   }, [orderBumps]);
 
   // Toggle order bump seleção
   const handleToggleOrderBump = (id: string) => {
-    setOrderBumps(prev =>
-      prev.map(bump =>
-        bump.id === id ? { ...bump, selecionado: !bump.selecionado } : bump
-      )
+    setOrderBumps((prev) =>
+      prev.map((bump) => (bump.id === id ? { ...bump, selecionado: !bump.selecionado } : bump)),
     );
   };
 
@@ -176,7 +176,7 @@ export default function CheckoutPage() {
       const nomeValido = validarCampo('nome');
       const emailValido = validarCampo('email');
       const telefoneValido = validarCampo('telefone');
-      
+
       if (!nomeValido || !emailValido || !telefoneValido) {
         // Scroll até o primeiro campo com erro
         if (!nomeValido && nomeRef.current) {
@@ -189,11 +189,11 @@ export default function CheckoutPage() {
           telefoneRef.current.scrollIntoView({ behavior: 'smooth', block: 'center' });
           telefoneRef.current.focus();
         }
-        
+
         // Interrompe a execução da função
         return;
       }
-      
+
       // Limpar erros se validação passou
       setErrosForm({});
 
@@ -204,15 +204,15 @@ export default function CheckoutPage() {
           title: produtoExemplo.nome,
           unit_price: produtoExemplo.price,
           quantity: 1,
-          picture_url: produtoExemplo.imagemUrl
+          picture_url: produtoExemplo.imagemUrl,
         },
-        ...orderBumpsSelecionados.map(bump => ({
+        ...orderBumpsSelecionados.map((bump) => ({
           id: bump.sku,
           title: bump.nome,
           unit_price: bump.price,
           quantity: 1,
-          picture_url: bump.imagemUrl
-        }))
+          picture_url: bump.imagemUrl,
+        })),
       ];
 
       // Preparar dados do pedido
@@ -221,10 +221,10 @@ export default function CheckoutPage() {
         cliente: {
           nome: dadosCliente.nome,
           email: dadosCliente.email,
-          telefone: dadosCliente.telefone.replace(/\D/g, '') // Remove caracteres não numéricos
+          telefone: dadosCliente.telefone.replace(/\D/g, ''), // Remove caracteres não numéricos
         },
         valorTotal,
-        external_reference: `PEDIDO-${Date.now()}`
+        external_reference: `PEDIDO-${Date.now()}`,
       };
 
       // Enviar para a API
@@ -242,7 +242,6 @@ export default function CheckoutPage() {
 
       const dadosResposta = await resposta.json();
       setRespostaPix(dadosResposta);
-
     } catch (error) {
       if (error instanceof Error) {
         setErro(error.message);
@@ -267,34 +266,32 @@ export default function CheckoutPage() {
   // Componente para exibir QR Code e informações do PIX
   const PixInfo = () => {
     if (!respostaPix) return null;
-    
+
     return (
       <div className="bg-white rounded-lg shadow-md p-4 mb-4 text-center">
-        <h2 className="text-xl font-semibold text-[#1D3557] mb-4 border-b pb-2">
-          Pagamento PIX
-        </h2>
-        
+        <h2 className="text-xl font-semibold text-[#1D3557] mb-4 border-b pb-2">Pagamento PIX</h2>
+
         <div className="flex flex-col items-center space-y-4">
           {respostaPix.qr_code_base64 && (
             <div className="p-4 bg-white border rounded-lg">
-              <Image 
-                src={`data:image/png;base64,${respostaPix.qr_code_base64}`} 
-                alt="QR Code PIX" 
-                width={192} 
+              <Image
+                src={`data:image/png;base64,${respostaPix.qr_code_base64}`}
+                alt="QR Code PIX"
+                width={192}
                 height={192}
                 className="w-48 h-48"
                 unoptimized={true}
               />
             </div>
           )}
-          
+
           <div className="w-full">
             <p className="text-sm text-gray-500 mb-2">Copie o código PIX:</p>
             <div className="relative">
               <div className="p-3 bg-gray-100 rounded-lg text-xs font-mono break-all">
                 {respostaPix.qr_code}
               </div>
-              <button 
+              <button
                 onClick={copiarCodigoPix}
                 className="absolute right-2 top-1/2 -translate-y-1/2 p-2 text-[#1D3557] hover:text-[#457B9D]"
                 title="Copiar código PIX"
@@ -302,22 +299,20 @@ export default function CheckoutPage() {
                 <FaCopy size={16} />
               </button>
             </div>
-            {copiado && (
-              <p className="text-green-600 text-xs mt-1">Código copiado!</p>
-            )}
+            {copiado && <p className="text-green-600 text-xs mt-1">Código copiado!</p>}
           </div>
-          
+
           <p className="text-sm text-gray-700">
-            O código PIX expira em{" "}
-            {respostaPix.expiration_date 
+            O código PIX expira em{' '}
+            {respostaPix.expiration_date
               ? new Date(respostaPix.expiration_date).toLocaleString('pt-BR')
-              : "30 minutos"}
+              : '30 minutos'}
           </p>
-          
+
           {respostaPix.ticket_url && (
-            <a 
-              href={respostaPix.ticket_url} 
-              target="_blank" 
+            <a
+              href={respostaPix.ticket_url}
+              target="_blank"
               rel="noopener noreferrer"
               className="text-[#1D3557] underline hover:text-[#457B9D] text-sm"
             >
@@ -355,21 +350,23 @@ export default function CheckoutPage() {
             />
           </div>
           <div className="flex flex-col justify-center flex-1">
-            <span className="text-base font-bold text-gray-900 leading-tight mb-1">{produtoExemplo.nome}</span>
-            <span className="text-lg font-bold text-[#1D3557]">R$ {produtoExemplo.price.toFixed(2)}</span>
+            <span className="text-base font-bold text-gray-900 leading-tight mb-1">
+              {produtoExemplo.nome}
+            </span>
+            <span className="text-lg font-bold text-[#1D3557]">
+              R$ {produtoExemplo.price.toFixed(2)}
+            </span>
           </div>
         </div>
 
         {/* Resultado do PIX (quando disponível) */}
         {respostaPix && <PixInfo />}
-        
+
         {/* Formulário Cliente (esconder quando o PIX foi gerado) */}
         {!respostaPix && (
           <div className="bg-white rounded-lg shadow-md p-4 mb-4">
-            <h2 className="text-xl font-semibold text-[#1D3557] mb-4 border-b pb-2">
-              Seus Dados
-            </h2>
-            
+            <h2 className="text-xl font-semibold text-[#1D3557] mb-4 border-b pb-2">Seus Dados</h2>
+
             <div className="space-y-4">
               <div>
                 <label htmlFor="nome" className="block text-gray-700 mb-1 font-medium">
@@ -381,17 +378,15 @@ export default function CheckoutPage() {
                   id="nome"
                   value={dadosCliente.nome}
                   onChange={(e) => {
-                    setDadosCliente(prev => ({ ...prev, nome: e.target.value }));
+                    setDadosCliente((prev) => ({ ...prev, nome: e.target.value }));
                   }}
                   onBlur={() => validarCampo('nome')}
                   className={`w-full p-2 border rounded-lg text-gray-900 ${errosForm.nome ? 'border-red-500' : 'border-gray-300'}`}
                   placeholder="Seu nome completo"
                 />
-                {errosForm.nome && (
-                  <p className="text-red-500 text-xs mt-1">{errosForm.nome}</p>
-                )}
+                {errosForm.nome && <p className="text-red-500 text-xs mt-1">{errosForm.nome}</p>}
               </div>
-              
+
               <div>
                 <label htmlFor="email" className="block text-gray-700 mb-1 font-medium">
                   E-mail *
@@ -402,17 +397,15 @@ export default function CheckoutPage() {
                   id="email"
                   value={dadosCliente.email}
                   onChange={(e) => {
-                    setDadosCliente(prev => ({ ...prev, email: e.target.value }));
+                    setDadosCliente((prev) => ({ ...prev, email: e.target.value }));
                   }}
                   onBlur={() => validarCampo('email')}
                   className={`w-full p-2 border rounded-lg text-gray-900 ${errosForm.email ? 'border-red-500' : 'border-gray-300'}`}
                   placeholder="seu@email.com"
                 />
-                {errosForm.email && (
-                  <p className="text-red-500 text-xs mt-1">{errosForm.email}</p>
-                )}
+                {errosForm.email && <p className="text-red-500 text-xs mt-1">{errosForm.email}</p>}
               </div>
-              
+
               <div>
                 <label htmlFor="telefone" className="block text-gray-700 mb-1 font-medium">
                   WhatsApp *
@@ -428,7 +421,7 @@ export default function CheckoutPage() {
                     value={dadosCliente.telefone}
                     onChange={(e) => {
                       const valorFormatado = formatarTelefone(e.target.value);
-                      setDadosCliente(prev => ({ ...prev, telefone: valorFormatado }));
+                      setDadosCliente((prev) => ({ ...prev, telefone: valorFormatado }));
                     }}
                     onBlur={() => validarCampo('telefone')}
                     className={`w-full p-2 pl-10 border rounded-lg text-gray-900 ${errosForm.telefone ? 'border-red-500' : 'border-gray-300'}`}
@@ -446,17 +439,15 @@ export default function CheckoutPage() {
         {/* Order Bumps (mostrar apenas quando o PIX não foi gerado) */}
         {!respostaPix && (
           <div className="mb-4">
-            <h2 className="text-lg font-semibold text-[#1D3557] mb-2">
-              Aproveite e compre junto:
-            </h2>
+            <h2 className="text-lg font-semibold text-[#1D3557] mb-2">Aproveite e compre junto:</h2>
             <div className="mb-4">
               <div className="space-y-3">
                 {orderBumps.map((item) => (
-                  <div 
-                    key={item.id} 
+                  <div
+                    key={item.id}
                     className={`border rounded-lg p-3 transition-all duration-200 ${
-                      item.selecionado 
-                        ? 'border-green-500 bg-[#F8FCF8]' 
+                      item.selecionado
+                        ? 'border-green-500 bg-[#F8FCF8]'
                         : 'border-gray-200 bg-white'
                     }`}
                   >
@@ -504,18 +495,18 @@ export default function CheckoutPage() {
             </div>
           </div>
         )}
-        
+
         {/* Detalhes do Pedido */}
         <div className="mb-4">
-          <h2 className="text-base font-medium text-gray-900 mb-3">
-            Detalhes da compra
-          </h2>
+          <h2 className="text-base font-medium text-gray-900 mb-3">Detalhes da compra</h2>
 
           <div className="space-y-3">
             {/* Produto Principal */}
             <div className="flex justify-between items-center text-sm">
               <span className="text-gray-600">{produtoExemplo.nome}</span>
-              <span className="font-medium text-gray-900">R$ {produtoExemplo.price.toFixed(2)}</span>
+              <span className="font-medium text-gray-900">
+                R$ {produtoExemplo.price.toFixed(2)}
+              </span>
             </div>
 
             {/* Order Bumps Selecionados */}
@@ -533,7 +524,7 @@ export default function CheckoutPage() {
             </div>
           </div>
         </div>
-        
+
         {/* Botão de Finalização */}
         {!respostaPix && (
           <button
@@ -551,7 +542,7 @@ export default function CheckoutPage() {
             )}
           </button>
         )}
-        
+
         {/* Mensagem de Erro */}
         {erro && (
           <div className="mt-4 p-3 bg-red-100 border border-red-400 text-red-700 rounded-lg">

@@ -25,7 +25,7 @@ const FormularioCartao: React.FC<FormularioCartaoProps> = ({
   handleChangeCartao,
   valorTotal,
   formatarNumeroCartao,
-  formatarValidade
+  formatarValidade,
 }) => {
   return (
     <div className="bg-gray-50 p-4 rounded-lg mb-4 border border-gray-200">
@@ -44,7 +44,7 @@ const FormularioCartao: React.FC<FormularioCartaoProps> = ({
             maxLength={19}
           />
         </div>
-        
+
         <div>
           <label htmlFor="nome-cartao" className="block text-gray-700 mb-1 text-sm font-medium">
             Nome impresso no cartão
@@ -58,10 +58,13 @@ const FormularioCartao: React.FC<FormularioCartaoProps> = ({
             placeholder="NOME COMO ESTÁ NO CARTÃO"
           />
         </div>
-        
+
         <div className="grid grid-cols-2 gap-4">
           <div>
-            <label htmlFor="validade-cartao" className="block text-gray-700 mb-1 text-sm font-medium">
+            <label
+              htmlFor="validade-cartao"
+              className="block text-gray-700 mb-1 text-sm font-medium"
+            >
               Validade (MM/AA)
             </label>
             <input
@@ -74,7 +77,7 @@ const FormularioCartao: React.FC<FormularioCartaoProps> = ({
               maxLength={5}
             />
           </div>
-          
+
           <div>
             <label htmlFor="cvv-cartao" className="block text-gray-700 mb-1 text-sm font-medium">
               Código de segurança (CVV)
@@ -90,7 +93,7 @@ const FormularioCartao: React.FC<FormularioCartaoProps> = ({
             />
           </div>
         </div>
-        
+
         <div>
           <label htmlFor="parcelas" className="block text-gray-700 mb-1 text-sm font-medium">
             Parcelas
@@ -115,7 +118,7 @@ const FormularioCartao: React.FC<FormularioCartaoProps> = ({
             <option value={12}>12x de R$ {(valorTotal / 12).toFixed(2)} sem juros</option>
           </select>
         </div>
-        
+
         <p className="text-xs text-gray-500 flex items-center mt-2">
           <FaLock className="mr-1" /> Seus dados estão seguros e criptografados
         </p>

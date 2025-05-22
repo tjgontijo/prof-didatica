@@ -14,7 +14,7 @@ const TestePage: React.FC = () => {
     valorDesconto: 67,
     imagemUrl: '/images/system/logo_transparent.webp', // Usando uma imagem existente
     sku: 'MATH-001',
-    descricao: 'Aprenda matemática de forma divertida e eficaz com este curso completo.'
+    descricao: 'Aprenda matemática de forma divertida e eficaz com este curso completo.',
   };
 
   // Função para redirecionar para o checkout com dados via POST
@@ -28,11 +28,11 @@ const TestePage: React.FC = () => {
         },
         body: JSON.stringify({ produto }),
       });
-      
+
       if (!resposta.ok) {
         throw new Error('Erro ao iniciar o checkout');
       }
-      
+
       // Redirecionar para a página de checkout
       router.push('/checkout');
     } catch (erro) {
@@ -75,37 +75,71 @@ const TestePage: React.FC = () => {
             {/* Informações do produto */}
             <div className="md:w-1/2 p-8">
               <h1 className="text-2xl font-bold text-[#1D3557] mb-4">{produto.nome}</h1>
-              
+
               <p className="text-gray-600 mb-6">{produto.descricao}</p>
-              
+
               <div className="mb-6">
-                <span className="text-gray-500 line-through mr-3">R$ {produto.valorOriginal.toFixed(2)}</span>
-                <span className="text-3xl font-bold text-[#457B9D]">R$ {produto.valorDesconto.toFixed(2)}</span>
+                <span className="text-gray-500 line-through mr-3">
+                  R$ {produto.valorOriginal.toFixed(2)}
+                </span>
+                <span className="text-3xl font-bold text-[#457B9D]">
+                  R$ {produto.valorDesconto.toFixed(2)}
+                </span>
               </div>
-              
+
               <div className="space-y-4 mb-8">
                 <div className="flex items-start gap-2">
-                  <svg className="w-5 h-5 text-green-500 mt-0.5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 13l4 4L19 7" />
+                  <svg
+                    className="w-5 h-5 text-green-500 mt-0.5 flex-shrink-0"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth="2"
+                      d="M5 13l4 4L19 7"
+                    />
                   </svg>
                   <span>Acesso imediato após a compra</span>
                 </div>
-                
+
                 <div className="flex items-start gap-2">
-                  <svg className="w-5 h-5 text-green-500 mt-0.5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 13l4 4L19 7" />
+                  <svg
+                    className="w-5 h-5 text-green-500 mt-0.5 flex-shrink-0"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth="2"
+                      d="M5 13l4 4L19 7"
+                    />
                   </svg>
                   <span>Material completo em PDF</span>
                 </div>
-                
+
                 <div className="flex items-start gap-2">
-                  <svg className="w-5 h-5 text-green-500 mt-0.5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 13l4 4L19 7" />
+                  <svg
+                    className="w-5 h-5 text-green-500 mt-0.5 flex-shrink-0"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth="2"
+                      d="M5 13l4 4L19 7"
+                    />
                   </svg>
                   <span>Suporte via WhatsApp</span>
                 </div>
               </div>
-              
+
               <button
                 onClick={irParaCheckout}
                 className="w-full bg-gradient-to-r from-[#457B9D] to-[#1D3557] text-white py-3 px-6 rounded-lg font-semibold hover:from-[#1D3557] hover:to-[#457B9D] transition-all duration-300 transform hover:scale-[1.02]"

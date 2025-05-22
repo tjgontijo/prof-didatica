@@ -12,28 +12,19 @@ type OrderBumpsProps = {
 const OrderBumps: React.FC<OrderBumpsProps> = ({ orderBumps, onToggleOrderBump }) => {
   return (
     <div className="mb-4">
-      <h2 className="text-base font-medium text-gray-900 mb-3">
-        Aproveite e compre junto:
-      </h2>
-      
+      <h2 className="text-base font-medium text-gray-900 mb-3">Aproveite e compre junto:</h2>
+
       <div className="space-y-3">
         {orderBumps.map((item) => (
-          <div 
-            key={item.id} 
+          <div
+            key={item.id}
             className={`border rounded-lg p-3 transition-all duration-200 ${
-              item.selecionado 
-                ? 'border-green-500 bg-[#F8FCF8]' 
-                : 'border-gray-200 bg-white'
+              item.selecionado ? 'border-green-500 bg-[#F8FCF8]' : 'border-gray-200 bg-white'
             }`}
           >
             <div className="flex gap-3">
               <div className="w-[50px] h-[50px] relative flex-shrink-0">
-                <Image
-                  src={item.imagemUrl}
-                  alt={item.nome}
-                  fill
-                  className="object-cover rounded"
-                />
+                <Image src={item.imagemUrl} alt={item.nome} fill className="object-cover rounded" />
               </div>
               <div className="flex-1">
                 <h4 className="text-sm font-bold text-gray-900">{item.nome}</h4>
@@ -47,9 +38,7 @@ const OrderBumps: React.FC<OrderBumpsProps> = ({ orderBumps, onToggleOrderBump }
                       R$ {item.price.toFixed(2)}
                     </span>
                   </div>
-                  <div className="bg-green-500 text-white text-xs px-2 py-1 rounded">
-                    -50%
-                  </div>
+                  <div className="bg-green-500 text-white text-xs px-2 py-1 rounded">-50%</div>
                 </div>
               </div>
             </div>

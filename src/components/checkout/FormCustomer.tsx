@@ -14,10 +14,10 @@ type FormularioClienteProps = {
   };
 };
 
-const FormularioCliente: React.FC<FormularioClienteProps> = ({ 
-  dadosCliente, 
+const FormularioCliente: React.FC<FormularioClienteProps> = ({
+  dadosCliente,
   onChangeDados,
-  erros = {}
+  erros = {},
 }) => {
   // Função para formatar o telefone
   const formatarTelefone = (valor: string): string => {
@@ -36,10 +36,8 @@ const FormularioCliente: React.FC<FormularioClienteProps> = ({
 
   return (
     <div className="bg-white rounded-lg shadow-md p-4 mb-4">
-      <h2 className="text-xl font-semibold text-[#1D3557] mb-4 border-b pb-2">
-        Seus Dados
-      </h2>
-      
+      <h2 className="text-xl font-semibold text-[#1D3557] mb-4 border-b pb-2">Seus Dados</h2>
+
       <div className="space-y-4">
         <div>
           <label htmlFor="nome" className="block text-gray-700 mb-1 font-medium">
@@ -54,11 +52,9 @@ const FormularioCliente: React.FC<FormularioClienteProps> = ({
             required
             placeholder="Digite seu nome completo"
           />
-          {erros.nome && (
-            <p className="text-red-500 text-sm mt-1">{erros.nome}</p>
-          )}
+          {erros.nome && <p className="text-red-500 text-sm mt-1">{erros.nome}</p>}
         </div>
-        
+
         <div>
           <label htmlFor="email" className="block text-gray-700 mb-1 font-medium">
             E-mail *
@@ -72,11 +68,9 @@ const FormularioCliente: React.FC<FormularioClienteProps> = ({
             required
             placeholder="exemplo@email.com"
           />
-          {erros.email && (
-            <p className="text-red-500 text-sm mt-1">{erros.email}</p>
-          )}
+          {erros.email && <p className="text-red-500 text-sm mt-1">{erros.email}</p>}
         </div>
-        
+
         <div>
           <label htmlFor="telefone" className="block text-gray-700 mb-1 font-medium">
             WhatsApp *
@@ -98,9 +92,7 @@ const FormularioCliente: React.FC<FormularioClienteProps> = ({
           {erros.telefone ? (
             <p className="text-red-500 text-sm mt-1">{erros.telefone}</p>
           ) : (
-            <p className="text-xs text-gray-500 mt-1">
-              Você receberá o acesso pelo WhatsApp
-            </p>
+            <p className="text-xs text-gray-500 mt-1">Você receberá o acesso pelo WhatsApp</p>
           )}
         </div>
       </div>

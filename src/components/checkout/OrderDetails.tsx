@@ -12,17 +12,13 @@ const OrderDetails: React.FC<OrderDetailsProps> = ({ produto, orderBumpsSelecion
   // Calcula o valor total somando o produto principal + order bumps selecionados
   const valorTotal = React.useMemo(() => {
     const valorProdutoPrincipal = produto.price;
-    const valorOrderBumps = orderBumpsSelecionados.reduce((total, bump) => 
-      total + bump.price, 0
-    );
+    const valorOrderBumps = orderBumpsSelecionados.reduce((total, bump) => total + bump.price, 0);
     return valorProdutoPrincipal + valorOrderBumps;
   }, [produto.price, orderBumpsSelecionados]);
 
   return (
     <div className="mb-4">
-      <h2 className="text-base font-medium text-gray-900 mb-3">
-        Detalhes da compra
-      </h2>
+      <h2 className="text-base font-medium text-gray-900 mb-3">Detalhes da compra</h2>
 
       <div className="space-y-3">
         {/* Produto Principal */}
