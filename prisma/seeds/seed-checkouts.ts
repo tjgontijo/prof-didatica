@@ -8,8 +8,7 @@ export async function seedCheckouts(prisma: PrismaClient) {
 
   await prisma.checkout.create({
     data: {      
-      productId: principal.id,
-      price: principal.price,
+      productId: principal.id,      
       isActive: true,
       campaignName: 'Campanha Principal',
       upsellPageUrl: 'https://lp.profdidatica.com.br/obrigado',
