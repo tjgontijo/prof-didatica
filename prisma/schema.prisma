@@ -39,7 +39,6 @@ model Product {
 model Checkout {
   id              String    @id @default(uuid())  
   productId       String
-  price           Int // valor em centavos  
   campaignName    String?
   upsellPageUrl   String?
   isActive        Boolean   @default(true)
