@@ -8,7 +8,19 @@ import { MercadoPagoConfig, Payment } from 'mercadopago';
  */
 export async function POST(request: NextRequest): Promise<NextResponse> {
   try {
+    // Capturar headers relevantes
+    const signature = request.headers.get('x-signature') || request.headers.get('x-hook-secret');
+    const allHeaders = Object.fromEntries(request.headers.entries());
+
+    // Capturar body recebido
     const body = await request.json();
+
+    // Log detalhado para análise
+    console.log('--- Webhook Mercado Pago Recebido ---');
+    console.log('Headers:', allHeaders);
+    console.log('Assinatura recebida:', signature);
+    console.log('Body:', JSON.stringify(body, null, 2));
+    console.log('-------------------------------------');
     
     // Verificar se é uma notificação de pagamento
     if (body.action === 'payment.created' || body.action === 'payment.updated') {
