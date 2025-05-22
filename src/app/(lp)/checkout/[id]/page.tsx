@@ -1,11 +1,38 @@
+import { Metadata } from 'next';
 import { notFound } from 'next/navigation';
 import { getCheckoutData } from '../components/getCheckoutData';
 import CheckoutClientComponent from '../components/CheckoutClientComponent';
 
+// Definindo o tipo para os parâmetros conforme Next.js 15
+export type paramsType = Promise<{ id: string }>;
+
+// Função para gerar metadados dinâmicos
+export async function generateMetadata(props: { params: paramsType }): Promise<Metadata> {
+  try {
+    const { id } = await props.params;
+    const checkoutData = await getCheckoutData(id);
+    
+    if (!checkoutData) {
+      return {
+        title: 'Checkout não encontrado',
+      };
+    }
+    
+    return {
+      title: `Checkout - ${checkoutData.product.name}`,
+      description: checkoutData.product.description,
+    };
+  } catch {
+    return {
+      title: 'Checkout',
+    };
+  }
+}
+
 // Componente server-side
-export default async function CheckoutPage({ params }: { params: { id: string } }) {
-  // Obter o ID do checkout da URL
-  const { id } = params;
+export default async function CheckoutPage(props: { params: paramsType }) {
+  // Obter o ID do checkout da URL de forma assíncrona
+  const { id } = await props.params;
   
   // Buscar dados do checkout
   const checkoutData = await getCheckoutData(id);

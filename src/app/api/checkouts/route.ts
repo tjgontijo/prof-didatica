@@ -5,7 +5,6 @@ import { Prisma } from '@prisma/client';
 
 const checkoutSchema = z.object({
   productId: z.string().uuid(),
-  code: z.string().min(3).max(50),
   price: z.number().int().min(0), // Obrigatório no schema
   priceCurrency: z.string().default('BRL'),
   campaignName: z.string().optional(),
@@ -20,13 +19,13 @@ export async function GET(request: NextRequest) {
   const { searchParams } = new URL(request.url);
   const page = parseInt(searchParams.get('page') || '1', 10);
   const pageSize = parseInt(searchParams.get('pageSize') || '20', 10);
-  const code = searchParams.get('code') || undefined;
+  const id = searchParams.get('id') || undefined;
   const productId = searchParams.get('productId') || undefined;
 
   // Definindo filtros de busca
   const where: Prisma.CheckoutWhereInput = {};
-  if (code) {
-    where.code = code; // Exact match para code (que é unique)
+  if (id) {
+    where.id = id; // Exact match para id (que é unique)
   }
   if (productId) {
     where.productId = productId;
@@ -57,7 +56,10 @@ export async function POST(request: NextRequest) {
     // Criar checkout (sem order bumps nesta rota)
     const checkout = await prisma.checkout.create({
       data: {
-        ...data,
+        productId: data.productId,
+        price: data.price,
+        campaignName: data.campaignName,
+        upsellPageUrl: data.upsellPageUrl,
         isActive: data.isActive ?? true,
       },
       include: {
