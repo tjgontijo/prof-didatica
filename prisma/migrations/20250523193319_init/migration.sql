@@ -1,8 +1,12 @@
+-- CreateEnum
+CREATE TYPE "OrderStatus" AS ENUM ('DRAFT', 'PENDING_PAYMENT', 'PAYMENT_PROCESSING', 'PAID', 'CANCELLED', 'REFUNDED', 'DELIVERED');
+
 -- CreateTable
 CREATE TABLE "Product" (
     "id" TEXT NOT NULL,
     "name" TEXT NOT NULL,
     "description" TEXT NOT NULL,
+    "imageUrl" TEXT,
     "price" INTEGER NOT NULL,
     "salesPageUrl" TEXT NOT NULL,
     "isActive" BOOLEAN NOT NULL DEFAULT true,
@@ -23,18 +27,20 @@ CREATE TABLE "Checkout" (
     "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "updatedAt" TIMESTAMP(3) NOT NULL,
     "deletedAt" TIMESTAMP(3),
+    "requiredFields" JSONB DEFAULT '["customerName","customerEmail","customerPhone"]',
 
     CONSTRAINT "Checkout_pkey" PRIMARY KEY ("id")
 );
 
 -- CreateTable
-CREATE TABLE "ProductOrderBump" (
+CREATE TABLE "OrderBump" (
     "id" TEXT NOT NULL,
     "mainProductId" TEXT NOT NULL,
     "bumpProductId" TEXT NOT NULL,
     "callToAction" TEXT NOT NULL,
     "title" TEXT NOT NULL,
     "description" TEXT NOT NULL,
+    "specialPrice" INTEGER NOT NULL,
     "showProductImage" BOOLEAN NOT NULL DEFAULT false,
     "displayOrder" INTEGER,
     "isActive" BOOLEAN NOT NULL DEFAULT true,
@@ -42,7 +48,7 @@ CREATE TABLE "ProductOrderBump" (
     "updatedAt" TIMESTAMP(3) NOT NULL,
     "deletedAt" TIMESTAMP(3),
 
-    CONSTRAINT "ProductOrderBump_pkey" PRIMARY KEY ("id")
+    CONSTRAINT "OrderBump_pkey" PRIMARY KEY ("id")
 );
 
 -- CreateTable
@@ -50,12 +56,13 @@ CREATE TABLE "Order" (
     "id" TEXT NOT NULL,
     "checkoutId" TEXT NOT NULL,
     "productId" TEXT NOT NULL,
-    "customerName" TEXT NOT NULL,
-    "customerEmail" TEXT NOT NULL,
-    "customerPhone" TEXT NOT NULL,
+    "customerId" TEXT NOT NULL,
     "paidAmount" DOUBLE PRECISION NOT NULL,
+    "status" "OrderStatus" NOT NULL DEFAULT 'DRAFT',
+    "statusUpdatedAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "updatedAt" TIMESTAMP(3) NOT NULL,
+    "deletedAt" TIMESTAMP(3),
 
     CONSTRAINT "Order_pkey" PRIMARY KEY ("id")
 );
@@ -70,8 +77,21 @@ CREATE TABLE "OrderItem" (
     "isOrderBump" BOOLEAN NOT NULL DEFAULT false,
     "isUpsell" BOOLEAN NOT NULL DEFAULT false,
     "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "deletedAt" TIMESTAMP(3),
 
     CONSTRAINT "OrderItem_pkey" PRIMARY KEY ("id")
+);
+
+-- CreateTable
+CREATE TABLE "OrderStatusHistory" (
+    "id" TEXT NOT NULL,
+    "orderId" TEXT NOT NULL,
+    "previousStatus" "OrderStatus",
+    "newStatus" "OrderStatus" NOT NULL,
+    "notes" TEXT,
+    "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+
+    CONSTRAINT "OrderStatusHistory_pkey" PRIMARY KEY ("id")
 );
 
 -- CreateTable
@@ -116,8 +136,21 @@ CREATE TABLE "Payment" (
     "paidAt" TIMESTAMP(3),
     "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "updatedAt" TIMESTAMP(3) NOT NULL,
+    "deletedAt" TIMESTAMP(3),
 
     CONSTRAINT "Payment_pkey" PRIMARY KEY ("id")
+);
+
+-- CreateTable
+CREATE TABLE "Customer" (
+    "id" TEXT NOT NULL,
+    "name" TEXT NOT NULL,
+    "email" TEXT NOT NULL,
+    "phone" TEXT NOT NULL,
+    "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "updatedAt" TIMESTAMP(3) NOT NULL,
+
+    CONSTRAINT "Customer_pkey" PRIMARY KEY ("id")
 );
 
 -- CreateIndex
@@ -127,22 +160,31 @@ CREATE INDEX "Product_isActive_deletedAt_idx" ON "Product"("isActive", "deletedA
 CREATE INDEX "Checkout_isActive_deletedAt_idx" ON "Checkout"("isActive", "deletedAt");
 
 -- CreateIndex
-CREATE INDEX "ProductOrderBump_mainProductId_idx" ON "ProductOrderBump"("mainProductId");
+CREATE INDEX "OrderBump_mainProductId_idx" ON "OrderBump"("mainProductId");
 
 -- CreateIndex
-CREATE INDEX "ProductOrderBump_bumpProductId_idx" ON "ProductOrderBump"("bumpProductId");
+CREATE INDEX "OrderBump_bumpProductId_idx" ON "OrderBump"("bumpProductId");
 
 -- CreateIndex
 CREATE INDEX "Order_createdAt_idx" ON "Order"("createdAt");
 
 -- CreateIndex
-CREATE INDEX "Order_customerEmail_idx" ON "Order"("customerEmail");
+CREATE INDEX "Order_customerId_idx" ON "Order"("customerId");
+
+-- CreateIndex
+CREATE INDEX "Order_deletedAt_idx" ON "Order"("deletedAt");
 
 -- CreateIndex
 CREATE INDEX "OrderItem_orderId_idx" ON "OrderItem"("orderId");
 
 -- CreateIndex
 CREATE INDEX "OrderItem_productId_idx" ON "OrderItem"("productId");
+
+-- CreateIndex
+CREATE INDEX "OrderItem_deletedAt_idx" ON "OrderItem"("deletedAt");
+
+-- CreateIndex
+CREATE INDEX "OrderStatusHistory_orderId_idx" ON "OrderStatusHistory"("orderId");
 
 -- CreateIndex
 CREATE INDEX "Webhook_active_idx" ON "Webhook"("active");
@@ -159,14 +201,29 @@ CREATE UNIQUE INDEX "Payment_orderId_key" ON "Payment"("orderId");
 -- CreateIndex
 CREATE INDEX "Payment_orderId_idx" ON "Payment"("orderId");
 
+-- CreateIndex
+CREATE INDEX "Payment_deletedAt_idx" ON "Payment"("deletedAt");
+
+-- CreateIndex
+CREATE UNIQUE INDEX "Customer_email_key" ON "Customer"("email");
+
+-- CreateIndex
+CREATE UNIQUE INDEX "Customer_phone_key" ON "Customer"("phone");
+
+-- CreateIndex
+CREATE INDEX "Customer_email_idx" ON "Customer"("email");
+
+-- CreateIndex
+CREATE INDEX "Customer_phone_idx" ON "Customer"("phone");
+
 -- AddForeignKey
 ALTER TABLE "Checkout" ADD CONSTRAINT "Checkout_productId_fkey" FOREIGN KEY ("productId") REFERENCES "Product"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
 
 -- AddForeignKey
-ALTER TABLE "ProductOrderBump" ADD CONSTRAINT "ProductOrderBump_mainProductId_fkey" FOREIGN KEY ("mainProductId") REFERENCES "Product"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
+ALTER TABLE "OrderBump" ADD CONSTRAINT "OrderBump_mainProductId_fkey" FOREIGN KEY ("mainProductId") REFERENCES "Product"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
 
 -- AddForeignKey
-ALTER TABLE "ProductOrderBump" ADD CONSTRAINT "ProductOrderBump_bumpProductId_fkey" FOREIGN KEY ("bumpProductId") REFERENCES "Product"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
+ALTER TABLE "OrderBump" ADD CONSTRAINT "OrderBump_bumpProductId_fkey" FOREIGN KEY ("bumpProductId") REFERENCES "Product"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
 
 -- AddForeignKey
 ALTER TABLE "Order" ADD CONSTRAINT "Order_checkoutId_fkey" FOREIGN KEY ("checkoutId") REFERENCES "Checkout"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
@@ -175,10 +232,16 @@ ALTER TABLE "Order" ADD CONSTRAINT "Order_checkoutId_fkey" FOREIGN KEY ("checkou
 ALTER TABLE "Order" ADD CONSTRAINT "Order_productId_fkey" FOREIGN KEY ("productId") REFERENCES "Product"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
 
 -- AddForeignKey
+ALTER TABLE "Order" ADD CONSTRAINT "Order_customerId_fkey" FOREIGN KEY ("customerId") REFERENCES "Customer"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
+
+-- AddForeignKey
 ALTER TABLE "OrderItem" ADD CONSTRAINT "OrderItem_orderId_fkey" FOREIGN KEY ("orderId") REFERENCES "Order"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
 
 -- AddForeignKey
 ALTER TABLE "OrderItem" ADD CONSTRAINT "OrderItem_productId_fkey" FOREIGN KEY ("productId") REFERENCES "Product"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "OrderStatusHistory" ADD CONSTRAINT "OrderStatusHistory_orderId_fkey" FOREIGN KEY ("orderId") REFERENCES "Order"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
 
 -- AddForeignKey
 ALTER TABLE "WebhookLog" ADD CONSTRAINT "WebhookLog_webhookId_fkey" FOREIGN KEY ("webhookId") REFERENCES "Webhook"("id") ON DELETE RESTRICT ON UPDATE CASCADE;

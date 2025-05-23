@@ -1,27 +1,22 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
-import { z } from 'zod';
 import Image from 'next/image';
 import { initMercadoPago } from '@mercadopago/sdk-react';
-import { FaWhatsapp, FaSpinner, FaCopy } from 'react-icons/fa';
+import { FaSpinner } from 'react-icons/fa';
+import PaymentQrCode from '@/components/checkout/PaymentQrCode';
+import FormCustomer from '@/components/checkout/FormCustomer';
+import ProductHeader from '@/components/checkout/ProductHeader';
+import OrderDetails from '@/components/checkout/OrderDetails';
+import OrderBumps from '@/components/checkout/OrderBumps';
+import { FormPix } from '@/components/checkout';
+import { PaymentSelector } from '@/components/checkout';
 
 initMercadoPago(
   process.env.NEXT_PUBLIC_MERCADOPAGO_PUBLIC_KEY || 'TEST-95f388d1-4d79-411f-8f5e-80cf69cb96c4',
 );
 
-const clienteSchema = z.object({
-  nome: z
-    .string()
-    .min(1, 'Nome é obrigatório')
-    .refine((val) => val.trim().split(/\s+/).length >= 2, {
-      message: 'Informe o nome completo (nome e sobrenome)',
-    }),
-  email: z.string().email('E-mail inválido'),
-  telefone: z.string().refine((val) => val.replace(/\D/g, '').length >= 11, {
-    message: 'WhatsApp deve ter pelo menos 11 dígitos',
-  }),
-});
+
 
 // Tipo para resposta do PIX
 type RespostaPix = {
@@ -45,11 +40,12 @@ export type OrderBump = {
   id: string;
   nome: string;
   descricao: string;
-  initialPrice: number;
-  price: number;
+  initialPrice: number; // Preço original do produto (vem do bumpProduct.price)
+  specialPrice: number; // Preço especial do order bump (vem do orderBump.specialPrice)
   imagemUrl: string;
   sku: string;
   selecionado?: boolean;
+  percentDesconto?: number; // Percentual de desconto calculado
 };
 
 // Não precisamos mais dos dados de exemplo, pois agora recebemos via props
@@ -58,79 +54,91 @@ interface CheckoutClientComponentProps {
   produto: ProdutoInfo;
   orderBumps: OrderBump[];
   checkoutId: string;
+  requiredFields: Array<'nome' | 'email' | 'telefone'>;
 }
+
+// --- Tipo para payload de criação de Order em draft ---
+type OrderDraftPayload = {
+  productId: string;
+  checkoutId: string;
+  customerName?: string;
+  customerEmail?: string;
+  customerPhone?: string;
+};
+
+// --- Tipo para payload de atualização de Order ---
+type OrderUpdatePayload = {
+  customerName?: string;
+  customerEmail?: string;
+  customerPhone?: string;
+};
 
 export default function CheckoutClientComponent({
   produto,
   orderBumps: initialOrderBumps,
-  checkoutId
+  checkoutId,
+  requiredFields,
 }: CheckoutClientComponentProps) {
-  // Referências para os campos do formulário
-  const nomeRef = React.useRef<HTMLInputElement>(null);
-  const emailRef = React.useRef<HTMLInputElement>(null);
-  const telefoneRef = React.useRef<HTMLInputElement>(null);
-
   const [orderBumps, setOrderBumps] = useState(initialOrderBumps);
   const [orderBumpsSelecionados, setOrderBumpsSelecionados] = useState<OrderBump[]>([]);
   const [carregando, setCarregando] = useState(false);
   const [erro, setErro] = useState<string | null>(null);
-  const [errosForm, setErrosForm] = useState<{
-    nome?: string;
-    email?: string;
-    telefone?: string;
-  }>({});
   const [dadosCliente, setDadosCliente] = useState({
     nome: '',
     email: '',
     telefone: '',
+    telefoneNormalizado: '',
   });
+  
+  const [formValido, setFormValido] = useState(false);
+  const [orderId, setOrderId] = useState<string>();
 
-  // Função para validar um campo individual
-  const validarCampo = (campo: 'nome' | 'email' | 'telefone') => {
-    const validacao = clienteSchema.shape[campo].safeParse(dadosCliente[campo]);
-
-    if (!validacao.success) {
-      setErrosForm((prev) => ({
-        ...prev,
-        [campo]: validacao.error.errors[0].message,
-      }));
-      return false;
-    } else {
-      // Limpar erro se o campo estiver válido
-      setErrosForm((prev) => {
-        const novosErros = { ...prev };
-        delete novosErros[campo];
-        return novosErros;
-      });
-      return true;
+  // Handler para salvar dados do cliente vindos do FormCustomer
+  const handleSaveCustomerData = async (data: {
+    nome: string;
+    email: string;
+    telefone: string;
+    telefoneNormalizado: string;
+  }) => {
+    setDadosCliente(data);
+    
+    try {
+      if (!orderId) {
+        const payload: OrderDraftPayload = { productId: produto.sku, checkoutId };
+        if (requiredFields.includes('nome')) payload.customerName = data.nome;
+        if (requiredFields.includes('email')) payload.customerEmail = data.email;
+        if (requiredFields.includes('telefone')) payload.customerPhone = data.telefoneNormalizado;
+        const res = await fetch('/api/orders', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload) });
+        const data2 = await res.json();
+        if (data2.success) setOrderId(data2.orderId);
+      } else {
+        const payload: OrderUpdatePayload = {};
+        if (requiredFields.includes('nome')) payload.customerName = data.nome;
+        if (requiredFields.includes('email')) payload.customerEmail = data.email;
+        if (requiredFields.includes('telefone')) payload.customerPhone = data.telefoneNormalizado;
+        await fetch(`/api/orders?id=${orderId}`, { method: 'PATCH', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload) });
+      }
+    } catch (error) {
+      console.error('Erro ao salvar dados do cliente:', error);
     }
   };
+  
+  // Handler para atualizar o estado de validação do formulário
+  const handleFormValidationChange = (isValid: boolean) => {
+    setFormValido(isValid);
+  };
   const [respostaPix, setRespostaPix] = useState<RespostaPix | null>(null);
-  const [copiado, setCopiado] = useState(false);
 
   // Calcula o valor total
   const valorTotal = React.useMemo(() => {
     let total = produto.price;
     orderBumpsSelecionados.forEach((bump: OrderBump) => {
-      total += bump.price;
+      total += bump.specialPrice;
     });
     return total;
   }, [orderBumpsSelecionados, produto.price]);
 
-  // Função para formatar o telefone
-  const formatarTelefone = (valor: string): string => {
-    const apenasNumeros = valor.replace(/\D/g, '');
-    if (apenasNumeros.length <= 2) {
-      return apenasNumeros;
-    }
-    if (apenasNumeros.length <= 6) {
-      return `(${apenasNumeros.slice(0, 2)}) ${apenasNumeros.slice(2)}`;
-    }
-    if (apenasNumeros.length <= 10) {
-      return `(${apenasNumeros.slice(0, 2)}) ${apenasNumeros.slice(2, 6)}-${apenasNumeros.slice(6)}`;
-    }
-    return `(${apenasNumeros.slice(0, 2)}) ${apenasNumeros.slice(2, 7)}-${apenasNumeros.slice(7, 11)}`;
-  };
+  // Usamos formatBrazilianPhone importado de @/lib/phone
 
   // Atualiza os order bumps selecionados quando mudar a seleção
   useEffect(() => {
@@ -151,30 +159,12 @@ export default function CheckoutClientComponent({
     setErro(null);
 
     try {
-      // Validar todos os campos do cliente
-      const nomeValido = validarCampo('nome');
-      const emailValido = validarCampo('email');
-      const telefoneValido = validarCampo('telefone');
-
-      if (!nomeValido || !emailValido || !telefoneValido) {
-        // Scroll até o primeiro campo com erro
-        if (!nomeValido && nomeRef.current) {
-          nomeRef.current.scrollIntoView({ behavior: 'smooth', block: 'center' });
-          nomeRef.current.focus();
-        } else if (!emailValido && emailRef.current) {
-          emailRef.current.scrollIntoView({ behavior: 'smooth', block: 'center' });
-          emailRef.current.focus();
-        } else if (!telefoneValido && telefoneRef.current) {
-          telefoneRef.current.scrollIntoView({ behavior: 'smooth', block: 'center' });
-          telefoneRef.current.focus();
-        }
-
-        // Interrompe a execução da função
+      // Verificar se o formulário está válido
+      if (!formValido) {
+        setErro('Por favor, preencha todos os campos corretamente');
+        setCarregando(false);
         return;
       }
-
-      // Limpar erros se validação passou
-      setErrosForm({});
 
       // Preparar items para o pedido (produto principal + order bumps)
       const items = [
@@ -189,7 +179,7 @@ export default function CheckoutClientComponent({
         ...orderBumpsSelecionados.map((bump) => ({
           id: bump.sku,
           title: bump.nome,
-          unit_price: bump.price,
+          unit_price: bump.specialPrice,
           quantity: 1,
           picture_url: bump.imagemUrl,
         })),
@@ -201,7 +191,7 @@ export default function CheckoutClientComponent({
         cliente: {
           nome: dadosCliente.nome,
           email: dadosCliente.email,
-          telefone: dadosCliente.telefone.replace(/\D/g, ''), // Remove caracteres não numéricos
+          telefone: dadosCliente.telefoneNormalizado,
         },
         valorTotal,
         checkoutId, // Usar o ID do checkout recebido via props
@@ -235,78 +225,10 @@ export default function CheckoutClientComponent({
     }
   };
 
-  // Função para copiar código PIX
-  const copiarCodigoPix = () => {
-    if (respostaPix?.qr_code) {
-      navigator.clipboard.writeText(respostaPix.qr_code);
-      setCopiado(true);
-      setTimeout(() => setCopiado(false), 3000);
-    }
-  };
 
-  // Componente para exibir QR Code e informações do PIX
-  const PixInfo = () => {
-    if (!respostaPix) return null;
-
-    return (
-      <div className="bg-white rounded-lg shadow-md p-4 mb-4 text-center">
-        <h2 className="text-xl font-semibold text-[#1D3557] mb-4 border-b pb-2">Pagamento PIX</h2>
-
-        <div className="flex flex-col items-center space-y-4">
-          {respostaPix.qr_code_base64 && (
-            <div className="p-4 bg-white border rounded-lg">
-              <Image
-                src={`data:image/png;base64,${respostaPix.qr_code_base64}`}
-                alt="QR Code PIX"
-                width={192}
-                height={192}
-                className="w-48 h-48"
-                unoptimized={true}
-              />
-            </div>
-          )}
-
-          <div className="w-full">
-            <p className="text-sm text-gray-500 mb-2">Copie o código PIX:</p>
-            <div className="relative">
-              <div className="p-3 bg-gray-100 rounded-lg text-xs font-mono break-all">
-                {respostaPix.qr_code}
-              </div>
-              <button
-                onClick={copiarCodigoPix}
-                className="absolute right-2 top-1/2 -translate-y-1/2 p-2 text-[#1D3557] hover:text-[#457B9D]"
-                title="Copiar código PIX"
-              >
-                <FaCopy size={16} />
-              </button>
-            </div>
-            {copiado && <p className="text-green-600 text-xs mt-1">Código copiado!</p>}
-          </div>
-
-          <p className="text-sm text-gray-700">
-            O código PIX expira em{' '}
-            {respostaPix.expiration_date
-              ? new Date(respostaPix.expiration_date).toLocaleString('pt-BR')
-              : '30 minutos'}
-          </p>
-
-          {respostaPix.ticket_url && (
-            <a
-              href={respostaPix.ticket_url}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="text-[#1D3557] underline hover:text-[#457B9D] text-sm"
-            >
-              Visualizar ticket completo
-            </a>
-          )}
-        </div>
-      </div>
-    );
-  };
 
   return (
-    <div className="min-h-screen bg-[#f8f9fa]">
+    <div className="min-h-screen bg-[#FFF9F5] font-sans text-[#333] ">
       {/* Header */}
       <header className="w-full bg-[#2c4f71] h-[80px] flex items-center justify-center sticky top-0 z-10">
         <Image
@@ -319,217 +241,69 @@ export default function CheckoutClientComponent({
       </header>
 
       {/* Main Content */}
-      <main className="container mx-auto py-6 px-4 max-w-[480px]">
-        {/* Produto */}
-        <div className="bg-white rounded-lg shadow-md p-4 flex items-center gap-3 mb-4 border border-gray-100">
-          <div className="w-16 h-16 relative flex-shrink-0">
-            <Image
-              src={produto.imagemUrl}
-              alt={produto.nome}
-              fill
-              className="object-cover rounded-md"
+      <main className="container mx-auto py-6 px-4 max-w-[480px] ">
+        {/* Container Principal */}
+        <div className="bg-white rounded-[8px] p-5 my-[16px] md:my-[24px] w-full flex flex-col gap-6 shadow-xl border border-gray-200">
+          {/* Produto */}
+          <ProductHeader produto={produto} />
+          <div className="border border-b-0"></div>
+
+          {/* Resultado do PIX (quando disponível) */}
+          {respostaPix && <PaymentQrCode respostaPix={respostaPix} />}
+
+          {/* Formulário Cliente (esconder quando o PIX foi gerado) */}
+          {!respostaPix && (
+            <FormCustomer
+              initialData={{
+                nome: dadosCliente.nome,
+                email: dadosCliente.email,
+                telefone: dadosCliente.telefone
+              }}
+              onSave={handleSaveCustomerData}
+              onValidationChange={handleFormValidationChange}
+              requiredFields={requiredFields}
             />
-          </div>
-          <div className="flex flex-col justify-center flex-1">
-            <span className="text-base font-bold text-gray-900 leading-tight mb-1">
-              {produto.nome}
-            </span>
-            <span className="text-lg font-bold text-[#1D3557]">
-              R$ {produto.price.toFixed(2)}
-            </span>
-          </div>
+          )}
+          <PaymentSelector />
+          <FormPix />
+          {/* Order Bumps (mostrar apenas quando o PIX não foi gerado) */}
+          {!respostaPix && (
+            <OrderBumps 
+              orderBumps={orderBumps} 
+              onToggleOrderBump={handleToggleOrderBump} 
+            />
+          )}
+          <div className="border border-b-0"></div>
+          {/* Detalhes do Pedido */}
+          <OrderDetails 
+            produto={produto} 
+            orderBumpsSelecionados={orderBumpsSelecionados} 
+          />
+
+          {/* Botão de Finalização */}
+          {!respostaPix && (
+            <button className="w-full h-12 bg-[#00A859] text-white font-bold rounded-[6px] flex items-center justify-center" 
+              onClick={handleFinalizarPagamento}
+              disabled={carregando}
+            >
+              {carregando ? (
+                <>
+                  <FaSpinner className="animate-spin mr-2" />
+                  Processando...
+                </>
+              ) : (
+                'Gerar PIX'
+              )}
+            </button>
+          )}
+
+          {/* Mensagem de Erro */}
+          {erro && (
+            <div className="mt-4 p-3 bg-red-100 border border-red-400 text-red-700 rounded-lg">
+              {erro}
+            </div>
+          )}
         </div>
-
-        {/* Resultado do PIX (quando disponível) */}
-        {respostaPix && <PixInfo />}
-
-        {/* Formulário Cliente (esconder quando o PIX foi gerado) */}
-        {!respostaPix && (
-          <div className="bg-white rounded-lg shadow-md p-4 mb-4">
-            <h2 className="text-xl font-semibold text-[#1D3557] mb-4 border-b pb-2">Seus Dados</h2>
-
-            <div className="space-y-4">
-              <div>
-                <label htmlFor="nome" className="block text-gray-700 mb-1 font-medium">
-                  Nome Completo *
-                </label>
-                <input
-                  ref={nomeRef}
-                  type="text"
-                  id="nome"
-                  value={dadosCliente.nome}
-                  onChange={(e) => {
-                    setDadosCliente((prev) => ({ ...prev, nome: e.target.value }));
-                  }}
-                  onBlur={() => validarCampo('nome')}
-                  className={`w-full p-2 border rounded-lg text-gray-900 ${errosForm.nome ? 'border-red-500' : 'border-gray-300'}`}
-                  placeholder="Seu nome completo"
-                />
-                {errosForm.nome && <p className="text-red-500 text-xs mt-1">{errosForm.nome}</p>}
-              </div>
-
-              <div>
-                <label htmlFor="email" className="block text-gray-700 mb-1 font-medium">
-                  E-mail *
-                </label>
-                <input
-                  ref={emailRef}
-                  type="email"
-                  id="email"
-                  value={dadosCliente.email}
-                  onChange={(e) => {
-                    setDadosCliente((prev) => ({ ...prev, email: e.target.value }));
-                  }}
-                  onBlur={() => validarCampo('email')}
-                  className={`w-full p-2 border rounded-lg text-gray-900 ${errosForm.email ? 'border-red-500' : 'border-gray-300'}`}
-                  placeholder="seu@email.com"
-                />
-                {errosForm.email && <p className="text-red-500 text-xs mt-1">{errosForm.email}</p>}
-              </div>
-
-              <div>
-                <label htmlFor="telefone" className="block text-gray-700 mb-1 font-medium">
-                  WhatsApp *
-                </label>
-                <div className="relative">
-                  <div className="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none">
-                    <FaWhatsapp className="text-green-600" />
-                  </div>
-                  <input
-                    ref={telefoneRef}
-                    type="tel"
-                    id="telefone"
-                    value={dadosCliente.telefone}
-                    onChange={(e) => {
-                      const valorFormatado = formatarTelefone(e.target.value);
-                      setDadosCliente((prev) => ({ ...prev, telefone: valorFormatado }));
-                    }}
-                    onBlur={() => validarCampo('telefone')}
-                    className={`w-full p-2 pl-10 border rounded-lg text-gray-900 ${errosForm.telefone ? 'border-red-500' : 'border-gray-300'}`}
-                    placeholder="(99) 99999-9999"
-                  />
-                </div>
-                {errosForm.telefone && (
-                  <p className="text-red-500 text-xs mt-1">{errosForm.telefone}</p>
-                )}
-              </div>
-            </div>
-          </div>
-        )}
-
-        {/* Order Bumps (mostrar apenas quando o PIX não foi gerado) */}
-        {!respostaPix && (
-          <div className="mb-4">
-            <h2 className="text-lg font-semibold text-[#1D3557] mb-2">Aproveite e compre junto:</h2>
-            <div className="mb-4">
-              <div className="space-y-3">
-                {orderBumps.map((item) => (
-                  <div
-                    key={item.id}
-                    className={`border rounded-lg p-3 transition-all duration-200 ${
-                      item.selecionado
-                        ? 'border-green-500 bg-[#F8FCF8]'
-                        : 'border-gray-200 bg-white'
-                    }`}
-                  >
-                    <div className="flex gap-3">
-                      <div className="w-[50px] h-[50px] relative flex-shrink-0">
-                        <Image
-                          src={item.imagemUrl}
-                          alt={item.nome}
-                          fill
-                          className="object-cover rounded"
-                        />
-                      </div>
-                      <div className="flex-1">
-                        <h4 className="text-sm font-bold text-gray-900">{item.nome}</h4>
-                        <p className="text-xs text-gray-600 mb-1">{item.descricao}</p>
-                        <div className="flex justify-between items-center">
-                          <div className="flex items-center gap-1">
-                            <span className="text-xs line-through text-gray-500">
-                              R$ {item.initialPrice.toFixed(2)}
-                            </span>
-                            <span className="text-sm font-bold text-gray-900">
-                              R$ {item.price.toFixed(2)}
-                            </span>
-                          </div>
-                          <div className="bg-green-500 text-white text-xs px-2 py-1 rounded">
-                            -50%
-                          </div>
-                        </div>
-                      </div>
-                    </div>
-                    <div className="mt-2">
-                      <label className="flex items-center gap-2 cursor-pointer">
-                        <input
-                          type="checkbox"
-                          checked={item.selecionado}
-                          onChange={() => handleToggleOrderBump(item.id)}
-                          className="rounded border-gray-300 text-green-500 focus:ring-green-500"
-                        />
-                        <span className="text-xs text-gray-600">Adicionar produto</span>
-                      </label>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            </div>
-          </div>
-        )}
-
-        {/* Detalhes do Pedido */}
-        <div className="mb-4">
-          <h2 className="text-base font-medium text-gray-900 mb-3">Detalhes da compra</h2>
-
-          <div className="space-y-3">
-            {/* Produto Principal */}
-            <div className="flex justify-between items-center text-sm">
-              <span className="text-gray-600">{produto.nome}</span>
-              <span className="font-medium text-gray-900">
-                R$ {produto.price.toFixed(2)}
-              </span>
-            </div>
-
-            {/* Order Bumps Selecionados */}
-            {orderBumpsSelecionados.map((bump) => (
-              <div key={bump.id} className="flex justify-between items-center text-sm">
-                <span className="text-gray-600">{bump.nome}</span>
-                <span className="font-medium text-gray-900">R$ {bump.price.toFixed(2)}</span>
-              </div>
-            ))}
-
-            {/* Valor Total */}
-            <div className="flex justify-between items-center pt-3 border-t text-sm">
-              <span className="font-medium text-gray-900">Total</span>
-              <span className="font-bold text-gray-900">R$ {valorTotal.toFixed(2)}</span>
-            </div>
-          </div>
-        </div>
-
-        {/* Botão de Finalização */}
-        {!respostaPix && (
-          <button
-            onClick={handleFinalizarPagamento}
-            disabled={carregando}
-            className="w-full py-3 bg-[#1D3557] text-white rounded-lg font-semibold mt-4 flex items-center justify-center hover:bg-[#457B9D] transition duration-300 disabled:opacity-70 disabled:cursor-not-allowed"
-          >
-            {carregando ? (
-              <>
-                <FaSpinner className="animate-spin mr-2" />
-                Processando...
-              </>
-            ) : (
-              'Gerar PIX'
-            )}
-          </button>
-        )}
-
-        {/* Mensagem de Erro */}
-        {erro && (
-          <div className="mt-4 p-3 bg-red-100 border border-red-400 text-red-700 rounded-lg">
-            {erro}
-          </div>
-        )}
       </main>
     </div>
   );

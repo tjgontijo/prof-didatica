@@ -1,46 +1,16 @@
 import React from 'react';
 
 type PaymentSelectorProps = {
-  selected: 'credit_card' | 'pix';
-  onSelect: (method: 'credit_card' | 'pix') => void;
+  selected?: 'credit_card' | 'pix';
+  onSelect?: (method: 'credit_card' | 'pix') => void;
 };
 
-const PaymentSelector: React.FC<PaymentSelectorProps> = ({ selected, onSelect }) => (
-  <div className="flex gap-2 mb-4">
-    {/* Cartão de crédito */}
-    <button
-      type="button"
-      onClick={() => onSelect('credit_card')}
-      className={`flex-1 flex items-center gap-2 px-4 py-3 border rounded-lg transition-all
-        ${selected === 'credit_card' ? 'border-green-500 bg-green-50' : 'border-gray-200 bg-white'}
-        hover:border-green-500`}
-      aria-pressed={selected === 'credit_card'}
-    >
-      <svg
-        width="22"
-        height="16"
-        viewBox="0 0 22 16"
-        fill={selected === 'credit_card' ? '#22C55E' : '#6C757D'}
-        xmlns="http://www.w3.org/2000/svg"
-      >
-        <path
-          d="M3 12.5C3 12.2239 3.22386 12 3.5 12H7.5C7.77614 12 8 12.2239 8 12.5C8 12.7761 7.77614 13 7.5 13H3.5C3.22386 13 3 12.7761 3 12.5Z"
-          fillRule="evenodd"
-          clipRule="evenodd"
-        />
-        <path
-          d="M0 2.5C0 1.11929 1.11929 0 2.5 0H17.5C18.8807 0 20 1.11929 20 2.5V13.5C20 14.8807 18.8807 16 17.5 16H2.5C1.11929 16 0 14.8807 0 13.5V2.5ZM1 7V13.5C1 14.3284 1.67157 15 2.5 15H17.5C18.3284 15 19 14.3284 19 13.5V7H1ZM19 4H1V2.5C1 1.67157 1.67157 1 2.5 1H17.5C18.3284 1 19 1.67157 19 2.5V4Z"
-          fillRule="evenodd"
-          clipRule="evenodd"
-        />
-      </svg>
-      <span
-        className={`text-sm ${selected === 'credit_card' ? 'text-green-600 font-medium' : 'text-gray-600'}`}
-      >
-        Cartão de crédito
-      </span>
-    </button>
-
+const PaymentSelector: React.FC<PaymentSelectorProps> = ({ 
+  selected = 'pix', // PIX selecionado por padrão
+  onSelect = () => {} // Função vazia por padrão
+}) => (
+  <div className="flex gap-2">
+   
     {/* PIX */}
     <button
       type="button"
@@ -67,6 +37,42 @@ const PaymentSelector: React.FC<PaymentSelectorProps> = ({ selected, onSelect })
         className={`text-sm ${selected === 'pix' ? 'text-green-600 font-medium' : 'text-gray-600'}`}
       >
         Pix
+      </span>
+    </button>
+     {/* Cartão de crédito - Desabilitado */}
+     <button
+      type="button"
+      onClick={() => {}}
+      disabled
+      className="flex-1 flex items-center gap-2 px-4 py-3 border rounded-lg transition-all
+        border-gray-200 bg-gray-50 cursor-not-allowed
+        relative group"
+      aria-pressed={false}
+      title="Em breve"
+    >
+      <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity bg-black bg-opacity-50 text-white text-xs font-medium rounded-lg">
+        Em breve
+      </div>
+      <svg
+        width="22"
+        height="16"
+        viewBox="0 0 22 16"
+        fill={selected === 'credit_card' ? '#22C55E' : '#6C757D'}
+        xmlns="http://www.w3.org/2000/svg"
+      >
+        <path
+          d="M3 12.5C3 12.2239 3.22386 12 3.5 12H7.5C7.77614 12 8 12.2239 8 12.5C8 12.7761 7.77614 13 7.5 13H3.5C3.22386 13 3 12.7761 3 12.5Z"
+          fillRule="evenodd"
+          clipRule="evenodd"
+        />
+        <path
+          d="M0 2.5C0 1.11929 1.11929 0 2.5 0H17.5C18.8807 0 20 1.11929 20 2.5V13.5C20 14.8807 18.8807 16 17.5 16H2.5C1.11929 16 0 14.8807 0 13.5V2.5ZM1 7V13.5C1 14.3284 1.67157 15 2.5 15H17.5C18.3284 15 19 14.3284 19 13.5V7H1ZM19 4H1V2.5C1 1.67157 1.67157 1 2.5 1H17.5C18.3284 1 19 1.67157 19 2.5V4Z"
+          fillRule="evenodd"
+          clipRule="evenodd"
+        />
+      </svg>
+      <span className="text-sm text-gray-400">
+        Cartão de crédito
       </span>
     </button>
   </div>

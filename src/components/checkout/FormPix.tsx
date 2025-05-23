@@ -2,7 +2,8 @@
 
 export default function FormPix() {
   return (
-    <div className="space-y-4">
+    <div className="border border-zinc-100 rounded-lg p-4">
+      <div className="space-y-4">
       {/* Aprovação imediata */}
       <div className="bg-white p-4 rounded-lg border border-gray-200">
         <div className="flex items-start gap-3">
@@ -83,6 +84,7 @@ export default function FormPix() {
             </p>
           </div>
         </div>
+      </div>
       </div>
     </div>
   );

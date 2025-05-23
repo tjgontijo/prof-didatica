@@ -7,11 +7,12 @@ export async function seedCheckouts(prisma: PrismaClient) {
   const principal = products[0];
 
   await prisma.checkout.create({
-    data: {      
-      productId: principal.id,      
+    data: {
+      productId: principal.id,
       isActive: true,
       campaignName: 'Campanha Principal',
       upsellPageUrl: 'https://lp.profdidatica.com.br/obrigado',
+      requiredFields: ['customerName', 'customerEmail', 'customerPhone'],
     }
   });
 }

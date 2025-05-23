@@ -11,22 +11,25 @@ const prisma = new PrismaClient();
 
 async function cleanDatabase() {
   await prisma.product.deleteMany();
+  await prisma.checkout.deleteMany();
+  await prisma.orderBump.deleteMany();  
 }
 
 async function createInitialData() {
-  logger.info('Cleaning database...');
+  
   await cleanDatabase();
-  logger.info('Database cleaned.');
+    logger.info('Database cleaned.');
 
   try {  
 
     await prisma.product.createMany({ data: initialProducts });
-    logger.info('Products created');
-
+      logger.info('Products created');
     
     await seedCheckouts(prisma);
-    await seedOrderBumps(prisma);
+      logger.info('Checkouts created');
 
+    await seedOrderBumps(prisma);
+      logger.info('OrderBumps created');
     
   } catch (error) {
     if (error instanceof Error) {

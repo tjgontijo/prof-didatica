@@ -1,6 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { z } from 'zod';
 import { prisma } from '@/lib/prisma';
+import { OrderStatus } from '@prisma/client';
+import type { Prisma } from '@prisma/client';
 
 // Schema para validação forte dos dados recebidos
 const orderSchema = z.object({
@@ -16,6 +18,15 @@ const orderSchema = z.object({
   quantity: z.number().min(1).default(1),
 });
 
+// Schema para validação parcial (PATCH)
+const patchOrderSchema = z.object({
+  id: z.string().uuid(),
+  customerName: z.string().min(2).optional(),
+  customerEmail: z.string().email().optional(),
+  customerPhone: z.string().min(10).optional(),
+  status: z.nativeEnum(OrderStatus).optional(),
+});
+
 // GET /api/orders - Lista pedidos (com paginação e filtro opcional)
 export async function GET(request: NextRequest) {
   const { searchParams } = new URL(request.url);
@@ -23,12 +34,16 @@ export async function GET(request: NextRequest) {
   const pageSize = parseInt(searchParams.get('pageSize') || '20', 10);
   const email = searchParams.get('email') || undefined;
 
-  const where = email ? { customerEmail: email } : {};
+  const where = email ? { 
+    customer: {
+      email: email
+    }
+  } : {};
 
   const [orders, total] = await Promise.all([
     prisma.order.findMany({
       where,
-      include: { orderItems: true, payment: true },
+      include: { orderItems: true, payment: true, customer: true },
       skip: (page - 1) * pageSize,
       take: pageSize,
       orderBy: { createdAt: 'desc' },
@@ -64,14 +79,43 @@ export async function POST(request: NextRequest) {
     const body = await request.json();
     const data = orderSchema.parse(body);
 
+    // Primeiro verifica se existe cliente com o mesmo telefone (prioridade) ou email
+    let customer = await prisma.customer.findFirst({
+      where: {
+        OR: [
+          { phone: data.customerPhone },
+          { email: data.customerEmail }
+        ]
+      }
+    });
+    
+    // Se existir, atualiza os dados
+    if (customer) {
+      customer = await prisma.customer.update({
+        where: { id: customer.id },
+        data: {
+          name: data.customerName,
+          email: data.customerEmail,
+          phone: data.customerPhone
+        }
+      });
+    } else {
+      // Se não existir, cria um novo
+      customer = await prisma.customer.create({
+        data: {
+          name: data.customerName,
+          email: data.customerEmail,
+          phone: data.customerPhone
+        }
+      });
+    }
+
     // Criação do pedido principal
     const order = await prisma.order.create({
       data: {
         productId: data.productId,
         checkoutId: data.checkoutId,
-        customerName: data.customerName,
-        customerEmail: data.customerEmail,
-        customerPhone: data.customerPhone,
+        customerId: customer.id,
         paidAmount: 0, // Inicialmente 0, só será preenchido após pagamento
         orderItems: {
           create: [
@@ -88,10 +132,19 @@ export async function POST(request: NextRequest) {
               isOrderBump: true,
             })) || [])
           ]
+        },
+        statusHistory: {
+          create: {
+            previousStatus: null,
+            newStatus: OrderStatus.DRAFT,
+            notes: 'Pedido criado',
+          }
         }
       },
       include: {
-        orderItems: true
+        orderItems: true,
+        statusHistory: true,
+        customer: true
       }
     });
 
@@ -106,5 +159,57 @@ export async function POST(request: NextRequest) {
     }
     console.error('Erro desconhecido:', error);
     return NextResponse.json({ success: false, error: 'Erro inesperado.' }, { status: 500 });
+  }
+}
+
+/**
+ * PATCH /api/orders?id=xxx - Atualiza dados do pedido e registra histórico
+ */
+export async function PATCH(request: NextRequest) {
+  const { searchParams } = new URL(request.url);
+  const id = searchParams.get('id');
+  if (!id) {
+    return NextResponse.json({ success: false, error: 'ID do pedido não informado.' }, { status: 400 });
+  }
+  try {
+    const body = await request.json();
+    const data = patchOrderSchema.parse({ id, ...body });
+    const existing = await prisma.order.findUnique({ where: { id } });
+    if (!existing) {
+      return NextResponse.json({ success: false, error: 'Pedido não encontrado.' }, { status: 404 });
+    }
+    const updateData: Prisma.OrderUpdateInput = {};
+    if (data.status) {
+      updateData.status = data.status;
+      updateData.statusUpdatedAt = new Date();
+    }
+    const updatedOrder = await prisma.order.update({ where: { id }, data: updateData });
+    
+    // Atualiza os dados do cliente se necessário
+    if (data.customerName || data.customerEmail || data.customerPhone) {
+      await prisma.customer.update({
+        where: { id: existing.customerId },
+        data: {
+          name: data.customerName,
+          email: data.customerEmail,
+          phone: data.customerPhone
+        }
+      });
+    }
+    if (data.status && existing.status !== data.status) {
+      await prisma.orderStatusHistory.create({ data: {
+        orderId: id,
+        previousStatus: existing.status,
+        newStatus: data.status,
+        notes: `Status alterado para ${data.status}`,
+      }});
+    }
+    return NextResponse.json({ success: true, order: updatedOrder });
+  } catch (error) {
+    if (error instanceof z.ZodError) {
+      return NextResponse.json({ success: false, error: error.errors }, { status: 422 });
+    }
+    console.error(error);
+    return NextResponse.json({ success: false, error: error instanceof Error ? error.message : 'Erro inesperado' }, { status: 400 });
   }
 }

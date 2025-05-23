@@ -8,6 +8,16 @@ generator client {
   provider = "prisma-client-js"
 }
 
+enum OrderStatus {
+  DRAFT
+  PENDING_PAYMENT
+  PAYMENT_PROCESSING
+  PAID
+  CANCELLED
+  REFUNDED
+  DELIVERED
+}
+
 // ========================
 // Checkout and Digital Sales
 // ========================
@@ -16,6 +26,7 @@ model Product {
   id              String   @id @default(uuid())
   name            String
   description     String
+  imageUrl        String?  // URL da imagem do produto
   price           Int  
   salesPageUrl    String  
   isActive        Boolean  @default(true)
@@ -26,8 +37,8 @@ model Product {
   checkouts       Checkout[]
   
   // Relações de order bumps
-  mainProductBumps ProductOrderBump[] @relation("MainProductOrderBumps") // Order bumps que este produto oferece
-  asBumpProduct   ProductOrderBump[] @relation("BumpProducts")          // Quando este produto é oferecido como order bump
+  mainProductBumps OrderBump[] @relation("MainProductOrderBumps") // Order bumps que este produto oferece
+  asBumpProduct   OrderBump[] @relation("BumpProducts")          // Quando este produto é oferecido como order bump
   
   // Configuração de redirecionamento após pagamento
   orders          Order[]
@@ -45,6 +56,7 @@ model Checkout {
   createdAt       DateTime  @default(now())
   updatedAt       DateTime  @updatedAt
   deletedAt       DateTime?
+  requiredFields  Json?     @default("[\"customerName\",\"customerEmail\",\"customerPhone\"]") // Array JSON de campos obrigatórios de cliente
 
   product         Product   @relation(fields: [productId], references: [id])
   orders          Order[]
@@ -52,24 +64,22 @@ model Checkout {
   @@index([isActive, deletedAt])
 }
 
-/// Order bump é um produto adicional ofertado no checkout de outro produto.
-/// Order bump é um produto adicional que pode ser oferecido junto com outro produto
-model ProductOrderBump {
+model OrderBump {
   id                String   @id @default(uuid())
-  mainProductId     String   // Produto principal que oferece o order bump
-  bumpProductId     String   // Produto que será oferecido como order bump
+  mainProductId     String
+  bumpProductId     String
 
-  /// Produto principal que oferece o order bump
   mainProduct       Product  @relation("MainProductOrderBumps", fields: [mainProductId], references: [id])
-  /// Produto que será ofertado como order bump
   bumpProduct       Product  @relation("BumpProducts", fields: [bumpProductId], references: [id])
 
-  callToAction      String   // Ex: "Sim, eu aceito essa oferta especial!"
-  title             String   // Título do order bump
-  description       String   // Descrição do order bump
+  callToAction      String
+  title             String
+  description       String
+  specialPrice      Int
   showProductImage  Boolean  @default(false) // Se deve exibir a imagem do produto
-  displayOrder      Int?     // Ordem de exibição
+  displayOrder      Int?
   isActive          Boolean  @default(true)
+  
   createdAt         DateTime @default(now())
   updatedAt         DateTime @updatedAt
   deletedAt         DateTime?
@@ -82,21 +92,25 @@ model Order {
   id              String        @id @default(uuid())
   checkoutId      String
   productId       String
-  customerName    String
-  customerEmail   String
-  customerPhone   String
+  customerId      String
   paidAmount      Float
+  status          OrderStatus   @default(DRAFT)
+  statusUpdatedAt DateTime      @default(now())
 
   createdAt       DateTime      @default(now())
   updatedAt       DateTime      @updatedAt
+  deletedAt       DateTime?
 
   payment         Payment?
   checkout        Checkout      @relation(fields: [checkoutId], references: [id])
   product         Product       @relation(fields: [productId], references: [id])  
   orderItems      OrderItem[]
+  statusHistory   OrderStatusHistory[]
+  customer        Customer      @relation(fields: [customerId], references: [id])
 
   @@index([createdAt])
-  @@index([customerEmail])
+  @@index([customerId])
+  @@index([deletedAt])
 }
 
 model OrderItem {
@@ -108,12 +122,26 @@ model OrderItem {
   isOrderBump Boolean  @default(false)
   isUpsell    Boolean  @default(false)
   createdAt   DateTime @default(now())
-  
+  deletedAt   DateTime?
+
   order       Order   @relation(fields: [orderId], references: [id])
   product     Product @relation(fields: [productId], references: [id])
   
   @@index([orderId])
   @@index([productId])
+  @@index([deletedAt])
+}
+
+model OrderStatusHistory {
+  id             String        @id @default(uuid())
+  orderId        String
+  previousStatus OrderStatus?
+  newStatus      OrderStatus
+  notes          String?
+  createdAt      DateTime      @default(now())
+  order          Order         @relation(fields: [orderId], references: [id])
+  
+  @@index([orderId])
 }
 
 model Webhook {
@@ -160,8 +188,24 @@ model Payment {
   paidAt         DateTime?
   createdAt      DateTime @default(now())
   updatedAt      DateTime @updatedAt
+  deletedAt      DateTime?
 
   order          Order    @relation(fields: [orderId], references: [id])
 
   @@index([orderId])
+  @@index([deletedAt])
+}
+
+// Dados de clientes (leads e clientes)
+model Customer {
+  id         String    @id @default(uuid())
+  name       String
+  email      String    @unique
+  phone      String    @unique
+  createdAt  DateTime  @default(now())
+  updatedAt  DateTime  @updatedAt
+  orders     Order[]
+  
+  @@index([email])
+  @@index([phone])
 }
