@@ -1,7 +1,7 @@
 import type { Metadata } from 'next';
 import { Geist, Geist_Mono } from 'next/font/google';
-import { UtmifyScripts } from '../../scripts/utmifyScripts';
-import { Claritycript } from '../../scripts/clarityScripts';
+import { UtmifyScripts } from '@/scripts/utmifyScripts';
+import { Claritycript } from '@/scripts/clarityScripts';
 import './globals.css';
 
 const geistSans = Geist({
@@ -28,11 +28,11 @@ export default function RootLayout({
     <html lang="pt-BR">
       <head>
         {process.env.NODE_ENV === 'production' && (
-          <>
-            <UtmifyScripts />
-            <Claritycript />
+          <>            
           </>
         )}
+        <UtmifyScripts />
+        <Claritycript />
       </head>
       <body className={`${geistSans.variable} ${geistMono.variable} antialiased`}>{children}</body>
     </html>
