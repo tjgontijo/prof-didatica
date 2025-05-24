@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect, useRef } from 'react';
 import { useRouter } from 'next/navigation';
-import { checkPaymentStatus } from '@/app/(public)/checkout/actions/payment';
+import { checkPaymentStatus } from '@/app/checkout/actions/payment';
 import Image from 'next/image';
 import { FaCopy, FaCheckCircle, FaChevronDown, FaChevronUp } from 'react-icons/fa';
 import { PixData } from './getPixData';
