@@ -31,7 +31,7 @@ export async function GET(request: NextRequest) {
       take: pageSize,
       orderBy: { createdAt: 'desc' },
     }),
-    prisma.product.count({ where })
+    prisma.product.count({ where }),
   ]);
 
   return NextResponse.json({ products, total, page, pageSize });
@@ -66,7 +66,10 @@ export async function PUT(request: NextRequest) {
     const body = await request.json();
     const { id, ...rest } = body;
     if (!id || typeof id !== 'string') {
-      return NextResponse.json({ success: false, error: 'ID do produto não informado.' }, { status: 400 });
+      return NextResponse.json(
+        { success: false, error: 'ID do produto não informado.' },
+        { status: 400 },
+      );
     }
     const data = productSchema.partial().parse(rest);
     const product = await prisma.product.update({
@@ -90,7 +93,10 @@ export async function DELETE(request: NextRequest) {
   const { searchParams } = new URL(request.url);
   const id = searchParams.get('id');
   if (!id) {
-    return NextResponse.json({ success: false, error: 'ID do produto não informado.' }, { status: 400 });
+    return NextResponse.json(
+      { success: false, error: 'ID do produto não informado.' },
+      { status: 400 },
+    );
   }
   try {
     const deleted = await prisma.product.delete({ where: { id } });

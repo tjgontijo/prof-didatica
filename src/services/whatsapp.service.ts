@@ -67,7 +67,7 @@ export class WhatsappService {
   private async fetchWithTimeout(
     url: string,
     options: RequestInit = {},
-    timeout = 10000
+    timeout = 10000,
   ): Promise<Response> {
     const controller = new AbortController();
     const id = setTimeout(() => controller.abort(), timeout);
@@ -160,7 +160,7 @@ export class WhatsappService {
       linkPreview?: boolean;
       mentionsEveryOne?: boolean;
       mentioned?: string[];
-    } = {}
+    } = {},
   ): Promise<MessageSendResponse | null> {
     const normalizedPhone = this.normalizePhoneNumber(phone);
 

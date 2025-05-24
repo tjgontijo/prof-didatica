@@ -68,7 +68,7 @@ export const prefetchCheckoutData = cache(async (id: string) => {
   console.time(`prefetch-checkout-${id}`);
   try {
     console.log(`Pré-carregando dados do checkout: ${id}`);
-    
+
     // Buscar checkout pelo ID, incluindo produto e order bumps
     // Verificamos se o modelo Checkout existe no Prisma
     const checkout = await prisma.$queryRaw`
@@ -79,7 +79,7 @@ export const prefetchCheckoutData = cache(async (id: string) => {
       AND c."isActive" = true
       AND c."deletedAt" IS NULL
     `;
-    
+
     // Buscar order bumps relacionados
     const orderBumps = await prisma.$queryRaw`
       SELECT 
@@ -98,17 +98,17 @@ export const prefetchCheckoutData = cache(async (id: string) => {
       AND mpb."deletedAt" IS NULL
       ORDER BY mpb."displayOrder" ASC
     `;
-    
+
     // Verificar se encontrou o checkout
     const checkoutResult = checkout as CheckoutQueryResult[];
     if (!checkoutResult || checkoutResult.length === 0) {
       console.error(`Checkout não encontrado: ${id}`);
       return null;
     }
-    
+
     const checkoutData = checkoutResult[0];
     const orderBumpsResult = orderBumps as OrderBumpQueryResult[];
-    
+
     // Transformar os dados como na página do checkout
     const responseData: CheckoutData = {
       produto: {
@@ -116,7 +116,7 @@ export const prefetchCheckoutData = cache(async (id: string) => {
         price: Number(checkoutData.product_price) / 100, // Convertendo de centavos para reais
         imagemUrl: '/images/system/logo_transparent.webp',
         sku: checkoutData.productId,
-        descricao: checkoutData.product_description
+        descricao: checkoutData.product_description,
       },
       orderBumps: orderBumpsResult.map((bump: OrderBumpQueryResult) => ({
         id: bump.id,
@@ -127,11 +127,11 @@ export const prefetchCheckoutData = cache(async (id: string) => {
         imagemUrl: '/images/system/logo_transparent.webp',
         sku: bump.bump_product_id,
         selecionado: false,
-        callToAction: bump.callToAction || undefined
+        callToAction: bump.callToAction || undefined,
       })),
-      checkoutId: checkoutData.id
+      checkoutId: checkoutData.id,
     };
-    
+
     console.log(`Dados do checkout ${id} pré-carregados com sucesso`);
     console.timeEnd(`prefetch-checkout-${id}`);
     return responseData;

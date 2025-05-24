@@ -45,47 +45,48 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
     if (!dados.valorTotal || dados.valorTotal <= 0) {
       throw new Error('Valor total inválido');
     }
-    
+
     if (!dados.orderId) {
       throw new Error('ID do pedido não informado');
     }
-    
+
     // Verificar se o pedido existe
     const order = await prisma.order.findUnique({
       where: { id: dados.orderId },
-      include: { 
+      include: {
         customer: true,
-        orderItems: true 
-      }
+        orderItems: true,
+      },
     });
-    
+
     if (!order) {
       throw new Error('Pedido não encontrado');
     }
-    
+
     // Verificar se há novos itens (order bumps) para adicionar
-    const existingItemIds = order.orderItems.map(item => item.productId);
-    const newItems = dados.items.filter(item => 
-      !existingItemIds.includes(item.id) && 
-      item.id !== order.productId // Excluir o item principal que já existe
+    const existingItemIds = order.orderItems.map((item) => item.productId);
+    const newItems = dados.items.filter(
+      (item) => !existingItemIds.includes(item.id) && item.id !== order.productId, // Excluir o item principal que já existe
     );
-    
+
     // Criar novos OrderItems para os order bumps selecionados
     if (newItems.length > 0) {
-      await Promise.all(newItems.map(item => 
-        prisma.orderItem.create({
-          data: {
-            orderId: dados.orderId,
-            productId: item.id,
-            quantity: item.quantity,
-            priceAtTime: item.unit_price,
-            isOrderBump: true,
-            isUpsell: false
-          }
-        })
-      ));
+      await Promise.all(
+        newItems.map((item) =>
+          prisma.orderItem.create({
+            data: {
+              orderId: dados.orderId,
+              productId: item.id,
+              quantity: item.quantity,
+              priceAtTime: item.unit_price,
+              isOrderBump: true,
+              isUpsell: false,
+            },
+          }),
+        ),
+      );
     }
-    
+
     // Atualizar o status da ordem para PENDING_PAYMENT usando o Prisma diretamente
     try {
       await prisma.order.update({
@@ -98,9 +99,11 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
       });
     } catch (error) {
       console.error('Erro ao atualizar status do pedido:', error);
-      throw new Error(`Erro ao atualizar status do pedido: ${error instanceof Error ? error.message : 'Erro desconhecido'}`);
+      throw new Error(
+        `Erro ao atualizar status do pedido: ${error instanceof Error ? error.message : 'Erro desconhecido'}`,
+      );
     }
-    
+
     // Registrar a mudança de status na tabela de histórico
     await prisma.orderStatusHistory.create({
       data: {
@@ -172,7 +175,7 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
     if (!pixData) {
       throw new Error('Dados do PIX não encontrados na resposta');
     }
-    
+
     // Salvar os dados do pagamento no banco de dados e obter o ID gerado
     let paymentId;
 
@@ -188,7 +191,9 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
             qr_code: pixData.qr_code || '',
             qr_code_base64: pixData.qr_code_base64 || '',
             ticket_url: pixData.ticket_url || '',
-            expiration_date: resultado.date_of_expiration || new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString(),
+            expiration_date:
+              resultado.date_of_expiration ||
+              new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString(),
           },
         },
       });

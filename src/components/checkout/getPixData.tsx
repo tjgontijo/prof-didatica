@@ -55,23 +55,23 @@ export interface PixData {
  */
 export async function getPixData(id: string): Promise<PixData | null> {
   const prisma = new PrismaClient();
-  
+
   try {
     // Tentar buscar primeiro pelo ID do payment
     let payment = await prisma.payment.findUnique({
       where: {
         id,
-        deletedAt: null
+        deletedAt: null,
       },
       include: {
         order: {
           include: {
             checkout: true,
             orderItems: true,
-            customer: true
-          }
-        }
-      }
+            customer: true,
+          },
+        },
+      },
     });
 
     // Se não encontrar pelo ID, tentar pelo mercadoPagoId
@@ -79,17 +79,17 @@ export async function getPixData(id: string): Promise<PixData | null> {
       payment = await prisma.payment.findFirst({
         where: {
           mercadoPagoId: id,
-          deletedAt: null
+          deletedAt: null,
         },
         include: {
           order: {
             include: {
               checkout: true,
               orderItems: true,
-              customer: true
-            }
-          }
-        }
+              customer: true,
+            },
+          },
+        },
       });
     }
 
@@ -99,7 +99,7 @@ export async function getPixData(id: string): Promise<PixData | null> {
 
     // Extrair os dados do PIX do campo rawData (que é um JSON)
     const rawData = payment.rawData as Record<string, unknown>;
-    
+
     return {
       id: payment.id,
       status: payment.status,
@@ -108,7 +108,7 @@ export async function getPixData(id: string): Promise<PixData | null> {
       ticket_url: (rawData?.ticket_url as string) || '',
       expiration_date: (rawData?.expiration_date as string) || '',
       amount: payment.amount / 100, // Convertendo de centavos para reais
-      order: payment.order // Incluindo os dados do pedido completo
+      order: payment.order, // Incluindo os dados do pedido completo
     };
   } catch (error) {
     console.error('Erro ao buscar dados do PIX:', error);

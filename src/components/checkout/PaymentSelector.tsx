@@ -5,12 +5,11 @@ type PaymentSelectorProps = {
   onSelect?: (method: 'credit_card' | 'pix') => void;
 };
 
-const PaymentSelector: React.FC<PaymentSelectorProps> = ({ 
+const PaymentSelector: React.FC<PaymentSelectorProps> = ({
   selected = 'pix', // PIX selecionado por padrão
-  onSelect = () => {} // Função vazia por padrão
+  onSelect = () => {}, // Função vazia por padrão
 }) => (
   <div className="flex gap-2">
-   
     {/* PIX */}
     <button
       type="button"
@@ -39,8 +38,8 @@ const PaymentSelector: React.FC<PaymentSelectorProps> = ({
         Pix
       </span>
     </button>
-     {/* Cartão de crédito - Desabilitado */}
-     <button
+    {/* Cartão de crédito - Desabilitado */}
+    <button
       type="button"
       onClick={() => {}}
       disabled
@@ -71,9 +70,7 @@ const PaymentSelector: React.FC<PaymentSelectorProps> = ({
           clipRule="evenodd"
         />
       </svg>
-      <span className="text-sm text-gray-400">
-        Cartão de crédito
-      </span>
+      <span className="text-sm text-gray-400">Cartão de crédito</span>
     </button>
   </div>
 );

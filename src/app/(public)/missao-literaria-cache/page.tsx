@@ -87,17 +87,17 @@ export default function Page() {
     window.addEventListener('scroll', handleScroll);
     return () => window.removeEventListener('scroll', handleScroll);
   }, [hasReachedThreshold]);
-  
+
   // Efeito para pré-carregar os dados do checkout
   useEffect(() => {
     // Variável para controlar se o prefetch já foi feito
     let prefetchExecutado = false;
-    
+
     // Função para executar o prefetch
     const executarPrefetch = () => {
       if (prefetchExecutado) return; // Evita execuções duplicadas
       prefetchExecutado = true;
-      
+
       console.log('Iniciando prefetch dos dados do checkout...');
       // Pré-carregar os dados do checkout
       prefetchCheckoutData(CHECKOUT_ID)
@@ -112,16 +112,16 @@ export default function Page() {
             setPrefetchRealizado(true); // Ainda permitimos navegar para o checkout
           }
         })
-        .catch(erro => {
+        .catch((erro) => {
           console.error('Erro no prefetch:', erro);
           setPrefetchErro('Erro ao carregar dados: ' + (erro?.message || 'Erro desconhecido'));
           setPrefetchRealizado(true); // Ainda permitimos navegar para o checkout
         });
-      
+
       // Também prefetch da página de checkout
       router.prefetch(`/checkout/${CHECKOUT_ID}`);
     };
-    
+
     // Verificar se a página já está carregada
     if (document.readyState === 'complete') {
       // Se a página já estiver carregada, executar após um pequeno delay
@@ -133,12 +133,12 @@ export default function Page() {
         setTimeout(executarPrefetch, 3000);
       });
     }
-    
+
     // Usar um timeout como fallback
     const timeoutId = setTimeout(() => {
       executarPrefetch();
     }, 5000); // 5 segundos após a montagem do componente
-    
+
     return () => {
       // Limpeza
       window.removeEventListener('load', executarPrefetch);
@@ -712,7 +712,7 @@ export default function Page() {
             <div className="absolute inset-0 bg-white/20 rounded-xl opacity-0 group-hover:opacity-100 transition-opacity"></div>
             <span className="relative">Quero meus alunos apaixonados pela leitura</span>
           </button>
-          
+
           {/* Indicador de prefetch (invisível para o usuário) */}
           {prefetchRealizado && (
             <div className="hidden">

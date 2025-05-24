@@ -39,7 +39,7 @@ export async function GET(request: NextRequest) {
       take: pageSize,
       orderBy: { createdAt: 'desc' },
     }),
-    prisma.checkout.count({ where })
+    prisma.checkout.count({ where }),
   ]);
 
   return NextResponse.json({ checkouts, total, page, pageSize });
@@ -50,7 +50,7 @@ export async function POST(request: NextRequest) {
   try {
     const body = await request.json();
     const data = checkoutSchema.parse(body);
-    
+
     // Criar checkout (sem order bumps nesta rota)
     const checkout = await prisma.checkout.create({
       data: {
@@ -63,7 +63,7 @@ export async function POST(request: NextRequest) {
         product: true,
       },
     });
-    
+
     return NextResponse.json({ success: true, checkout });
   } catch (error) {
     if (error instanceof z.ZodError) {
@@ -81,13 +81,16 @@ export async function PUT(request: NextRequest) {
   try {
     const body = await request.json();
     const { id, ...rest } = body;
-    
+
     if (!id || typeof id !== 'string') {
-      return NextResponse.json({ success: false, error: 'ID do checkout não informado.' }, { status: 400 });
+      return NextResponse.json(
+        { success: false, error: 'ID do checkout não informado.' },
+        { status: 400 },
+      );
     }
-    
+
     const data = checkoutSchema.partial().parse(rest);
-    
+
     // Atualizar checkout (sem manipular order bumps nesta rota)
     const checkout = await prisma.checkout.update({
       where: { id },
@@ -96,7 +99,7 @@ export async function PUT(request: NextRequest) {
         product: true,
       },
     });
-    
+
     return NextResponse.json({ success: true, checkout });
   } catch (error) {
     if (error instanceof z.ZodError) {
@@ -113,15 +116,18 @@ export async function PUT(request: NextRequest) {
 export async function DELETE(request: NextRequest) {
   const { searchParams } = new URL(request.url);
   const id = searchParams.get('id');
-  
+
   if (!id) {
-    return NextResponse.json({ success: false, error: 'ID do checkout não informado.' }, { status: 400 });
+    return NextResponse.json(
+      { success: false, error: 'ID do checkout não informado.' },
+      { status: 400 },
+    );
   }
-  
+
   try {
     // Remover checkout (não precisa remover order bumps, pois não há relação direta)
     const deleted = await prisma.checkout.delete({ where: { id } });
-    
+
     return NextResponse.json({ success: true, deleted });
   } catch (error) {
     if (error instanceof Error) {

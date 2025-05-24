@@ -17,8 +17,6 @@ initMercadoPago(
   process.env.NEXT_PUBLIC_MERCADOPAGO_PUBLIC_KEY || 'TEST-95f388d1-4d79-411f-8f5e-80cf69cb96c4',
 );
 
-
-
 // Tipo para resposta do PIX
 type RespostaPix = {
   id: string;
@@ -91,7 +89,7 @@ export default function CheckoutClientComponent({
     telefone: '',
     telefoneNormalizado: '',
   });
-  
+
   const [formValido, setFormValido] = useState(false);
   const [orderId, setOrderId] = useState<string>();
 
@@ -103,14 +101,18 @@ export default function CheckoutClientComponent({
     telefoneNormalizado: string;
   }) => {
     setDadosCliente(data);
-    
+
     try {
       if (!orderId) {
         const payload: OrderDraftPayload = { productId: produto.sku, checkoutId };
         if (requiredFields.includes('nome')) payload.customerName = data.nome;
         if (requiredFields.includes('email')) payload.customerEmail = data.email;
         if (requiredFields.includes('telefone')) payload.customerPhone = data.telefoneNormalizado;
-        const res = await fetch('/api/orders', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload) });
+        const res = await fetch('/api/orders', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(payload),
+        });
         const data2 = await res.json();
         if (data2.success) setOrderId(data2.orderId);
       } else {
@@ -118,13 +120,17 @@ export default function CheckoutClientComponent({
         if (requiredFields.includes('nome')) payload.customerName = data.nome;
         if (requiredFields.includes('email')) payload.customerEmail = data.email;
         if (requiredFields.includes('telefone')) payload.customerPhone = data.telefoneNormalizado;
-        await fetch(`/api/orders?id=${orderId}`, { method: 'PATCH', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload) });
+        await fetch(`/api/orders?id=${orderId}`, {
+          method: 'PATCH',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(payload),
+        });
       }
     } catch (error) {
       console.error('Erro ao salvar dados do cliente:', error);
     }
   };
-  
+
   // Handler para atualizar o estado de validação do formulário
   const handleFormValidationChange = (isValid: boolean) => {
     setFormValido(isValid);
@@ -219,10 +225,10 @@ export default function CheckoutClientComponent({
       }
 
       const dadosResposta = await resposta.json();
-      
+
       // Redirecionar para a página de agradecimento usando o ID do Payment
       router.push(`/thanks/${dadosResposta.id}`);
-      
+
       // Manter o estado atual para compatibilidade com código existente
       setRespostaPix(dadosResposta);
     } catch (error) {
@@ -236,8 +242,6 @@ export default function CheckoutClientComponent({
       setCarregando(false);
     }
   };
-
-
 
   return (
     <div className="min-h-screen bg-[#FFF9F5] font-sans text-[#333] ">
@@ -269,7 +273,7 @@ export default function CheckoutClientComponent({
               initialData={{
                 nome: dadosCliente.nome,
                 email: dadosCliente.email,
-                telefone: dadosCliente.telefone
+                telefone: dadosCliente.telefone,
               }}
               onSave={handleSaveCustomerData}
               onValidationChange={handleFormValidationChange}
@@ -280,21 +284,16 @@ export default function CheckoutClientComponent({
           <FormPix />
           {/* Order Bumps (mostrar apenas quando o PIX não foi gerado) */}
           {!respostaPix && (
-            <OrderBumps 
-              orderBumps={orderBumps} 
-              onToggleOrderBump={handleToggleOrderBump} 
-            />
+            <OrderBumps orderBumps={orderBumps} onToggleOrderBump={handleToggleOrderBump} />
           )}
           <div className="border border-b-0"></div>
           {/* Detalhes do Pedido */}
-          <OrderDetails 
-            produto={produto} 
-            orderBumpsSelecionados={orderBumpsSelecionados} 
-          />
+          <OrderDetails produto={produto} orderBumpsSelecionados={orderBumpsSelecionados} />
 
           {/* Botão de Finalização */}
           {!respostaPix && (
-            <button className="w-full h-12 bg-[#00A859] text-white font-bold rounded-[6px] flex items-center justify-center" 
+            <button
+              className="w-full h-12 bg-[#00A859] text-white font-bold rounded-[6px] flex items-center justify-center"
               onClick={handleFinalizarPagamento}
               disabled={carregando}
             >

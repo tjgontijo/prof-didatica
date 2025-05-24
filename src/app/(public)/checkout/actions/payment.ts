@@ -1,5 +1,5 @@
 // src/actions/payment.ts
-'use server'
+'use server';
 
 import { prisma } from '@/lib/prisma';
 
@@ -11,10 +11,10 @@ export async function checkPaymentStatus(paymentId: string) {
       include: {
         order: {
           include: {
-            checkout: true
-          }
-        }
-      }
+            checkout: true,
+          },
+        },
+      },
     });
 
     // Se não encontrar pelo ID, tentar pelo mercadoPagoId
@@ -24,10 +24,10 @@ export async function checkPaymentStatus(paymentId: string) {
         include: {
           order: {
             include: {
-              checkout: true
-            }
-          }
-        }
+              checkout: true,
+            },
+          },
+        },
       });
     }
 
@@ -41,7 +41,7 @@ export async function checkPaymentStatus(paymentId: string) {
     // Retornar status do pagamento e URL de upsell
     return {
       status: payment.status,
-      upsellPageUrl
+      upsellPageUrl,
     };
   } catch (error) {
     console.error('Erro ao verificar status do pagamento:', error);

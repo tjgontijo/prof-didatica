@@ -15,14 +15,14 @@ export type CheckoutData = Omit<Checkout, 'product' | 'requiredFields'> & {
 
 export async function getCheckoutData(id: string): Promise<CheckoutData | null> {
   const prisma = new PrismaClient();
-  
+
   try {
     // Buscar checkout pelo ID, incluindo produto e order bumps
     const checkout = await prisma.checkout.findUnique({
       where: {
         id: id,
         isActive: true,
-        deletedAt: null
+        deletedAt: null,
       },
       include: {
         product: {
@@ -30,25 +30,25 @@ export async function getCheckoutData(id: string): Promise<CheckoutData | null> 
             mainProductBumps: {
               where: {
                 isActive: true,
-                deletedAt: null
+                deletedAt: null,
               },
               include: {
-                bumpProduct: true
+                bumpProduct: true,
               },
               orderBy: {
-                displayOrder: 'asc'
-              }
-            }
-          }
-        }
-      }
+                displayOrder: 'asc',
+              },
+            },
+          },
+        },
+      },
     });
-    
+
     if (!checkout) return null;
     // Parsear requiredFields JSON
     const raw = checkout.requiredFields ?? [];
     const requiredFields = typeof raw === 'string' ? JSON.parse(raw) : raw;
-    
+
     return { ...checkout, requiredFields };
   } catch (error) {
     console.error('Erro ao buscar checkout:', error);

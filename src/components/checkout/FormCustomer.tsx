@@ -64,7 +64,7 @@ const FormCustomer: React.FC<FormCustomerProps> = ({
   useEffect(() => {
     if (formTouched && onValidationChange) {
       const isValid = requiredFields.every(
-        (field) => !errosForm[field] && dadosCliente[field]?.trim().length > 0
+        (field) => !errosForm[field] && dadosCliente[field]?.trim().length > 0,
       );
       onValidationChange(isValid);
     }
@@ -82,12 +82,12 @@ const FormCustomer: React.FC<FormCustomerProps> = ({
       }));
       return false;
     }
-    
+
     // Validação adicional para telefone: verificar se é um WhatsApp válido
     if (campo === 'telefone' && !whatsappValidado) {
       const cleaned = cleanPhone(dadosCliente.telefone);
       const whatsappResult = await whatsappService.checkWhatsappNumber(cleaned);
-      
+
       if (!whatsappResult.isWhatsapp) {
         setErrosForm((prev) => ({
           ...prev,
@@ -95,7 +95,7 @@ const FormCustomer: React.FC<FormCustomerProps> = ({
         }));
         return false;
       }
-      
+
       // Marca como validado para evitar validações repetidas
       setWhatsappValidado(true);
     }
@@ -117,8 +117,7 @@ const FormCustomer: React.FC<FormCustomerProps> = ({
   };
 
   return (
-    <div className="bg-white rounded-lg mb-4">    
-
+    <div className="bg-white rounded-lg mb-4">
       <div className="space-y-4">
         <div>
           <label htmlFor="nome" className="block text-gray-800 mb-1 text-sm">
@@ -129,9 +128,9 @@ const FormCustomer: React.FC<FormCustomerProps> = ({
             type="text"
             id="nome"
             value={dadosCliente.nome}
-            onChange={(e) => setDadosCliente(prev => ({ ...prev, nome: e.target.value }))}
+            onChange={(e) => setDadosCliente((prev) => ({ ...prev, nome: e.target.value }))}
             onBlur={() => handleBlur('nome')}
-            className={`w-full h-12 p-3 border text-base rounded-md text-gray-800 placeholder:text-gray-500 ${errosForm.nome ? 'border-red-500' : 'border-gray-300'}`} 
+            className={`w-full h-12 p-3 border text-base rounded-md text-gray-800 placeholder:text-gray-500 ${errosForm.nome ? 'border-red-500' : 'border-gray-300'}`}
             placeholder="Seu nome completo"
           />
           {errosForm.nome && <p className="text-red-500 text-xs mt-1">{errosForm.nome}</p>}
@@ -146,9 +145,9 @@ const FormCustomer: React.FC<FormCustomerProps> = ({
             type="email"
             id="email"
             value={dadosCliente.email}
-            onChange={(e) => setDadosCliente(prev => ({ ...prev, email: e.target.value }))}
+            onChange={(e) => setDadosCliente((prev) => ({ ...prev, email: e.target.value }))}
             onBlur={() => handleBlur('email')}
-            className={`w-full h-12 p-3 border text-base rounded-md text-gray-800 placeholder:text-gray-500 ${errosForm.email ? 'border-red-500' : 'border-gray-300'}`} 
+            className={`w-full h-12 p-3 border text-base rounded-md text-gray-800 placeholder:text-gray-500 ${errosForm.email ? 'border-red-500' : 'border-gray-300'}`}
             placeholder="seu@email.com"
           />
           {errosForm.email && <p className="text-red-500 text-xs mt-1">{errosForm.email}</p>}
@@ -160,7 +159,7 @@ const FormCustomer: React.FC<FormCustomerProps> = ({
           </label>
           <div className="relative">
             <div className="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none">
-              <FaWhatsapp className={whatsappValidado ? "text-green-600" : "text-gray-400"} />
+              <FaWhatsapp className={whatsappValidado ? 'text-green-600' : 'text-gray-400'} />
             </div>
             <input
               ref={telefoneRef}
@@ -168,18 +167,17 @@ const FormCustomer: React.FC<FormCustomerProps> = ({
               id="telefone"
               value={dadosCliente.telefone}
               onChange={(e) => {
-                if (whatsappValidado && e.target.value !== dadosCliente.telefone) setWhatsappValidado(false);
+                if (whatsappValidado && e.target.value !== dadosCliente.telefone)
+                  setWhatsappValidado(false);
                 const valorFormatado = formatBrazilianPhone(e.target.value);
-                setDadosCliente(prev => ({ ...prev, telefone: valorFormatado }));
+                setDadosCliente((prev) => ({ ...prev, telefone: valorFormatado }));
               }}
               onBlur={() => handleBlur('telefone')}
-              className={`w-full h-12 pl-10 p-3 border text-base rounded-md text-gray-800 placeholder:text-gray-500 ${errosForm.telefone ? 'border-red-500' : 'border-gray-300'}`} 
+              className={`w-full h-12 pl-10 p-3 border text-base rounded-md text-gray-800 placeholder:text-gray-500 ${errosForm.telefone ? 'border-red-500' : 'border-gray-300'}`}
               placeholder="(99) 99999-9999"
             />
           </div>
-          {errosForm.telefone && (
-            <p className="text-red-500 text-xs mt-1">{errosForm.telefone}</p>
-          )}
+          {errosForm.telefone && <p className="text-red-500 text-xs mt-1">{errosForm.telefone}</p>}
         </div>
       </div>
     </div>

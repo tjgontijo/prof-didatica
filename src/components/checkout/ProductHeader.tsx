@@ -20,15 +20,9 @@ const ProductHeader: React.FC<ProductHeaderProps> = ({ produto }) => {
         />
       </div>
       <div className="flex flex-col justify-center flex-1 gap-1">
-        <span className="text-[14px] font-bold text-[#333] leading-tight">
-          {produto.nome}
-        </span>
-        {produto.descricao && (
-          <span className="text-[12px] text-[#666]">{produto.descricao}</span>
-        )}
-        <span className="text-[16px] font-bold text-[#1D3557]">
-          R$ {produto.price.toFixed(2)}
-        </span>
+        <span className="text-[14px] font-bold text-[#333] leading-tight">{produto.nome}</span>
+        {produto.descricao && <span className="text-[12px] text-[#666]">{produto.descricao}</span>}
+        <span className="text-[16px] font-bold text-[#1D3557]">R$ {produto.price.toFixed(2)}</span>
       </div>
     </div>
   );

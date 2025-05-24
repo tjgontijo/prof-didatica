@@ -10,7 +10,7 @@ export type paramsType = Promise<{ id: string }>;
 export async function generateMetadata(props: { params: paramsType }): Promise<Metadata> {
   try {
     const { id } = await props.params;
-    
+
     return {
       title: `Pagamento PIX - Pedido #${id}`,
       description: 'Finalize seu pagamento via PIX',
@@ -26,20 +26,15 @@ export async function generateMetadata(props: { params: paramsType }): Promise<M
 export default async function ThanksPage(props: { params: paramsType }) {
   // Obter o ID da transação da URL de forma assíncrona
   const { id } = await props.params;
-  
+
   // Buscar dados do PIX
   const pixData: PixData | null = await getPixData(id);
-  
+
   // Se os dados do PIX não existirem, retornar not found
   if (!pixData) {
     notFound();
   }
-  
+
   // Renderizar o componente client-side com os dados
-  return (
-    <ThanksClientComponent
-      pixData={pixData}
-      transactionId={id}
-    />
-  );
+  return <ThanksClientComponent pixData={pixData} transactionId={id} />;
 }

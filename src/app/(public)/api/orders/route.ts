@@ -11,10 +11,14 @@ const orderSchema = z.object({
   customerName: z.string().min(2),
   customerEmail: z.string().email(),
   customerPhone: z.string().min(10),
-  orderBumps: z.array(z.object({
-    productId: z.string().uuid(),
-    quantity: z.number().min(1),
-  })).optional(),
+  orderBumps: z
+    .array(
+      z.object({
+        productId: z.string().uuid(),
+        quantity: z.number().min(1),
+      }),
+    )
+    .optional(),
   quantity: z.number().min(1).default(1),
 });
 
@@ -34,11 +38,13 @@ export async function GET(request: NextRequest) {
   const pageSize = parseInt(searchParams.get('pageSize') || '20', 10);
   const email = searchParams.get('email') || undefined;
 
-  const where = email ? { 
-    customer: {
-      email: email
-    }
-  } : {};
+  const where = email
+    ? {
+        customer: {
+          email: email,
+        },
+      }
+    : {};
 
   const [orders, total] = await Promise.all([
     prisma.order.findMany({
@@ -48,7 +54,7 @@ export async function GET(request: NextRequest) {
       take: pageSize,
       orderBy: { createdAt: 'desc' },
     }),
-    prisma.order.count({ where })
+    prisma.order.count({ where }),
   ]);
 
   return NextResponse.json({ orders, total, page, pageSize });
@@ -59,7 +65,10 @@ export async function DELETE(request: NextRequest) {
   const { searchParams } = new URL(request.url);
   const id = searchParams.get('id');
   if (!id) {
-    return NextResponse.json({ success: false, error: 'ID do pedido não informado.' }, { status: 400 });
+    return NextResponse.json(
+      { success: false, error: 'ID do pedido não informado.' },
+      { status: 400 },
+    );
   }
   try {
     // Soft delete: atualizar um campo deletedAt (se existir)
@@ -82,13 +91,10 @@ export async function POST(request: NextRequest) {
     // Primeiro verifica se existe cliente com o mesmo telefone (prioridade) ou email
     let customer = await prisma.customer.findFirst({
       where: {
-        OR: [
-          { phone: data.customerPhone },
-          { email: data.customerEmail }
-        ]
-      }
+        OR: [{ phone: data.customerPhone }, { email: data.customerEmail }],
+      },
     });
-    
+
     // Se existir, atualiza os dados
     if (customer) {
       customer = await prisma.customer.update({
@@ -96,8 +102,8 @@ export async function POST(request: NextRequest) {
         data: {
           name: data.customerName,
           email: data.customerEmail,
-          phone: data.customerPhone
-        }
+          phone: data.customerPhone,
+        },
       });
     } else {
       // Se não existir, cria um novo
@@ -105,8 +111,8 @@ export async function POST(request: NextRequest) {
         data: {
           name: data.customerName,
           email: data.customerEmail,
-          phone: data.customerPhone
-        }
+          phone: data.customerPhone,
+        },
       });
     }
 
@@ -125,27 +131,27 @@ export async function POST(request: NextRequest) {
               priceAtTime: 0, // Preencher depois conforme regra de preço
               isOrderBump: false,
             },
-            ...(data.orderBumps?.map(bump => ({
+            ...(data.orderBumps?.map((bump) => ({
               productId: bump.productId,
               quantity: bump.quantity,
               priceAtTime: 0, // Preencher depois conforme regra de preço
               isOrderBump: true,
-            })) || [])
-          ]
+            })) || []),
+          ],
         },
         statusHistory: {
           create: {
             previousStatus: null,
             newStatus: OrderStatus.DRAFT,
             notes: 'Pedido criado',
-          }
-        }
+          },
+        },
       },
       include: {
         orderItems: true,
         statusHistory: true,
-        customer: true
-      }
+        customer: true,
+      },
     });
 
     return NextResponse.json({ success: true, orderId: order.id, order });
@@ -169,14 +175,20 @@ export async function PATCH(request: NextRequest) {
   const { searchParams } = new URL(request.url);
   const id = searchParams.get('id');
   if (!id) {
-    return NextResponse.json({ success: false, error: 'ID do pedido não informado.' }, { status: 400 });
+    return NextResponse.json(
+      { success: false, error: 'ID do pedido não informado.' },
+      { status: 400 },
+    );
   }
   try {
     const body = await request.json();
     const data = patchOrderSchema.parse({ id, ...body });
     const existing = await prisma.order.findUnique({ where: { id } });
     if (!existing) {
-      return NextResponse.json({ success: false, error: 'Pedido não encontrado.' }, { status: 404 });
+      return NextResponse.json(
+        { success: false, error: 'Pedido não encontrado.' },
+        { status: 404 },
+      );
     }
     const updateData: Prisma.OrderUpdateInput = {};
     if (data.status) {
@@ -184,7 +196,7 @@ export async function PATCH(request: NextRequest) {
       updateData.statusUpdatedAt = new Date();
     }
     const updatedOrder = await prisma.order.update({ where: { id }, data: updateData });
-    
+
     // Atualiza os dados do cliente se necessário
     if (data.customerName || data.customerEmail || data.customerPhone) {
       await prisma.customer.update({
@@ -192,17 +204,19 @@ export async function PATCH(request: NextRequest) {
         data: {
           name: data.customerName,
           email: data.customerEmail,
-          phone: data.customerPhone
-        }
+          phone: data.customerPhone,
+        },
       });
     }
     if (data.status && existing.status !== data.status) {
-      await prisma.orderStatusHistory.create({ data: {
-        orderId: id,
-        previousStatus: existing.status,
-        newStatus: data.status,
-        notes: `Status alterado para ${data.status}`,
-      }});
+      await prisma.orderStatusHistory.create({
+        data: {
+          orderId: id,
+          previousStatus: existing.status,
+          newStatus: data.status,
+          notes: `Status alterado para ${data.status}`,
+        },
+      });
     }
     return NextResponse.json({ success: true, order: updatedOrder });
   } catch (error) {
@@ -210,6 +224,9 @@ export async function PATCH(request: NextRequest) {
       return NextResponse.json({ success: false, error: error.errors }, { status: 422 });
     }
     console.error(error);
-    return NextResponse.json({ success: false, error: error instanceof Error ? error.message : 'Erro inesperado' }, { status: 400 });
+    return NextResponse.json(
+      { success: false, error: error instanceof Error ? error.message : 'Erro inesperado' },
+      { status: 400 },
+    );
   }
 }

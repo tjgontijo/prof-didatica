@@ -39,9 +39,7 @@ export default function PixDisplay({ pixData }: PixDisplayProps) {
 
       {/* Código PIX */}
       <div className="w-full">
-        <p className="text-sm text-[#666] mb-2 text-center font-medium">
-          Código Pix
-        </p>
+        <p className="text-sm text-[#666] mb-2 text-center font-medium">Código Pix</p>
         <div className="relative">
           <div className="p-4 bg-gray-50 rounded-lg text-sm font-mono break-all border border-gray-200">
             {pixData.qr_code}
@@ -51,14 +49,14 @@ export default function PixDisplay({ pixData }: PixDisplayProps) {
             className="absolute right-3 top-1/2 -translate-y-1/2 p-2 text-[#2c4f71] hover:text-[#457B9D] bg-white rounded-full shadow-sm border border-gray-200"
             title="Copiar código PIX"
           >
-            {copiado ? <FaCheckCircle size={18} className="text-green-500" /> : <FaCopy size={18} />}
+            {copiado ? (
+              <FaCheckCircle size={18} className="text-green-500" />
+            ) : (
+              <FaCopy size={18} />
+            )}
           </button>
         </div>
-        {copiado && (
-          <p className="text-green-600 text-xs mt-1 text-center">
-            Código copiado!
-          </p>
-        )}
+        {copiado && <p className="text-green-600 text-xs mt-1 text-center">Código copiado!</p>}
       </div>
 
       {/* Informações adicionais */}

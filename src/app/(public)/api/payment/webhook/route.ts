@@ -38,10 +38,10 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
         include: {
           order: {
             include: {
-              checkout: true
-            }
-          }
-        }
+              checkout: true,
+            },
+          },
+        },
       });
 
       if (!payment) {
@@ -54,8 +54,8 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
         where: { id: payment.id },
         data: {
           status: status,
-          paidAt: status === 'approved' ? new Date() : undefined
-        }
+          paidAt: status === 'approved' ? new Date() : undefined,
+        },
       });
 
       // Se o pagamento foi aprovado, atualizar o status do pedido
@@ -65,8 +65,8 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
           where: { id: payment.orderId },
           data: {
             status: 'PAID',
-            statusUpdatedAt: new Date()
-          }
+            statusUpdatedAt: new Date(),
+          },
         });
 
         // Registrar a mudança de status na tabela de histórico
@@ -75,8 +75,8 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
             orderId: payment.orderId,
             previousStatus: 'PAYMENT_PROCESSING',
             newStatus: 'PAID',
-            notes: 'Pagamento confirmado via webhook do Mercado Pago'
-          }
+            notes: 'Pagamento confirmado via webhook do Mercado Pago',
+          },
         });
 
         console.log(`Pedido ${payment.orderId} atualizado para status PAID`);
@@ -86,8 +86,8 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
           where: { id: payment.orderId },
           data: {
             status: 'CANCELLED',
-            statusUpdatedAt: new Date()
-          }
+            statusUpdatedAt: new Date(),
+          },
         });
 
         // Registrar a mudança de status
@@ -96,8 +96,8 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
             orderId: payment.orderId,
             previousStatus: 'PAYMENT_PROCESSING',
             newStatus: 'CANCELLED',
-            notes: 'Pagamento rejeitado pelo Mercado Pago'
-          }
+            notes: 'Pagamento rejeitado pelo Mercado Pago',
+          },
         });
 
         console.log(`Pedido ${payment.orderId} atualizado para status CANCELLED`);

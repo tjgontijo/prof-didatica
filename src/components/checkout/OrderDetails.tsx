@@ -26,15 +26,13 @@ const OrderDetails: React.FC<OrderDetailsProps> = ({ produto, orderBumpsSelecion
         {/* Produto Principal */}
         <div className="flex justify-between items-center py-1">
           <span className="text-[14px] text-[#333] font-bold">{produto.nome}</span>
-          <span className="text-[14px] font-bold text-[#333]">
-            R$ {produto.price.toFixed(2)}
-          </span>
+          <span className="text-[14px] font-bold text-[#333]">R$ {produto.price.toFixed(2)}</span>
         </div>
 
         {/* Order Bumps Selecionados */}
         {orderBumpsSelecionados.map((bump) => {
           const precoEspecial = bump.specialPrice;
-          
+
           return (
             <div key={bump.id} className="flex justify-between items-center py-1">
               <div className="flex flex-col">
@@ -53,9 +51,7 @@ const OrderDetails: React.FC<OrderDetailsProps> = ({ produto, orderBumpsSelecion
                     R$ {bump.initialPrice.toFixed(2)}
                   </span>
                 )}
-                <span className="text-[14px] text-[#333]">
-                  R$ {precoEspecial.toFixed(2)}
-                </span>
+                <span className="text-[14px] text-[#333]">R$ {precoEspecial.toFixed(2)}</span>
               </div>
             </div>
           );
@@ -64,9 +60,7 @@ const OrderDetails: React.FC<OrderDetailsProps> = ({ produto, orderBumpsSelecion
         {/* Valor Total */}
         <div className="flex justify-between items-center pt-3 border-t border-[#E5E7EB] mt-2">
           <span className="text-[14px] font-bold text-[#333]">Total</span>
-          <span className="text-[16px] font-bold text-[#00A859]">
-            R$ {valorTotal.toFixed(2)}
-          </span>
+          <span className="text-[16px] font-bold text-[#00A859]">R$ {valorTotal.toFixed(2)}</span>
         </div>
       </div>
     </div>
