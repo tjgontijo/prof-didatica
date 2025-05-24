@@ -2,7 +2,14 @@ import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
   images: {
-    domains: ['images.yampi.me'],
+    remotePatterns: [
+      {
+        protocol: 'https',
+        hostname: 'images.yampi.me',
+        port: '',
+        pathname: '/**',
+      },
+    ],
     formats: ['image/avif', 'image/webp'],
   },
 };

@@ -38,7 +38,9 @@ const OrderDetails: React.FC<OrderDetailsProps> = ({ produto, orderBumpsSelecion
           return (
             <div key={bump.id} className="flex justify-between items-center py-1">
               <div className="flex flex-col">
-                <span className="text-[14px] text-[#333]">{bump.nome}</span>
+                <span className="text-[14px] text-[#333]">
+                  {bump.nome.length > 35 ? `${bump.nome.substring(0, 35).trim()}...` : bump.nome}
+                </span>
                 {bump.initialPrice > precoEspecial && (
                   <span className="text-[10px] text-[#00A859]">
                     Economia de R$ {(bump.initialPrice - precoEspecial).toFixed(2)}
@@ -47,11 +49,11 @@ const OrderDetails: React.FC<OrderDetailsProps> = ({ produto, orderBumpsSelecion
               </div>
               <div className="flex items-center gap-2">
                 {bump.initialPrice > precoEspecial && (
-                  <span className="text-[12px] line-through text-[#999]">
+                  <span className="text-[11px] line-through text-[#999]">
                     R$ {bump.initialPrice.toFixed(2)}
                   </span>
                 )}
-                <span className="text-[14px] font-bold text-[#333]">
+                <span className="text-[14px] text-[#333]">
                   R$ {precoEspecial.toFixed(2)}
                 </span>
               </div>

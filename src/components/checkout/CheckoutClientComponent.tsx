@@ -2,6 +2,7 @@
 
 import React, { useState, useEffect } from 'react';
 import Image from 'next/image';
+import { useRouter } from 'next/navigation';
 import { initMercadoPago } from '@mercadopago/sdk-react';
 import { FaSpinner } from 'react-icons/fa';
 import PaymentQrCode from '@/components/checkout/PaymentQrCode';
@@ -79,6 +80,7 @@ export default function CheckoutClientComponent({
   checkoutId,
   requiredFields,
 }: CheckoutClientComponentProps) {
+  const router = useRouter();
   const [orderBumps, setOrderBumps] = useState(initialOrderBumps);
   const [orderBumpsSelecionados, setOrderBumpsSelecionados] = useState<OrderBump[]>([]);
   const [carregando, setCarregando] = useState(false);
@@ -185,6 +187,11 @@ export default function CheckoutClientComponent({
         })),
       ];
 
+      // Verificar se temos um orderId válido
+      if (!orderId) {
+        throw new Error('ID do pedido não encontrado. Por favor, preencha seus dados novamente.');
+      }
+
       // Preparar dados do pedido
       const dadosPedido = {
         items,
@@ -195,7 +202,7 @@ export default function CheckoutClientComponent({
         },
         valorTotal,
         checkoutId, // Usar o ID do checkout recebido via props
-        external_reference: `PEDIDO-${Date.now()}`,
+        orderId, // Usar o ID do pedido que já foi criado
       };
 
       // Enviar para a API
@@ -212,6 +219,11 @@ export default function CheckoutClientComponent({
       }
 
       const dadosResposta = await resposta.json();
+      
+      // Redirecionar para a página de agradecimento usando o ID do Payment
+      router.push(`/thanks/${dadosResposta.id}`);
+      
+      // Manter o estado atual para compatibilidade com código existente
       setRespostaPix(dadosResposta);
     } catch (error) {
       if (error instanceof Error) {
@@ -230,7 +242,7 @@ export default function CheckoutClientComponent({
   return (
     <div className="min-h-screen bg-[#FFF9F5] font-sans text-[#333] ">
       {/* Header */}
-      <header className="w-full bg-[#2c4f71] h-[80px] flex items-center justify-center sticky top-0 z-10">
+      <header className="w-full bg-[#2c4f71] h-[80px] flex items-center justify-center top-0">
         <Image
           src="/images/system/logo_transparent.webp"
           alt="Logo"

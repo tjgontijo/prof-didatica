@@ -95,7 +95,7 @@ const OrderBumps: React.FC<OrderBumpsProps> = ({ orderBumps, onToggleOrderBump }
                           Economia de R$ {economia.toFixed(2)}
                         </span>
                       </div>
-                      <div className="bg-[#00A859] text-white text-[10px] font-bold px-2 py-1 rounded-[4px]">
+                      <div className="bg-emerald-400 text-white text-[10px] font-bold px-2 py-1 rounded-[4px]">
                         {desconto}% OFF
                       </div>
                     </div>
@@ -103,7 +103,7 @@ const OrderBumps: React.FC<OrderBumpsProps> = ({ orderBumps, onToggleOrderBump }
                 </div>
               </div>
 
-              <div className="px-4 py-3 border-t border-[#EEE] bg-emerald-300 rounded-b-[6px]">
+              <div className="px-4 py-3 border-t border-[#EEE] bg-emerald-200 rounded-b-[6px]">
                 <label className="flex items-center gap-2 cursor-pointer">
                   <input
                     type="checkbox"

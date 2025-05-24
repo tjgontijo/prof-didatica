@@ -1,7 +1,7 @@
 import { Metadata } from 'next';
 import { notFound } from 'next/navigation';
-import { getCheckoutData, type CheckoutData } from '../components/getCheckoutData';
-import CheckoutClientComponent from '../components/CheckoutClientComponent';
+import { getCheckoutData, type CheckoutData } from '@/components/checkout/getCheckoutData';
+import CheckoutClientComponent from '@/components/checkout/CheckoutClientComponent';
 
 // Interface para o produto do order bump
 interface BumpProduct {
@@ -43,10 +43,8 @@ export async function generateMetadata(props: { params: paramsType }): Promise<M
     const { id } = await props.params;
     const checkoutData = (await getCheckoutData(id)) as CheckoutData | null;
     
-    if (!checkoutData) {
-      return {
-        title: 'Checkout não encontrado',
-      };
+    if (!checkoutData) {      
+        notFound();      
     }
     
     return {
