@@ -35,13 +35,9 @@ export async function checkPaymentStatus(paymentId: string) {
       return { error: 'Pagamento não encontrado' };
     }
 
-    // Obter URL de upsell do checkout, se existir
-    const upsellPageUrl = payment.order?.checkout?.upsellPageUrl || null;
-
     // Retornar status do pagamento e URL de upsell
     return {
-      status: payment.status,
-      upsellPageUrl,
+      status: payment.status,    
     };
   } catch (error) {
     console.error('Erro ao verificar status do pagamento:', error);

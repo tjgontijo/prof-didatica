@@ -16,6 +16,7 @@ const ProductHeader: React.FC<ProductHeaderProps> = ({ produto }) => {
           src={produto.imagemUrl}
           alt={produto.nome}
           fill
+          sizes="60px"
           className="object-cover rounded-[4px]"
         />
       </div>

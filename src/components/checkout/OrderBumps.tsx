@@ -34,8 +34,6 @@ const OrderBumps: React.FC<OrderBumpsProps> = ({ orderBumps, onToggleOrderBump }
 
   return (
     <div className="mb-6">
-      <h2 className="text-[16px] font-bold text-[#333] mb-4">Aproveite e compre junto</h2>
-
       <div className="space-y-3">
         {sortedOrderBumps.length === 0 ? (
           <p className="text-sm text-gray-500 text-center py-4">
@@ -73,6 +71,7 @@ const OrderBumps: React.FC<OrderBumpsProps> = ({ orderBumps, onToggleOrderBump }
                         src={item.imagemUrl}
                         alt={item.nome}
                         fill
+                        sizes="60px"
                         className="object-cover rounded-[4px]"
                       />
                     </div>

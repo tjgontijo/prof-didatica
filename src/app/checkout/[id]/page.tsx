@@ -3,8 +3,8 @@ import { notFound } from 'next/navigation';
 import { getCheckoutData, type CheckoutData } from '@/components/checkout/getCheckoutData';
 import CheckoutClientComponent from '@/components/checkout/CheckoutClientComponent';
 
-// Interface para o produto do order bump
-interface BumpProduct {
+// Interface para o produto
+interface Product {
   id: string;
   name: string;
   price: number;
@@ -17,14 +17,14 @@ interface BumpProduct {
 }
 
 // Interface para o order bump
-interface OrderBumpWithProduct {
+interface OrderBump {
   id: string;
   title: string | null;
   description: string;
   specialPrice: number;
   displayOrder: number | null;
   callToAction: string | null;
-  bumpProduct: BumpProduct;
+  bumpProduct: Product;
   isActive: boolean;
   createdAt: Date;
   updatedAt: Date;
@@ -73,55 +73,58 @@ export default async function CheckoutPage(props: { params: paramsType }) {
 
   // Extrair campos obrigatórios definidos no Checkout
   const rawRequiredFields = checkoutData.requiredFields ?? [];
-  const mapToClientField: Record<string, 'nome' | 'email' | 'telefone'> = {
-    customerName: 'nome',
-    customerEmail: 'email',
-    customerPhone: 'telefone',
+  const mapToClientField: Record<string, 'customerName' | 'customerEmail' | 'customerPhone'> = {
+    customerName: 'customerName',
+    customerEmail: 'customerEmail',
+    customerPhone: 'customerPhone',
   };
   const requiredFields = rawRequiredFields.map((f) => mapToClientField[f]).filter(Boolean) as Array<
-    'nome' | 'email' | 'telefone'
+    'customerName' | 'customerEmail' | 'customerPhone'
   >;
 
-  // Preparar dados para o componente client-side
-  const produto = {
-    nome: checkoutData.product.name,
-    price: checkoutData.product.price / 100, // Convertendo de centavos para reais
-    imagemUrl: checkoutData.product.imageUrl ?? '/images/system/logo_transparent.webp',
+  // Mapear os dados para o formato esperado pelo componente
+  const product = {
+    id: checkoutData.product.id,
+    name: checkoutData.product.name,
+    price: checkoutData.product.price / 100, // Convertendo para reais
+    description: checkoutData.product.description,
+    imageUrl: checkoutData.product.imageUrl,
     sku: checkoutData.product.id,
-    descricao: checkoutData.product.description ?? '',
+    isActive: checkoutData.product.isActive,
   };
 
-  // Preparar order bumps
+  // Mapear os orderBumps para o formato esperado
   const orderBumps = checkoutData.product.mainProductBumps
-    .filter((bump: OrderBumpWithProduct) => bump.isActive && !bump.deletedAt)
-    .sort(
-      (a: OrderBumpWithProduct, b: OrderBumpWithProduct) =>
-        (a.displayOrder ?? 0) - (b.displayOrder ?? 0),
-    )
-    .map((bump: OrderBumpWithProduct) => {
-      const initialPrice = bump.bumpProduct.price / 100;
-      const specialPrice = bump.specialPrice / 100;
-      const desconto = Math.round(((initialPrice - specialPrice) / initialPrice) * 100);
-
-      return {
-        id: bump.id,
-        nome: bump.title ?? bump.bumpProduct.name,
-        descricao: bump.description ?? '',
-        initialPrice,
-        specialPrice,
-        imagemUrl: bump.bumpProduct.imageUrl ?? '/images/system/logo_transparent.webp',
+    .filter((bump: OrderBump) => bump.isActive && bump.bumpProduct.isActive)
+    .sort((a: OrderBump, b: OrderBump) => (a.displayOrder || 0) - (b.displayOrder || 0))
+    .map((bump: OrderBump) => ({
+      id: bump.id,
+      title: bump.title ?? bump.bumpProduct.name,
+      description: bump.description,
+      specialPrice: bump.specialPrice / 100,
+      callToAction: bump.callToAction,
+      showProductImage: bump.showProductImage,
+      displayOrder: bump.displayOrder,
+      isActive: bump.isActive,
+      bumpProduct: {
+        id: bump.bumpProduct.id,
+        name: bump.bumpProduct.name,
+        description: bump.bumpProduct.description,
+        price: bump.bumpProduct.price / 100,
+        imageUrl: bump.bumpProduct.imageUrl,
+        isActive: bump.bumpProduct.isActive,
         sku: bump.bumpProduct.id,
-        selecionado: false,
-        callToAction: bump.callToAction ?? 'Adicionar ao pedido',
-        percentDesconto: desconto,
-        displayOrder: bump.displayOrder ?? 0,
-      };
-    });
+      },
+      selecionado: false,
+      percentDesconto: Math.round(
+        ((bump.bumpProduct.price - bump.specialPrice) / bump.bumpProduct.price) * 100,
+      ),
+    }));
 
   // Renderizar o componente client-side com os dados
   return (
     <CheckoutClientComponent
-      produto={produto}
+      product={product}
       orderBumps={orderBumps}
       checkoutId={checkoutData.id}
       requiredFields={requiredFields}

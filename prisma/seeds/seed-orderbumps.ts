@@ -1,44 +1,66 @@
 import { PrismaClient } from '@prisma/client';
 
 export async function seedOrderBumps(prisma: PrismaClient) {
-  const products = await prisma.product.findMany({ 
-    orderBy: { createdAt: 'asc' },
-    where: { isActive: true, deletedAt: null }
+  // Busca todos os produtos ativos ordenados por data de criação
+  const produtos = await prisma.product.findMany({
+    where: { 
+      isActive: true, 
+      deletedAt: null 
+    },
+    orderBy: {
+      createdAt: 'asc'
+    }
   });
+
+  // Se tiver menos de 2 produtos, não faz nada
+  if (produtos.length < 2) {
+    console.log('Menos de 2 produtos encontrados. Nenhum orderbump criado.');
+    return;
+  }
+
+  // O primeiro produto é considerado o principal
+  const produtoPrincipal = produtos[0];
   
-  if (products.length < 3) throw new Error('É necessário pelo menos três produtos ativos para o seed.');
+  // Array para armazenar os produtos que serão usados como orderbumps
+  const orderBumps = [];
+  
+  // Se tiver 2 produtos, usa o segundo como orderbump
+  if (produtos.length >= 2) {
+    orderBumps.push(produtos[1]);
+  }
+  
+  // Se tiver 3 ou mais produtos, usa o terceiro como segundo orderbump
+  if (produtos.length >= 3) {
+    orderBumps.push(produtos[2]);
+  }
+  
+  //console.log(`Encontrados ${produtos.length} produtos. Criando ${orderBumps.length} orderbumps.`);
 
-  const [produtoPrincipal, primeiroBump, segundoBump] = products;
+  // Cria os orderbumps baseado nos produtos disponíveis
+  await Promise.all(
+    orderBumps.map(async (bump, index) => {
+      const isFirstBump = index === 0;
+      const displayOrder = index + 1;
+      const discount = isFirstBump ? 0.5 : 0.4; // 50% para o primeiro, 40% para o segundo
+      const specialPrice = Math.floor(bump.price * (1 - discount));
+      
+      await prisma.orderBump.create({
+        data: {
+          mainProductId: produtoPrincipal.id,
+          bumpProductId: bump.id,
+          callToAction: 'Aproveite e leve junto!',
+          title: bump.name,
+          description: `Aproveite este produto com ${discount * 100}% de desconto!`,
+          specialPrice: specialPrice,
+          showProductImage: true,
+          displayOrder: displayOrder,
+          isActive: true,
+        }
+      });
+      
+      console.log(`✅ Order bump criado para o produto: ${bump.name} (${discount * 100}% de desconto)`);
+    })
+  );
 
-  // Primeiro order bump - 50% de desconto
-  await prisma.orderBump.create({
-    data: {
-      mainProductId: produtoPrincipal.id,
-      bumpProductId: primeiroBump.id,
-      callToAction: 'Aproveite e leve junto!',
-      title: primeiroBump.name,
-      description: 'Aproveite este produto com desconto exclusivo!',
-      specialPrice: Math.floor(primeiroBump.price * 0.5), // 50% de desconto
-      showProductImage: true,
-      displayOrder: 1,
-      isActive: true,
-    }
-  });
-
-  // Segundo order bump - 40% de desconto com descrição diferente
-  await prisma.orderBump.create({
-    data: {
-      mainProductId: produtoPrincipal.id,
-      bumpProductId: segundoBump.id,
-      callToAction: 'Aproveite e leve junto!',
-      title: primeiroBump.name,
-      description: 'Aproveite este produto com desconto exclusivo!',
-      specialPrice: Math.floor(primeiroBump.price * 0.6), // 50% de desconto
-      showProductImage: true,
-      displayOrder: 2,
-      isActive: true,
-    }
-  });
-
-  console.log('✅ 2 order bumps criados com sucesso!');
+  console.log(`✅ ${orderBumps.length} order bump(s) criado(s) com sucesso!`);
 }

@@ -44,6 +44,45 @@ export async function getCheckoutData(id: string): Promise<CheckoutData | null> 
       },
     });
 
+    // console.log('=== DADOS DO CHECKOUT ===');
+    // console.log('Checkout ID:', checkout?.id);
+    // console.log('Produto principal:');
+
+    // const logData = {
+    //   id: checkout?.id,
+    //   product: {
+    //     id: checkout?.product.id,
+    //     name: checkout?.product.name,
+    //     price: checkout?.product.price,
+    //     mainProductBumps: checkout?.product.mainProductBumps?.map(bump => ({
+    //       id: bump.id,
+    //       title: bump.title,
+    //       description: bump.description,
+    //       specialPrice: bump.specialPrice,
+    //       callToAction: bump.callToAction,
+    //       showProductImage: bump.showProductImage,
+    //       displayOrder: bump.displayOrder,
+    //       isActive: bump.isActive,
+    //       bumpProduct: {
+    //         id: bump.bumpProduct?.id,
+    //         name: bump.bumpProduct?.name,
+    //         description: bump.bumpProduct?.description,
+    //         price: bump.bumpProduct?.price,
+    //         imageUrl: bump.bumpProduct?.imageUrl,
+    //         isActive: bump.bumpProduct?.isActive
+    //       }
+    //     }))
+    //   },
+    //   requiredFields: checkout?.requiredFields,
+    //   isActive: checkout?.isActive,
+    //   createdAt: checkout?.createdAt,
+    //   updatedAt: checkout?.updatedAt,
+    //   deletedAt: checkout?.deletedAt
+    // };
+
+    // console.log(JSON.stringify(logData, null, 2));
+    // console.log('=========================');
+
     if (!checkout) return null;
     // Parsear requiredFields JSON
     const raw = checkout.requiredFields ?? [];

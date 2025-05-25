@@ -28,9 +28,11 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
 
       const status = paymentInfo.status;
       const externalReference = paymentInfo.external_reference;
+      const paymentMethodId = paymentInfo.payment_method_id;
 
       console.log(`Pagamento ${paymentId} com status: ${status}`);
       console.log(`Referência externa: ${externalReference}`);
+      console.log(`Método de pagamento: ${paymentMethodId}`);
 
       // Atualizar o registro de pagamento no banco de dados
       const payment = await prisma.payment.findFirst({
@@ -49,23 +51,34 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
         return NextResponse.json({ success: false, error: 'Pagamento não encontrado' });
       }
 
+      // Obter o status atual do pedido para o histórico
+      const currentOrderStatus = payment.order?.status || 'PAYMENT_PROCESSING';
+
       // Atualizar o status do pagamento
       await prisma.payment.update({
         where: { id: payment.id },
         data: {
           status: status,
-          paidAt: status === 'approved' ? new Date() : undefined,
+          paidAt:
+            status === 'approved' && paymentInfo.date_approved
+              ? new Date(paymentInfo.date_approved)
+              : status === 'approved'
+                ? new Date()
+                : undefined,
+          rawData: JSON.stringify(paymentInfo), // Salvar dados completos
         },
       });
 
-      // Se o pagamento foi aprovado, atualizar o status do pedido
-      if (status === 'approved') {
+      // Se o pagamento foi aprovado E o método é PIX, atualizar o status do pedido
+      if (status === 'approved' && (paymentMethodId === 'pix' || true)) {
+        // Temporariamente aceitando qualquer método
         // Atualizar o status da ordem para PAID
         await prisma.order.update({
           where: { id: payment.orderId },
           data: {
             status: 'PAID',
             statusUpdatedAt: new Date(),
+            paidAmount: paymentInfo.transaction_amount,
           },
         });
 
@@ -73,13 +86,13 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
         await prisma.orderStatusHistory.create({
           data: {
             orderId: payment.orderId,
-            previousStatus: 'PAYMENT_PROCESSING',
+            previousStatus: currentOrderStatus,
             newStatus: 'PAID',
-            notes: 'Pagamento confirmado via webhook do Mercado Pago',
+            notes: `Pagamento confirmado via webhook do Mercado Pago (método: ${paymentMethodId})`,
           },
         });
 
-        console.log(`Pedido ${payment.orderId} atualizado para status PAID`);
+        console.log(`Pedido ${payment.orderId} marcado como PAGO`);
       } else if (status === 'rejected') {
         // Atualizar o status da ordem para CANCELLED
         await prisma.order.update({
@@ -94,19 +107,21 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
         await prisma.orderStatusHistory.create({
           data: {
             orderId: payment.orderId,
-            previousStatus: 'PAYMENT_PROCESSING',
+            previousStatus: currentOrderStatus,
             newStatus: 'CANCELLED',
-            notes: 'Pagamento rejeitado pelo Mercado Pago',
+            notes: `Pagamento rejeitado pelo Mercado Pago (método: ${paymentMethodId})`,
           },
         });
 
-        console.log(`Pedido ${payment.orderId} atualizado para status CANCELLED`);
+        console.log(`Pedido ${payment.orderId} cancelado devido a pagamento rejeitado`);
       }
+
+      return NextResponse.json({ success: true });
     }
 
     return NextResponse.json({ success: true });
-  } catch (erro) {
-    console.error('Erro ao processar webhook:', erro);
-    return NextResponse.json({ success: false });
+  } catch (error) {
+    console.error('Erro ao processar webhook do Mercado Pago:', error);
+    return NextResponse.json({ success: false, error: String(error) }, { status: 500 });
   }
 }

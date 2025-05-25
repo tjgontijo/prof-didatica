@@ -55,8 +55,7 @@ export async function POST(request: NextRequest) {
     const checkout = await prisma.checkout.create({
       data: {
         productId: data.productId,
-        campaignName: data.campaignName,
-        upsellPageUrl: data.upsellPageUrl,
+        campaignName: data.campaignName,        
         isActive: data.isActive ?? true,
       },
       include: {

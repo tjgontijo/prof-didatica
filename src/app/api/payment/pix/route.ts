@@ -133,10 +133,6 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
           email: dados.cliente.email,
           first_name: dados.cliente.nome.split(' ')[0],
           last_name: dados.cliente.nome.split(' ').slice(1).join(' '),
-          identification: {
-            type: 'CPF',
-            number: '12345678909', // Em produção, deve ser o CPF real do cliente
-          },
           phone: {
             area_code: dados.cliente.telefone.substring(0, 2),
             number: dados.cliente.telefone.substring(2),
@@ -152,12 +148,6 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
             quantity: item.quantity,
             unit_price: item.unit_price,
           })),
-          payer: {
-            phone: {
-              area_code: dados.cliente.telefone.substring(0, 2),
-              number: dados.cliente.telefone.substring(2),
-            },
-          },
         },
         external_reference: dados.orderId, // Usar o ID do pedido como referência externa
       },
@@ -176,6 +166,18 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
       throw new Error('Dados do PIX não encontrados na resposta');
     }
 
+    // Criar um objeto simplificado com apenas os dados necessários do PIX
+    const pixSimplificado = {
+      id: resultado.id,
+      status: resultado.status,
+      qr_code: pixData.qr_code,
+      qr_code_base64: pixData.qr_code_base64,
+      ticket_url: resultado.transaction_details?.external_resource_url || '',
+      expiration_date: resultado.date_of_expiration || '',
+    };
+
+    console.log('Dados do PIX simplificados:', pixSimplificado);
+
     // Salvar os dados do pagamento no banco de dados e obter o ID gerado
     let paymentId;
 
@@ -183,18 +185,20 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
       const payment = await prisma.payment.create({
         data: {
           orderId: dados.orderId, // Usar o ID correto do pedido
-          status: resultado.status || 'pending',
+          status:
+            (resultado.status.toUpperCase() as
+              | 'PENDING'
+              | 'APPROVED'
+              | 'REJECTED'
+              | 'CANCELLED'
+              | 'IN_MEDIATION'
+              | 'REFUNDED'
+              | 'IN_PROCESS'
+              | 'CHARGED_BACK') || 'PENDING',
           method: 'pix',
           mercadoPagoId: resultado.id.toString(),
           amount: Math.round(dados.valorTotal * 100), // Converter para centavos
-          rawData: {
-            qr_code: pixData.qr_code || '',
-            qr_code_base64: pixData.qr_code_base64 || '',
-            ticket_url: pixData.ticket_url || '',
-            expiration_date:
-              resultado.date_of_expiration ||
-              new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString(),
-          },
+          rawData: JSON.stringify(pixSimplificado), // Salvar apenas os dados simplificados do PIX
         },
       });
 
