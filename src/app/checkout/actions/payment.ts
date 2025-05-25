@@ -37,7 +37,7 @@ export async function checkPaymentStatus(paymentId: string) {
 
     // Retornar status do pagamento e URL de upsell
     return {
-      status: payment.status,    
+      status: payment.status,
     };
   } catch (error) {
     console.error('Erro ao verificar status do pagamento:', error);
