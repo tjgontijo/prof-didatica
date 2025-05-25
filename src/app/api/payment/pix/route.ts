@@ -176,7 +176,8 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
       expiration_date: resultado.date_of_expiration || '',
     };
 
-    console.log('Dados do PIX simplificados:', pixSimplificado);
+    console.log('typeof pixSimplificado:', typeof pixSimplificado);
+    console.log('preview:', pixSimplificado);
 
     // Salvar os dados do pagamento no banco de dados e obter o ID gerado
     let paymentId;
@@ -198,7 +199,7 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
           method: 'pix',
           mercadoPagoId: resultado.id.toString(),
           amount: Math.round(dados.valorTotal * 100), // Converter para centavos
-          rawData: JSON.stringify(pixSimplificado), // Salvar apenas os dados simplificados do PIX
+          rawData: pixSimplificado,
         },
       });
 
