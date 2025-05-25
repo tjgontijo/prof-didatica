@@ -84,18 +84,43 @@ type OrderUpdatePayload = {
   customerPhone?: string;
 };
 
-// Função para calcular o percentual de desconto
-const calcularDesconto = (precoOriginal: number, precoComDesconto: number) => {
-  return Math.round(((precoOriginal - precoComDesconto) / precoOriginal) * 100);
-};
-
 export default function CheckoutClientComponent({
   product,
   orderBumps: initialOrderBumps,
   checkoutId,
   requiredFields,
 }: CheckoutClientComponentProps) {
+  // Função utilitária para mapear ProdutoInfo para LocalProdutoInfo
+  const mapProductToLocalInfo = (product: ProdutoInfo): LocalProdutoInfo => ({
+    nome: product.name,
+    price: product.price,
+    imagemUrl: product.imageUrl || '/images/placeholder-product.png',
+    sku: product.sku,
+    descricao: product.description || '',
+    id: product.id,
+  });
+
+  // Função utilitária para mapear OrderBump para o formato esperado pelo componente OrderBumps
+  const mapOrderBumpToComponent = (bump: OrderBump) => ({
+    id: bump.id,
+    nome: bump.title,
+    descricao: bump.description || '',
+    initialPrice: bump.bumpProduct.price,
+    specialPrice: bump.specialPrice,
+    imagemUrl: bump.bumpProduct.imageUrl || '/images/placeholder-product.png',
+    sku: bump.bumpProduct.sku,
+    selecionado: bump.selecionado,
+    percentDesconto: bump.percentDesconto,
+    displayOrder: bump.displayOrder,
+    callToAction: bump.callToAction || 'Adicionar',
+  });
   const router = useRouter();
+
+  // Função para calcular o percentual de desconto
+  const calcularDesconto = (precoOriginal: number, precoComDesconto: number) => {
+    return Math.round(((precoOriginal - precoComDesconto) / precoOriginal) * 100);
+  };
+
   // Mapear os orderBumps iniciais para adicionar campos calculados
   const [orderBumps, setOrderBumps] = useState(() =>
     initialOrderBumps.map((bump) => ({
@@ -160,7 +185,6 @@ export default function CheckoutClientComponent({
   const handleFormValidationChange = (isValid: boolean) => {
     setFormValido(isValid);
   };
-  // Não precisamos mais do estado respostaPix, pois redirecionamos o usuário
 
   // Calcula o valor total
   const valorTotal = React.useMemo(() => {
@@ -173,7 +197,94 @@ export default function CheckoutClientComponent({
     return totalGeral;
   }, [orderBumpsSelecionados, product.price]);
 
-  // Usamos formatBrazilianPhone importado de @/lib/phone
+  // Efeito para enviar o evento InitiateCheckout apenas uma vez quando o componente montar e apenas em produção
+  useEffect(() => {
+    // Verifica se está em ambiente de produção
+    const isProduction = process.env.NODE_ENV === 'production';
+    
+    const sendMetaEvent = () => {
+      // Se não estiver em produção, não executa o código
+      if (!isProduction) {        
+        return;
+      }
+      
+      if (typeof window.fbq !== 'function') {
+        console.warn('Meta Pixel ainda não carregado. Tentando novamente em 2 segundos...');
+        setTimeout(sendMetaEvent, 2000);
+        return;
+      }
+
+      try {
+        const utmifyLead = JSON.parse(localStorage.getItem('lead') || '{}');
+
+        // Obter data e hora formatados
+        const now = new Date();
+        const days = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
+        const months = [
+          'January',
+          'February',
+          'March',
+          'April',
+          'May',
+          'June',
+          'July',
+          'August',
+          'September',
+          'October',
+          'November',
+          'December',
+        ];
+
+        const eventData = {
+          // Dados básicos do evento
+          event_name: 'InitiateCheckout',
+          event_time: Math.floor(now.getTime() / 1000),
+          event_source_url: window.location.href,
+          event_url: window.location.href,
+          traffic_source: document.referrer || undefined,
+          parameters: window.location.search,
+          content_type: 'product',
+          page_title: document.title,
+
+          // Informações de tempo
+          event_day: days[now.getDay()],
+          event_day_in_month: now.getDate(),
+          event_month: months[now.getMonth()],
+          event_time_interval: `${now.getHours()}-${now.getHours() + 1}`,
+
+          // Dados do produto
+          content_ids: product.id,
+          content_name: product.name,
+          value: product.price,
+          currency: 'BRL',
+
+          // Dados do lead do Utmify
+          external_id: utmifyLead._id || undefined,
+          em: utmifyLead.email || undefined,
+          ph: utmifyLead.phone || undefined,
+          fn: utmifyLead.firstName || undefined,
+          ln: utmifyLead.lastName || undefined,
+
+          // Dados de geolocalização
+          country: utmifyLead.geolocation?.country || undefined,
+          ct: utmifyLead.geolocation?.city || undefined,
+          st: utmifyLead.geolocation?.state || undefined,
+          zp: utmifyLead.geolocation?.zipcode || undefined,
+
+          // Dados do dispositivo
+          client_user_agent: navigator.userAgent,
+          client_ip_address: utmifyLead.ip || utmifyLead.ipv6 || undefined,
+        };
+
+        console.log('Enviando evento InitiateCheckout para Meta Ads:', eventData);
+        window.fbq('track', 'InitiateCheckout', eventData);
+      } catch (error) {
+        console.error('Erro ao enviar evento InitiateCheckout para Meta Ads:', error);
+      }
+    };
+
+    sendMetaEvent();
+  }, []); // Array vazio para executar apenas uma vez na montagem do componente
 
   // Atualiza os order bumps selecionados quando mudar a seleção
   useEffect(() => {
@@ -183,16 +294,11 @@ export default function CheckoutClientComponent({
 
   // Toggle order bump seleção
   const handleToggleOrderBump = (id: string) => {
-    setOrderBumps((prevBumps) => {
-      const updatedBumps = prevBumps.map((bump) =>
+    setOrderBumps((prevBumps) =>
+      prevBumps.map((bump) =>
         bump.id === id ? { ...bump, selecionado: !bump.selecionado } : bump,
-      );
-
-      // Atualiza a lista de order bumps selecionados
-      setOrderBumpsSelecionados(updatedBumps.filter((bump) => bump.selecionado));
-
-      return updatedBumps;
-    });
+      ),
+    );
   };
 
   // Handler para finalizar pagamento
@@ -295,18 +401,8 @@ export default function CheckoutClientComponent({
         {/* Container Principal */}
         <div className="bg-white rounded-[8px] p-5 my-[16px] md:my-[24px] w-full flex flex-col gap-6 shadow-xl border border-gray-200">
           {/* Produto */}
-          <ProductHeader
-            produto={
-              {
-                nome: product.name,
-                price: product.price,
-                imagemUrl: product.imageUrl || '/images/placeholder-product.png',
-                sku: product.sku,
-                descricao: product.description || '',
-              } as LocalProdutoInfo
-            }
-          />
-          <div className="border border-b-0"></div>
+          <ProductHeader produto={mapProductToLocalInfo(product)} />
+          <div className="border-b"></div>
 
           {/* Formulário Cliente */}
           <FormCustomer
@@ -325,43 +421,15 @@ export default function CheckoutClientComponent({
           <div className="mb-6">
             <h3 className="text-lg font-bold mb-3">Aproveite e Compre Junto</h3>
             <OrderBumps
-              orderBumps={orderBumps.map((bump) => ({
-                id: bump.id,
-                nome: bump.title,
-                descricao: bump.description || '',
-                initialPrice: bump.bumpProduct.price,
-                specialPrice: bump.specialPrice,
-                imagemUrl: bump.bumpProduct.imageUrl || '/images/placeholder-product.png',
-                sku: bump.bumpProduct.sku,
-                selecionado: bump.selecionado,
-                percentDesconto: bump.percentDesconto,
-                displayOrder: bump.displayOrder,
-                callToAction: bump.callToAction || 'Adicionar',
-              }))}
+              orderBumps={orderBumps.map(mapOrderBumpToComponent)}
               onToggleOrderBump={handleToggleOrderBump}
             />
           </div>
-          <div className="border border-b-0"></div>
+          <div className="border-b"></div>
           {/* Detalhes do Pedido */}
           <OrderDetails
-            produto={{
-              nome: product.name,
-              price: product.price,
-              imagemUrl: product.imageUrl || '/images/placeholder-product.png',
-              sku: product.sku,
-              descricao: product.description || '',
-            }}
-            orderBumpsSelecionados={orderBumpsSelecionados.map((bump) => ({
-              id: bump.id,
-              nome: bump.title,
-              descricao: bump.description || '',
-              initialPrice: bump.bumpProduct.price,
-              specialPrice: bump.specialPrice,
-              imagemUrl: bump.bumpProduct.imageUrl || '/images/placeholder-product.png',
-              sku: bump.bumpProduct.sku,
-              selecionado: true,
-              percentDesconto: bump.percentDesconto,
-            }))}
+            produto={mapProductToLocalInfo(product)}
+            orderBumpsSelecionados={orderBumpsSelecionados.map(mapOrderBumpToComponent)}
           />
 
           {/* Botão de Finalização */}
