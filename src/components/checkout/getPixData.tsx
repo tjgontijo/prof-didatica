@@ -54,9 +54,6 @@ export interface PixData {
  * @returns Dados do PIX ou null se não encontrado
  */
 export async function getPixData(id: string): Promise<PixData | null> {
-  console.log('=== INÍCIO getPixData ===');
-  console.log('Buscando pagamento com ID:', id);
-
   const prisma = new PrismaClient();
 
   try {
@@ -75,17 +72,8 @@ export async function getPixData(id: string): Promise<PixData | null> {
     });
 
     if (!payment) {
-      console.log('❌ Pagamento não encontrado com o ID fornecido');
       return null;
     }
-
-    console.log('✅ Pagamento encontrado:', {
-      id: payment.id,
-      status: payment.status,
-      amount: payment.amount / 100,
-      orderId: payment.orderId,
-      createdAt: payment.createdAt,
-    });
 
     // Definir interfaces para os dados do PIX
     interface PixDataSimplificado {
@@ -114,12 +102,9 @@ export async function getPixData(id: string): Promise<PixData | null> {
     let rawData: PixDataSimplificado | PixDataCompleto;
     try {
       rawData = JSON.parse(payment.rawData as string);
-    } catch (error) {
-      console.error('Erro ao fazer parse do rawData:', error);
+    } catch {
       return null;
     }
-
-    console.log('Raw data completo:', rawData);
 
     // Verificar se os dados do PIX estão na raiz do objeto ou aninhados
     let qrCode = '';
@@ -134,7 +119,6 @@ export async function getPixData(id: string): Promise<PixData | null> {
 
     // Formato 1: Dados na raiz do objeto (formato simplificado)
     if (isSimplificado) {
-      console.log('Usando formato 1: Dados na raiz do objeto');
       const pixSimples = rawData as PixDataSimplificado;
       qrCode = pixSimples.qr_code;
       qrCodeBase64 = pixSimples.qr_code_base64;
@@ -143,7 +127,6 @@ export async function getPixData(id: string): Promise<PixData | null> {
     }
     // Formato 2: Dados aninhados (formato original do Mercado Pago)
     else if (isCompleto) {
-      console.log('Usando formato 2: Dados aninhados');
       const pixCompleto = rawData as PixDataCompleto;
       const transactionData = pixCompleto.point_of_interaction!.transaction_data!;
       qrCode = transactionData.qr_code || '';
@@ -151,16 +134,8 @@ export async function getPixData(id: string): Promise<PixData | null> {
       ticketUrl = pixCompleto.transaction_details?.external_resource_url || '';
       expirationDate = pixCompleto.date_of_expiration || '';
     } else {
-      console.error('Formato de dados do PIX não reconhecido:', rawData);
       return null;
     }
-
-    console.log('Dados extraídos do PIX:', {
-      qrCode: qrCode ? `${qrCode.substring(0, 20)}...` : 'vazio',
-      qrCodeBase64: qrCodeBase64 ? `${qrCodeBase64.substring(0, 20)}...` : 'vazio',
-      ticketUrl,
-      expirationDate,
-    });
 
     // Dados que serão enviados para o cliente
     const pixData = {
@@ -174,51 +149,8 @@ export async function getPixData(id: string): Promise<PixData | null> {
       order: payment.order, // Incluindo os dados do pedido completo
     };
 
-    console.log('📦 Dados que serão enviados para o cliente:');
-    console.log(
-      JSON.stringify(
-        {
-          id: pixData.id,
-          status: pixData.status,
-          amount: pixData.amount,
-          qr_code_exists: !!pixData.qr_code,
-          qr_code_first_chars: pixData.qr_code ? `${pixData.qr_code.substring(0, 20)}...` : 'vazio',
-          qr_code_base64_exists: !!pixData.qr_code_base64,
-          qr_code_base64_first_chars: pixData.qr_code_base64
-            ? `${pixData.qr_code_base64.substring(0, 20)}...`
-            : 'vazio',
-          ticket_url: pixData.ticket_url,
-          expiration_date: pixData.expiration_date,
-          order: {
-            id: pixData.order?.id,
-            status: pixData.order?.status,
-            customer: pixData.order?.customer
-              ? {
-                  id: pixData.order.customer.id,
-                  name: pixData.order.customer.name,
-                  email: pixData.order.customer.email,
-                  phone: pixData.order.customer.phone,
-                }
-              : null,
-            orderItems: pixData.order?.orderItems?.map((item) => ({
-              id: item.id,
-              productId: item.productId,
-              quantity: item.quantity,
-              priceAtTime: item.priceAtTime,
-              isOrderBump: item.isOrderBump,
-              isUpsell: item.isUpsell,
-            })),
-          },
-        },
-        null,
-        2,
-      ),
-    );
-
-    console.log('=== FIM getPixData ===');
     return pixData;
-  } catch (error) {
-    console.error('❌ Erro ao buscar dados do PIX:', error);
+  } catch {
     return null;
   } finally {
     await prisma.$disconnect();
