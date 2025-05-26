@@ -1,4 +1,4 @@
-import { PrismaClient } from '@prisma/client';
+import { prisma } from '@/lib/prisma'; // Added import
 import type { Checkout, Product, OrderBump } from '@prisma/client';
 
 /**
@@ -14,10 +14,11 @@ export type CheckoutData = Omit<Checkout, 'product' | 'requiredFields'> & {
 };
 
 export async function getCheckoutData(id: string): Promise<CheckoutData | null> {
-  const prisma = new PrismaClient();
+  // const prisma = new PrismaClient(); // DELETED THIS LINE
 
   try {
     // Buscar checkout pelo ID, incluindo produto e order bumps
+    // All prisma operations (prisma.checkout.findUnique, etc.) will now use the imported shared instance
     const checkout = await prisma.checkout.findUnique({
       where: {
         id: id,
@@ -93,6 +94,6 @@ export async function getCheckoutData(id: string): Promise<CheckoutData | null> 
     console.error('Erro ao buscar checkout:', error);
     return null;
   } finally {
-    await prisma.$disconnect();
+    // await prisma.$disconnect(); // DELETED THIS LINE
   }
 }

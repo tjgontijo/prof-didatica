@@ -2,6 +2,8 @@ import { NextRequest, NextResponse } from 'next/server';
 import { z } from 'zod';
 import { prisma } from '@/lib/prisma';
 import { Prisma } from '@prisma/client';
+import { getServerSession } from "next-auth/next";
+import { authOptions } from '@/app/api/auth/[...nextauth]/route'; // Adjust path as needed
 
 const productSchema = z.object({
   name: z.string().min(2),
@@ -19,7 +21,7 @@ export async function GET(request: NextRequest) {
   const name = searchParams.get('name') || undefined;
 
   // Definindo filtro de busca por nome (se fornecido)
-  const where: Prisma.ProductWhereInput = {};
+  const where: Prisma.ProductWhereInput = { deletedAt: null }; // Filter out soft-deleted products
   if (name) {
     where.name = { contains: name, mode: Prisma.QueryMode.insensitive };
   }
@@ -39,6 +41,11 @@ export async function GET(request: NextRequest) {
 
 // POST /api/products - Cria novo produto
 export async function POST(request: NextRequest) {
+  const session = await getServerSession(authOptions);
+  if (!session) {
+    return NextResponse.json({ success: false, error: 'Unauthorized' }, { status: 401 });
+  }
+
   try {
     const body = await request.json();
     const data = productSchema.parse(body);
@@ -62,6 +69,11 @@ export async function POST(request: NextRequest) {
 
 // PUT /api/products - Atualiza produto por id (id no body)
 export async function PUT(request: NextRequest) {
+  const session = await getServerSession(authOptions);
+  if (!session) {
+    return NextResponse.json({ success: false, error: 'Unauthorized' }, { status: 401 });
+  }
+
   try {
     const body = await request.json();
     const { id, ...rest } = body;
@@ -90,6 +102,11 @@ export async function PUT(request: NextRequest) {
 
 // DELETE /api/products?id=xxx - Remove produto por ID
 export async function DELETE(request: NextRequest) {
+  const session = await getServerSession(authOptions);
+  if (!session) {
+    return NextResponse.json({ success: false, error: 'Unauthorized' }, { status: 401 });
+  }
+
   const { searchParams } = new URL(request.url);
   const id = searchParams.get('id');
   if (!id) {
@@ -99,12 +116,22 @@ export async function DELETE(request: NextRequest) {
     );
   }
   try {
-    const deleted = await prisma.product.delete({ where: { id } });
-    return NextResponse.json({ success: true, deleted });
+    const product = await prisma.product.update({
+      where: { id },
+      data: { deletedAt: new Date() },
+    });
+    return NextResponse.json({ success: true, product });
   } catch (error) {
+    if (error instanceof Prisma.PrismaClientKnownRequestError) {
+      if (error.code === 'P2025') { // Record to update not found
+        return NextResponse.json({ success: false, error: 'Produto não encontrado.' }, { status: 404 });
+      }
+      // Handle other Prisma errors
+      return NextResponse.json({ success: false, error: 'Erro de banco de dados ao deletar produto.', details: error.message }, { status: 500 });
+    }
     if (error instanceof Error) {
       return NextResponse.json({ success: false, error: error.message }, { status: 400 });
     }
-    return NextResponse.json({ success: false, error: 'Erro inesperado.' }, { status: 500 });
+    return NextResponse.json({ success: false, error: 'Erro inesperado ao deletar produto.' }, { status: 500 });
   }
 }

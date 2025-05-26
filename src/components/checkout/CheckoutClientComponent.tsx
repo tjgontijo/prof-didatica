@@ -23,9 +23,21 @@ type LocalProdutoInfo = {
   id?: string;
 };
 
-initMercadoPago(
-  process.env.NEXT_PUBLIC_MERCADOPAGO_PUBLIC_KEY || 'APP_USR-4bc818f1-b6bb-4af8-94e8-4307c34853a8',
-);
+// Retrieve Mercado Pago public key from environment variable
+const mercadoPagoPublicKey = process.env.NEXT_PUBLIC_MERCADOPAGO_PUBLIC_KEY;
+
+if (mercadoPagoPublicKey) {
+  initMercadoPago(mercadoPagoPublicKey);
+} else {
+  // In development, it's crucial to know this is missing.
+  if (process.env.NODE_ENV === 'development') {
+    console.error('Mercado Pago public key is not set. Please set NEXT_PUBLIC_MERCADOPAGO_PUBLIC_KEY environment variable.');
+    // Optionally, you could set a state here to disable payment buttons or show an error to the user/developer in the UI.
+  }
+  // In production, you might want more robust error reporting or graceful degradation.
+  // For now, not initializing MP will likely cause payment options to fail or not appear,
+  // which is an implicit failure state if the key is missing in production.
+}
 
 // Removemos a definição de tipo não utilizada
 

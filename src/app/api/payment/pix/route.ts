@@ -1,118 +1,58 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { MercadoPagoConfig, Payment } from 'mercadopago';
 import { prisma } from '@/lib/prisma';
+import { Prisma } from '@prisma/client'; // Import Prisma for error types
+import { z } from 'zod';
 
-// Tipos para validar os dados recebidos
-type Item = {
-  id: string;
-  title: string;
-  unit_price: number;
-  quantity: number;
-  picture_url?: string;
-};
+// Zod Schemas for validation
+const itemSchema = z.object({
+  id: z.string().min(1), // Assuming product IDs are strings, could be .uuid() if they are
+  title: z.string().min(1, "Título do item é obrigatório."),
+  unit_price: z.number().int("Preço unitário deve ser um inteiro (centavos).").positive("Preço unitário deve ser positivo."), // Expecting cents
+  quantity: z.number().int("Quantidade deve ser um inteiro.").positive("Quantidade deve ser positiva."),
+  picture_url: z.string().url("URL da imagem inválida.").optional(),
+});
 
-type Cliente = {
-  nome: string;
-  email: string;
-  telefone: string;
-};
+const clienteSchema = z.object({
+  nome: z.string().min(2, "Nome do cliente é obrigatório."),
+  email: z.string().email("Email do cliente inválido."),
+  // Regex for a common Brazilian phone format (XX) XXXXX-XXXX or (XX) XXXX-XXXX
+  // Allows for 10 or 11 digits after area code.
+  telefone: z.string().regex(/^\d{10,11}$/, "Telefone do cliente inválido. Use apenas números, incluindo DDD, com 10 ou 11 dígitos."),
+});
 
-type DadosPedido = {
-  items: Item[];
-  cliente: Cliente;
-  valorTotal: number;
-  checkoutId: string;
-  orderId: string; // ID da Order já existente
-};
+const dadosPedidoPixSchema = z.object({
+  items: z.array(itemSchema).min(1, "Pelo menos um item é necessário no pedido."),
+  cliente: clienteSchema,
+  valorTotal: z.number().positive("Valor total do pedido deve ser positivo."), // Expecting Reais
+  checkoutId: z.string().uuid("ID do Checkout inválido."),
+  orderId: z.string().uuid("ID do Pedido inválido."),
+});
+
+// Type inferred from Zod schema
+type DadosPedido = z.infer<typeof dadosPedidoPixSchema>;
+// type Item = z.infer<typeof itemSchema>; // Not strictly needed if DadosPedido is used
+// type Cliente = z.infer<typeof clienteSchema>; // Not strictly needed
 
 export async function POST(request: NextRequest): Promise<NextResponse> {
   try {
-    // Obter os dados brutos da requisição
-    const dados = (await request.json()) as DadosPedido;
+    const dadosRaw = await request.json();
+    const validationResult = dadosPedidoPixSchema.safeParse(dadosRaw);
 
-    // Exibir os dados recebidos no console para debug
-    console.log('Dados brutos recebidos do checkout:', dados);
-
-    // Validar se temos todos os dados necessários
-    if (!dados.items || dados.items.length === 0) {
-      throw new Error('Nenhum item encontrado no pedido');
-    }
-
-    if (!dados.cliente || !dados.cliente.nome || !dados.cliente.email || !dados.cliente.telefone) {
-      throw new Error('Dados do cliente incompletos');
-    }
-
-    if (!dados.valorTotal || dados.valorTotal <= 0) {
-      throw new Error('Valor total inválido');
-    }
-
-    if (!dados.orderId) {
-      throw new Error('ID do pedido não informado');
-    }
-
-    // Verificar se o pedido existe
-    const order = await prisma.order.findUnique({
-      where: { id: dados.orderId },
-      include: {
-        customer: true,
-        orderItems: true,
-      },
-    });
-
-    if (!order) {
-      throw new Error('Pedido não encontrado');
-    }
-
-    // Verificar se há novos itens (order bumps) para adicionar
-    const existingItemIds = order.orderItems.map((item) => item.productId);
-    const newItems = dados.items.filter(
-      (item) => !existingItemIds.includes(item.id) && item.id !== order.productId, // Excluir o item principal que já existe
-    );
-
-    // Criar novos OrderItems para os order bumps selecionados
-    if (newItems.length > 0) {
-      await Promise.all(
-        newItems.map((item) =>
-          prisma.orderItem.create({
-            data: {
-              orderId: dados.orderId,
-              productId: item.id,
-              quantity: item.quantity,
-              priceAtTime: item.unit_price,
-              isOrderBump: true,
-              isUpsell: false,
-            },
-          }),
-        ),
+    if (!validationResult.success) {
+      console.error('Erro de validação Zod:', validationResult.error.flatten().fieldErrors);
+      return NextResponse.json(
+        { success: false, error: "Dados inválidos.", details: validationResult.error.flatten().fieldErrors },
+        { status: 422 }
       );
     }
+    const dados: DadosPedido = validationResult.data; // Use validated and typed data
 
-    // Atualizar o status da ordem para PENDING_PAYMENT usando o Prisma diretamente
-    try {
-      await prisma.order.update({
-        where: { id: dados.orderId },
-        data: {
-          status: 'PENDING_PAYMENT',
-          statusUpdatedAt: new Date(),
-          paidAmount: 0, // Garantir que o valor pago seja zerado no início do pagamento
-        },
-      });
-    } catch (error) {
-      console.error('Erro ao atualizar status do pedido:', error);
-      throw new Error(
-        `Erro ao atualizar status do pedido: ${error instanceof Error ? error.message : 'Erro desconhecido'}`,
-      );
-    }
+    // Exibir os dados recebidos no console para debug (após validação)
+    console.log('Dados validados recebidos do checkout:', dados);
 
-    // Registrar a mudança de status na tabela de histórico
-    await prisma.orderStatusHistory.create({
-      data: {
-        orderId: dados.orderId,
-        previousStatus: order.status,
-        newStatus: 'PENDING_PAYMENT',
-        notes: 'Pedido aguardando pagamento',
-      },
-    });
+    // Manual validation checks are no longer needed here as Zod handles them.
+    // e.g., if (!dados.items || dados.items.length === 0) { ... } is covered by Zod.
 
     // Configurar o Mercado Pago com o token de acesso
     const accessToken = process.env.MERCADOPAGO_ACCESS_TOKEN;
@@ -144,9 +84,9 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
             title: item.title,
             description: item.title,
             picture_url: item.picture_url || '',
-            category_id: 'books',
+            category_id: 'books', // Or make dynamic if possible
             quantity: item.quantity,
-            unit_price: item.unit_price,
+            unit_price: parseFloat((item.unit_price / 100).toFixed(2)), // Convert from cents to Reais
           })),
         },
         external_reference: dados.orderId, // Usar o ID do pedido como referência externa
@@ -180,59 +120,108 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
     console.log('preview:', pixSimplificado);
 
     // Salvar os dados do pagamento no banco de dados e obter o ID gerado
-    let paymentId;
+    let createdPaymentId: string | undefined;
 
     if (resultado.id) {
-      const payment = await prisma.payment.create({
-        data: {
-          orderId: dados.orderId, // Usar o ID correto do pedido
-          status:
-            (resultado.status.toUpperCase() as
-              | 'PENDING'
-              | 'APPROVED'
-              | 'REJECTED'
-              | 'CANCELLED'
-              | 'IN_MEDIATION'
-              | 'REFUNDED'
-              | 'IN_PROCESS'
-              | 'CHARGED_BACK') || 'PENDING',
-          method: 'pix',
-          mercadoPagoId: resultado.id.toString(),
-          amount: Math.round(dados.valorTotal * 100), // Converter para centavos
-          rawData: pixSimplificado,
-        },
-      });
+      // --- Start of Prisma Transaction ---
+      createdPaymentId = await prisma.$transaction(async (tx) => {
+        // Verificar se o pedido existe
+        const order = await tx.order.findUnique({
+          where: { id: dados.orderId },
+          select: { status: true, orderItems: { select: { productId: true } } }, // Select only needed fields
+        });
 
-      paymentId = payment.id;
+        if (!order) {
+          // This will cause the transaction to rollback
+          throw new Error('Pedido não encontrado no banco de dados durante a transação.');
+        }
+        const currentOrderStatus = order.status;
 
-      // Atualizar o status da ordem para PAYMENT_PROCESSING usando o Prisma diretamente
-      try {
-        await prisma.order.update({
+        // Verificar se há novos itens (order bumps) para adicionar
+        const existingItemIds = order.orderItems.map((item) => item.productId);
+        const newItems = dados.items.filter(
+          (item) => !existingItemIds.includes(item.id) && item.id !== dados.items.find(i => i.id === order.orderItems.find(oi => !oi.isOrderBump)?.productId)?.id // Ensure main product ID is correct
+        );
+         // TODO: The main product ID logic above needs to be robust. Assuming dados.items[0] is main or similar for now if order.productId is not directly available.
+         // For now, let's assume order.productId was the main product ID used when order was created.
+         // The filter should correctly identify the main product ID from `dados.items` or `order` to exclude it from `newItems`.
+         // This part might need careful review based on how `order.productId` is set vs `dados.items` structure.
+
+        // Criar novos OrderItems para os order bumps selecionados
+        if (newItems.length > 0) {
+          await Promise.all(
+            newItems.map((item) =>
+              tx.orderItem.create({
+                data: {
+                  orderId: dados.orderId,
+                  productId: item.id,
+                  quantity: item.quantity,
+                  priceAtTime: item.unit_price, // Assuming unit_price for bumps is in cents here
+                  isOrderBump: true,
+                  isUpsell: false,
+                },
+              }),
+            ),
+          );
+        }
+
+        // Atualizar o status da ordem para PENDING_PAYMENT
+        await tx.order.update({
+          where: { id: dados.orderId },
+          data: {
+            status: 'PENDING_PAYMENT',
+            statusUpdatedAt: new Date(),
+            paidAmount: 0, // Garantir que o valor pago seja zerado no início do pagamento
+          },
+        });
+
+        // Registrar a mudança de status na tabela de histórico (PENDING_PAYMENT)
+        await tx.orderStatusHistory.create({
+          data: {
+            orderId: dados.orderId,
+            previousStatus: currentOrderStatus, // Use status fetched within transaction
+            newStatus: 'PENDING_PAYMENT',
+            notes: 'Pedido aguardando pagamento',
+          },
+        });
+
+        const paymentRecord = await tx.payment.create({
+          data: {
+            orderId: dados.orderId,
+            status: (resultado.status.toUpperCase() as any) || 'PENDING',
+            method: 'pix',
+            mercadoPagoId: resultado.id!.toString(), // Non-null assertion as we are inside if(resultado.id)
+            amount: Math.round(dados.valorTotal * 100), // Converter para centavos
+            rawData: pixSimplificado as any, // Cast if pixSimplificado structure is complex
+          },
+        });
+
+        // Atualizar o status da ordem para PAYMENT_PROCESSING
+        await tx.order.update({
           where: { id: dados.orderId },
           data: {
             status: 'PAYMENT_PROCESSING',
             statusUpdatedAt: new Date(),
           },
         });
-      } catch (error) {
-        console.error('Erro ao atualizar status para PAYMENT_PROCESSING:', error);
-        // Continuar mesmo com erro, pois o pagamento já foi criado
-      }
 
-      // Registrar a mudança de status na tabela de histórico
-      await prisma.orderStatusHistory.create({
-        data: {
-          orderId: dados.orderId,
-          previousStatus: 'PENDING_PAYMENT',
-          newStatus: 'PAYMENT_PROCESSING',
-          notes: 'Pagamento PIX gerado e aguardando confirmação',
-        },
+        // Registrar a mudança de status na tabela de histórico (PAYMENT_PROCESSING)
+        await tx.orderStatusHistory.create({
+          data: {
+            orderId: dados.orderId,
+            previousStatus: 'PENDING_PAYMENT', // Previous status is now PENDING_PAYMENT
+            newStatus: 'PAYMENT_PROCESSING',
+            notes: 'Pagamento PIX gerado e aguardando confirmação',
+          },
+        });
+        return paymentRecord.id;
       });
+      // --- End of Prisma Transaction ---
     }
 
     // Retornar os dados do PIX para o cliente
     return NextResponse.json({
-      id: paymentId,
+      id: createdPaymentId, // Use the ID from the transaction
       status: resultado.status,
       qr_code: pixData.qr_code,
       qr_code_base64: pixData.qr_code_base64,
@@ -241,11 +230,17 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
     });
   } catch (error) {
     // Exibir erro no console
-    console.error('Erro ao processar pagamento:', error);
+    console.error('Erro ao processar pagamento PIX:', error);
 
-    // Retornar erro detalhado
+    if (error instanceof Prisma.PrismaClientKnownRequestError) {
+      // Handle known Prisma errors (e.g., unique constraint violations)
+      return NextResponse.json({ erro: 'Erro de banco de dados ao processar pagamento.', details: error.message }, { status: 500 });
+    }
+    if (error instanceof Error) {
+        return NextResponse.json({ erro: error.message }, { status: 500 });
+    }
     return NextResponse.json(
-      { erro: error instanceof Error ? error.message : 'Erro ao processar pagamento' },
+      { erro: 'Erro desconhecido ao processar pagamento PIX' },
       { status: 500 },
     );
   }

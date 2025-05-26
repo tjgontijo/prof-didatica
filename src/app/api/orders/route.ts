@@ -38,14 +38,10 @@ export async function GET(request: NextRequest) {
   const pageSize = parseInt(searchParams.get('pageSize') || '20', 10);
   const email = searchParams.get('email') || undefined;
 
-  const where = email
-    ? {
-        customer: {
-          email: email,
-        },
-      }
-    : {};
-
+  const baseWhere: Prisma.OrderWhereInput = { deletedAt: null };
+  const emailFilter = email ? { customer: { email: email } } : {};
+  const where = { ...baseWhere, ...emailFilter };
+  
   const [orders, total] = await Promise.all([
     prisma.order.findMany({
       where,
@@ -71,15 +67,23 @@ export async function DELETE(request: NextRequest) {
     );
   }
   try {
-    // Soft delete: atualizar um campo deletedAt (se existir)
-    // Caso não exista, faz hard delete
-    const deleted = await prisma.order.delete({ where: { id } });
-    return NextResponse.json({ success: true, deleted });
+    const order = await prisma.order.update({
+      where: { id },
+      data: { deletedAt: new Date() },
+    });
+    return NextResponse.json({ success: true, order });
   } catch (error) {
+    if (error instanceof Prisma.PrismaClientKnownRequestError) {
+      if (error.code === 'P2025') { // Record to update not found
+        return NextResponse.json({ success: false, error: 'Pedido não encontrado.' }, { status: 404 });
+      }
+      // Handle other Prisma errors
+      return NextResponse.json({ success: false, error: 'Erro de banco de dados ao deletar pedido.', details: error.message }, { status: 500 });
+    }
     if (error instanceof Error) {
       return NextResponse.json({ success: false, error: error.message }, { status: 400 });
     }
-    return NextResponse.json({ success: false, error: 'Erro inesperado.' }, { status: 500 });
+    return NextResponse.json({ success: false, error: 'Erro inesperado ao deletar pedido.' }, { status: 500 });
   }
 }
 
@@ -88,83 +92,111 @@ export async function POST(request: NextRequest) {
     const body = await request.json();
     const data = orderSchema.parse(body);
 
-    // Primeiro verifica se existe cliente com o mesmo telefone (prioridade) ou email
-    let customer = await prisma.customer.findFirst({
-      where: {
-        OR: [{ phone: data.customerPhone }, { email: data.customerEmail }],
-      },
+    // Fetch the main product to get its current price
+    const mainProduct = await prisma.product.findUnique({
+      where: { id: data.productId, isActive: true, deletedAt: null }, // Assuming deletedAt for soft deletes
     });
 
-    // Se existir, atualiza os dados
-    if (customer) {
-      customer = await prisma.customer.update({
-        where: { id: customer.id },
-        data: {
-          name: data.customerName,
-          email: data.customerEmail,
-          phone: data.customerPhone,
-        },
-      });
-    } else {
-      // Se não existir, cria um novo
-      customer = await prisma.customer.create({
-        data: {
-          name: data.customerName,
-          email: data.customerEmail,
-          phone: data.customerPhone,
-        },
-      });
+    if (!mainProduct) {
+      return NextResponse.json(
+        { success: false, error: 'Main product not found, is inactive, or has been deleted.' },
+        { status: 404 },
+      );
     }
+    const mainProductPriceAtTime = mainProduct.price; // This is in cents
 
-    // Criação do pedido principal
-    const order = await prisma.order.create({
-      data: {
-        productId: data.productId,
-        checkoutId: data.checkoutId,
-        customerId: customer.id,
-        paidAmount: 0, // Inicialmente 0, só será preenchido após pagamento
-        orderItems: {
-          create: [
-            {
-              productId: data.productId,
-              quantity: data.quantity,
-              priceAtTime: 0, // Preencher depois conforme regra de preço
-              isOrderBump: false,
-            },
-            ...(data.orderBumps?.map((bump) => ({
-              productId: bump.productId,
-              quantity: bump.quantity,
-              priceAtTime: 0, // Preencher depois conforme regra de preço
-              isOrderBump: true,
-            })) || []),
-          ],
+    const orderResult = await prisma.$transaction(async (tx) => {
+      // Primeiro verifica se existe cliente com o mesmo telefone (prioridade) ou email
+      let customer = await tx.customer.findFirst({
+        where: {
+          OR: [{ phone: data.customerPhone }, { email: data.customerEmail }],
         },
-        statusHistory: {
-          create: {
-            previousStatus: null,
-            newStatus: OrderStatus.DRAFT,
-            notes: 'Pedido criado',
+      });
+
+      // Se existir, atualiza os dados
+      if (customer) {
+        customer = await tx.customer.update({
+          where: { id: customer.id },
+          data: {
+            name: data.customerName,
+            email: data.customerEmail,
+            phone: data.customerPhone,
+          },
+        });
+      } else {
+        // Se não existir, cria um novo
+        customer = await tx.customer.create({
+          data: {
+            name: data.customerName,
+            email: data.customerEmail,
+            phone: data.customerPhone,
+          },
+        });
+      }
+
+      // Criação do pedido principal
+      const order = await tx.order.create({
+        data: {
+          productId: data.productId,
+          checkoutId: data.checkoutId,
+          customerId: customer.id,
+          paidAmount: 0, // Inicialmente 0, só será preenchido após pagamento
+          orderItems: {
+            create: [
+              {
+                productId: data.productId,
+                quantity: data.quantity,
+                priceAtTime: mainProductPriceAtTime, // Use fetched price in cents
+                isOrderBump: false,
+              },
+              // Order bumps are priced later in the /api/payment/pix route as per current flow
+              ...(data.orderBumps?.map((bump) => ({
+                productId: bump.productId,
+                quantity: bump.quantity,
+                priceAtTime: 0, // Remains 0 here, will be set during PIX creation if they are added there
+                isOrderBump: true,
+              })) || []),
+            ],
+          },
+          statusHistory: {
+            create: {
+              previousStatus: null,
+              newStatus: OrderStatus.DRAFT,
+              notes: 'Pedido criado',
+            },
           },
         },
-      },
-      include: {
-        orderItems: true,
-        statusHistory: true,
-        customer: true,
-      },
+        include: {
+          orderItems: true,
+          statusHistory: true,
+          customer: true,
+        },
+      });
+      return order;
     });
 
-    return NextResponse.json({ success: true, orderId: order.id, order });
+    return NextResponse.json({ success: true, orderId: orderResult.id, order: orderResult });
   } catch (error) {
     if (error instanceof z.ZodError) {
       return NextResponse.json({ success: false, error: error.errors }, { status: 422 });
     }
+    // Log the error for server-side inspection
+    console.error('Error in POST /api/orders:', error);
+
+    // Check if it's a Prisma-specific error for more detailed handling if needed
+    if (error instanceof Prisma.PrismaClientKnownRequestError) {
+      // Example: P2002 is unique constraint violation
+      if (error.code === 'P2002') {
+        return NextResponse.json({ success: false, error: 'A record with this identifier already exists.' }, { status: 409 });
+      }
+      return NextResponse.json({ success: false, error: 'Database error occurred.', details: error.message }, { status: 500 });
+    }
+    
     if (error instanceof Error) {
-      console.error(error);
       return NextResponse.json({ success: false, error: error.message }, { status: 400 });
     }
-    console.error('Erro desconhecido:', error);
-    return NextResponse.json({ success: false, error: 'Erro inesperado.' }, { status: 500 });
+    
+    return NextResponse.json({ success: false, error: 'Erro inesperado ao criar pedido.' }, { status: 500 });
   }
 }
 
@@ -182,51 +214,69 @@ export async function PATCH(request: NextRequest) {
   }
   try {
     const body = await request.json();
-    const data = patchOrderSchema.parse({ id, ...body });
-    const existing = await prisma.order.findUnique({ where: { id } });
-    if (!existing) {
-      return NextResponse.json(
-        { success: false, error: 'Pedido não encontrado.' },
-        { status: 404 },
-      );
-    }
-    const updateData: Prisma.OrderUpdateInput = {};
-    if (data.status) {
-      updateData.status = data.status;
-      updateData.statusUpdatedAt = new Date();
-    }
-    const updatedOrder = await prisma.order.update({ where: { id }, data: updateData });
+    const dataToParse = { id, ...body }; // Combine id from query with body for parsing
+    const data = patchOrderSchema.parse(dataToParse);
+    
+    const updatedOrderResult = await prisma.$transaction(async (tx) => {
+      const existing = await tx.order.findUnique({ where: { id } });
+      if (!existing) {
+        // This will cause the transaction to rollback if the order is not found.
+        // To handle this as a client error (404) rather than a server error (500 from transaction failure),
+        // this check could be done *before* starting the transaction.
+        // However, if finding the order is part of the atomic operation, keep it here.
+        // For this case, moving it out might be better to return a 404.
+        // Let's assume for now it's part of the atomic read-then-write.
+        throw new Error('Pedido não encontrado.'); // This will be caught by the generic error handler
+      }
 
-    // Atualiza os dados do cliente se necessário
-    if (data.customerName || data.customerEmail || data.customerPhone) {
-      await prisma.customer.update({
-        where: { id: existing.customerId },
-        data: {
-          name: data.customerName,
-          email: data.customerEmail,
-          phone: data.customerPhone,
-        },
-      });
-    }
-    if (data.status && existing.status !== data.status) {
-      await prisma.orderStatusHistory.create({
-        data: {
-          orderId: id,
-          previousStatus: existing.status,
-          newStatus: data.status,
-          notes: `Status alterado para ${data.status}`,
-        },
-      });
-    }
-    return NextResponse.json({ success: true, order: updatedOrder });
+      const updateData: Prisma.OrderUpdateInput = {};
+      if (data.status) {
+        updateData.status = data.status;
+        updateData.statusUpdatedAt = new Date();
+      }
+      
+      const updatedOrder = await tx.order.update({ where: { id }, data: updateData });
+
+      // Atualiza os dados do cliente se necessário
+      if (data.customerName || data.customerEmail || data.customerPhone) {
+        await tx.customer.update({
+          where: { id: existing.customerId }, // Use existing.customerId for safety
+          data: {
+            name: data.customerName,
+            email: data.customerEmail,
+            phone: data.customerPhone,
+          },
+        });
+      }
+      
+      if (data.status && existing.status !== data.status) {
+        await tx.orderStatusHistory.create({
+          data: {
+            orderId: id,
+            previousStatus: existing.status,
+            newStatus: data.status,
+            notes: `Status alterado para ${data.status}`,
+          },
+        });
+      }
+      return updatedOrder;
+    });
+
+    return NextResponse.json({ success: true, order: updatedOrderResult });
   } catch (error) {
     if (error instanceof z.ZodError) {
       return NextResponse.json({ success: false, error: error.errors }, { status: 422 });
     }
-    console.error(error);
-    return NextResponse.json(
-      { success: false, error: error instanceof Error ? error.message : 'Erro inesperado' },
-      { status: 400 },
-    );
+    console.error('Error in PATCH /api/orders:', error);
+    if (error instanceof Prisma.PrismaClientKnownRequestError) {
+        return NextResponse.json({ success: false, error: 'Database error during update.', details: error.message }, { status: 500 });
+    }
+    if (error instanceof Error && error.message === 'Pedido não encontrado.') {
+        return NextResponse.json({ success: false, error: 'Pedido não encontrado.' }, { status: 404 });
+    }
+    if (error instanceof Error) {
+      return NextResponse.json({ success: false, error: error.message }, { status: 400 });
+    }
+    return NextResponse.json({ success: false, error: 'Erro inesperado ao atualizar pedido.' }, { status: 500 });
   }
 }
