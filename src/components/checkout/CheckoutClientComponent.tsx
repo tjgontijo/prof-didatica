@@ -284,7 +284,7 @@ export default function CheckoutClientComponent({
     };
 
     sendMetaEvent();
-  }, []); // Array vazio para executar apenas uma vez na montagem do componente
+  }, [product.id, product.name, product.price]); // Executa quando o produto mudar
 
   // Atualiza os order bumps selecionados quando mudar a seleção
   useEffect(() => {

@@ -56,7 +56,7 @@ type Offer = {
 };
 
 // ID do checkout que queremos pré-carregar
-const CHECKOUT_ID = '6140324e-9e14-4980-96b3-42cacefaad73';
+const CHECKOUT_ID = 'd791ea84-89b4-4499-ab25-26d2f7855f9d';
 
 const offerData: Offer = {
   originalPrice: 17,

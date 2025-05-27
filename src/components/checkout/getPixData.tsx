@@ -54,6 +54,7 @@ export interface PixData {
  * @returns Dados do PIX ou null se não encontrado
  */
 export async function getPixData(id: string): Promise<PixData | null> {
+  
   const prisma = new PrismaClient();
 
   try {
@@ -72,8 +73,11 @@ export async function getPixData(id: string): Promise<PixData | null> {
     });
 
     if (!payment) {
+      
       return null;
     }
+
+    
 
     // Definir interfaces para os dados do PIX
     interface PixDataSimplificado {
@@ -100,10 +104,21 @@ export async function getPixData(id: string): Promise<PixData | null> {
 
     // Extrair os dados do PIX do campo rawData
     let rawData: PixDataSimplificado | PixDataCompleto;
-    try {
-      rawData = JSON.parse(payment.rawData as string);
-    } catch {
-      return null;
+    
+    // Verifica se rawData já é um objeto
+    if (typeof payment.rawData === 'object' && payment.rawData !== null) {
+      
+      rawData = payment.rawData as PixDataSimplificado | PixDataCompleto;
+    } else {
+      // Tenta fazer parse se for string
+      try {
+        
+        rawData = JSON.parse(payment.rawData as string);
+        
+      } catch (error) {
+        console.error('[getPixData] Erro ao fazer parse do rawData:', error);
+        return null;
+      }
     }
 
     // Verificar se os dados do PIX estão na raiz do objeto ou aninhados
@@ -146,8 +161,27 @@ export async function getPixData(id: string): Promise<PixData | null> {
       ticket_url: ticketUrl,
       expiration_date: expirationDate,
       amount: payment.amount / 100, // Convertendo de centavos para reais
-      order: payment.order, // Incluindo os dados do pedido completo
+      order: payment.order ? {
+        id: payment.order.id,
+        status: payment.order.status,
+        customer: payment.order.customer ? {
+          id: payment.order.customer.id,
+          name: payment.order.customer.name,
+          email: payment.order.customer.email,
+          phone: payment.order.customer.phone
+        } : undefined,
+        orderItems: payment.order.orderItems?.map(item => ({
+          id: item.id,
+          productId: item.productId,
+          quantity: item.quantity,
+          priceAtTime: item.priceAtTime,
+          isOrderBump: item.isOrderBump,
+          isUpsell: item.isUpsell
+        }))
+      } : undefined
     };
+
+    
 
     return pixData;
   } catch {
