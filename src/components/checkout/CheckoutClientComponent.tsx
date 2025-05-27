@@ -201,13 +201,13 @@ export default function CheckoutClientComponent({
   useEffect(() => {
     // Verifica se está em ambiente de produção
     const isProduction = process.env.NODE_ENV === 'production';
-    
+
     const sendMetaEvent = () => {
       // Se não estiver em produção, não executa o código
-      if (!isProduction) {        
+      if (!isProduction) {
         return;
       }
-      
+
       if (typeof window.fbq !== 'function') {
         console.warn('Meta Pixel ainda não carregado. Tentando novamente em 2 segundos...');
         setTimeout(sendMetaEvent, 2000);
