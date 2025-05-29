@@ -1,32 +1,40 @@
-// src/app/api/events/route.ts
+// pages/api/payment/sse.ts
 import { NextRequest } from 'next/server'
-import { addClient }   from '@/lib/sse'
+import { z } from 'zod'
+import { registerSSEClient } from '@/lib/sse'
+
+export const dynamic = 'force-dynamic'
+
+const PaymentIdSchema = z.string().uuid()
 
 export async function GET(req: NextRequest) {
-  const url       = new URL(req.url)
-  const paymentId = url.searchParams.get('paymentId')
-  if (!paymentId) {
-    return new Response('Missing paymentId', { status: 400 })
+  // 1. Extrair e validar paymentId da query
+  const url = new URL(req.url)
+  const rawId = url.searchParams.get('paymentId')
+  const parsed = PaymentIdSchema.safeParse(rawId)
+  if (!parsed.success) {
+    return new Response(
+      JSON.stringify({ error: 'paymentId inválido' }),
+      { status: 400, headers: { 'Content-Type': 'application/json' } }
+    )
   }
+  const paymentId = parsed.data
 
-  const lastEventId = req.headers.get('Last-Event-ID') ?? undefined
+  // 2. Criar stream de resposta SSE
+  const { readable, writable } = new TransformStream()
+  const writer = writable.getWriter()
 
-  const stream = new ReadableStream<Uint8Array>({
-    start(controller) {
-      // registra o cliente SSE e dispara o ping automaticamente
-      addClient(paymentId, controller, req.signal, lastEventId)
-    },
-    cancel() {
-      // abort do signal já cuida da limpeza
-    }
-  })
+  // 3. Registrar cliente no nosso gerenciador de SSE
+  registerSSEClient(paymentId, writer)
 
-  return new Response(stream, {
+  // 4. Retornar a Response streaming
+  return new Response(readable, {
+    status: 200,
     headers: {
-      'Content-Type':      'text/event-stream',
-      'Cache-Control':     'no-cache',
-      Connection:          'keep-alive',
-      'X-Accel-Buffering': 'no'
-    }
+      'Content-Type': 'text/event-stream',
+      'Cache-Control': 'no-cache, no-transform',
+      Connection: 'keep-alive',
+    },
   })
 }
+

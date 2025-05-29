@@ -368,7 +368,7 @@ export default function CheckoutClientComponent({
       const dadosResposta = await resposta.json();
 
       // Redirecionar para a página de agradecimento usando o ID do Payment
-      router.push(`/thanks/${dadosResposta.id}`);
+      router.push(`/payment/${dadosResposta.id}`);
 
       // Não precisamos mais salvar o estado, pois o usuário será redirecionado
     } catch (error) {

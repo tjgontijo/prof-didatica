@@ -1,134 +1,116 @@
 // src/lib/sse.ts
-import { randomUUID } from 'crypto';
+import { z } from 'zod'
 
-interface SSEClient {
-  id: string;
-  paymentId: string;
-  controller: ReadableStreamDefaultController<Uint8Array>;
-  lastActivity: number;
-  lastEventId: string;
+/**
+ * Schemas Zod para validar IDs e status
+ */
+const PaymentIdSchema = z.string().uuid()
+export type PaymentId = z.infer<typeof PaymentIdSchema>
+
+const PaymentStatusSchema = z.enum([
+  'pending',
+  'approved',
+  'rejected',
+  'cancelled',
+])
+export type PaymentStatus = z.infer<typeof PaymentStatusSchema>
+
+/**
+ * Cada conexão SSE agora é um writer + timer de keep-alive
+ */
+interface SSEConnection {
+  paymentId: PaymentId
+  writer: WritableStreamDefaultWriter<Uint8Array>
+  keepAliveTimer: ReturnType<typeof setInterval>
 }
 
-const clients = new Map<string, SSEClient>();
-const PING_INTERVAL = 45_000;      // 45 segundos
-const RETRY_DELAY   = 2_000;       // 2 segundos
-let pingTimerId: NodeJS.Timeout | null = null;
+/**
+ * Mapa em memória de paymentId → conexões SSE
+ */
+const connections = new Map<PaymentId, Set<SSEConnection>>()
 
-// envia ping e limpa inativos
-function initializePing() {
-  if (pingTimerId) return;
-  pingTimerId = setInterval(() => {
-    const now     = Date.now();
-    const encoder = new TextEncoder();
+/**
+ * Registra uma nova conexão SSE para um dado paymentId
+ */
+export function registerSSEClient(
+  rawPaymentId: unknown,
+  writer: WritableStreamDefaultWriter<Uint8Array>
+) {
+  const paymentId = PaymentIdSchema.parse(rawPaymentId)
 
-    if (clients.size === 0 && pingTimerId) {
-      clearInterval(pingTimerId);
-      pingTimerId = null;
-      return;
-    }
+  // Headers e formatação já foram tratados no route; aqui só guardamos o writer
+  const encoder = new TextEncoder()
 
-    for (const client of clients.values()) {
-      try {
-        // ping se nada desde metade do intervalo
-        if (now - client.lastActivity > PING_INTERVAL / 2) {
-          const chunk = encoder.encode(`id: ${client.lastEventId}\n:ping\n\n`);
-          client.controller.enqueue(chunk);
-        }
-        // remove se sem atividade por 3x o intervalo
-        if (now - client.lastActivity > PING_INTERVAL * 3) {
-          console.log(`SSE desconectado (inativo): ${client.id}`);
-          clients.delete(client.id);
-          client.controller.close();
-        }
-      } catch (err) {
-        console.error('Erro no ping:', err);
-        clients.delete(client.id);
-        client.controller.close();
-      }
-    }
-  }, PING_INTERVAL);
-}
+  // Monta o objeto de conexão
+  const keepAliveTimer = globalThis.setInterval(() => {
+    // ping para manter a conexão viva
+    writer.write(encoder.encode(`: ping\n\n`))
+  }, 30_000)
 
-export function addClient(
-  paymentId: string,
-  controller: ReadableStreamDefaultController<Uint8Array>,
-  signal: AbortSignal,
-  lastEventIdHeader?: string
-): string {
-  const clientId = randomUUID();
-  const now      = Date.now();
-  const lastId   = lastEventIdHeader || now.toString();
-
-  // limpa quando o cliente dispara abort
-  const onAbort = () => {
-    console.log(`SSE desconectado (abort): ${clientId}`);
-    clients.delete(clientId);
-    controller.close();
-    signal.removeEventListener('abort', onAbort);
-  };
-  signal.addEventListener('abort', onAbort, { once: true });
-
-  // informa delay de retry
-  controller.enqueue(new TextEncoder().encode(`retry: ${RETRY_DELAY}\n\n`));
-
-  clients.set(clientId, {
-    id: clientId,
-    paymentId,
-    controller,
-    lastActivity: now,
-    lastEventId:  lastId,
-  });
-  console.log(`SSE conectado: ${clientId} (paymentId=${paymentId})`);
-
-  initializePing();
-  return clientId;
-}
-
-export function sendToClient(
-  paymentId: string,
-  data: { type: string; [k: string]: unknown }
-): { sent: number; total: number } {
-  const now     = Date.now();
-  const encoder = new TextEncoder();
-  let sent = 0, total = 0;
-
-  // conta quantos clientes existem
-  for (const c of clients.values()) {
-    if (c.paymentId === paymentId) total++;
+  const conn: SSEConnection = { paymentId, writer, keepAliveTimer }
+  if (!connections.has(paymentId)) {
+    connections.set(paymentId, new Set())
   }
-  if (total === 0) {
-    console.log(`Nenhum cliente SSE para paymentId=${paymentId}`);
-    return { sent: 0, total: 0 };
-  }
+  connections.get(paymentId)!.add(conn)
 
-  for (const client of clients.values()) {
-    if (client.paymentId !== paymentId) continue;
-    try {
-      const eventId = randomUUID();
-      client.lastEventId = eventId;
-      const msg = `id: ${eventId}\ndata: ${JSON.stringify(data)}\n\n`;
-      client.controller.enqueue(encoder.encode(msg));
-      client.lastActivity = now;
-      sent++;
-    } catch (err) {
-      console.error('Erro ao enviar SSE:', err);
-      clients.delete(client.id);
+  // Remoção automática quando o client fecha a stream
+  writer.closed
+    .catch(() => {
+      /* swallow error */
+    })
+    .finally(() => {
+      clearInterval(keepAliveTimer)
+      removeClient(paymentId, conn)
+    })
+}
+
+/**
+ * Envia um evento de status para todos os clients daquele paymentId
+ */
+export function broadcastSSE(
+  rawPaymentId: unknown,
+  rawStatus: unknown
+) {
+  const paymentId = PaymentIdSchema.parse(rawPaymentId)
+  const status = PaymentStatusSchema.parse(rawStatus)
+  const conns = connections.get(paymentId)
+  if (!conns) return
+
+  const encoder = new TextEncoder()
+  const payload = JSON.stringify({ status })
+  const message = encoder.encode(
+    `event: status\n` +
+    `data: ${payload}\n\n`
+  )
+
+  for (const conn of conns) {
+    conn.writer.write(message).catch(() => {
+      // falha ao escrever, remove a conexão
+      clearInterval(conn.keepAliveTimer)
+      removeClient(paymentId, conn)
+    })
+
+    // se for estado final, fecha o writer
+    if (status !== 'pending') {
+      conn.writer.close().catch(() => {})
+      clearInterval(conn.keepAliveTimer)
+      conns.delete(conn)
     }
   }
 
-  console.log(`Enviado para ${sent}/${total} clientes (paymentId=${paymentId})`);
-  return { sent, total };
+  if (conns.size === 0) {
+    connections.delete(paymentId)
+  }
 }
 
-export function closeAllConnections() {
-  console.log(`Fechando ${clients.size} conexões SSE`);
-  if (pingTimerId) {
-    clearInterval(pingTimerId);
-    pingTimerId = null;
+/**
+ * Remove uma conexão específica
+ */
+function removeClient(paymentId: PaymentId, conn: SSEConnection) {
+  const conns = connections.get(paymentId)
+  if (!conns) return
+  conns.delete(conn)
+  if (conns.size === 0) {
+    connections.delete(paymentId)
   }
-  for (const c of clients.values()) {
-    try { c.controller.close(); }
-    catch (err) { console.error('Erro ao fechar SSE:', err); }
-  }
-  clients.clear();
 }

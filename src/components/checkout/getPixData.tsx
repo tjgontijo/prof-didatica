@@ -1,192 +1,192 @@
-import { PrismaClient } from '@prisma/client';
+// src/components/checkout/getPixData.tsx
+
+import { PrismaClient } from '@prisma/client'
+import { z } from 'zod'
 
 /**
- * Interface para o cliente
+ * Zod Schemas
+ */
+const PaymentIdSchema = z.string().uuid()
+
+const PixSimplificadoSchema = z
+  .object({
+    qr_code: z.string(),
+    qr_code_base64: z.string(),
+    ticket_url: z.string().optional(),
+    expiration_date: z.string().optional(),
+  })
+  .passthrough()
+
+const PixCompletoSchema = z
+  .object({
+    point_of_interaction: z
+      .object({
+        transaction_data: z
+          .object({
+            qr_code: z.string().optional(),
+            qr_code_base64: z.string().optional(),
+          })
+          .passthrough(),
+      })
+      .optional(),
+    transaction_details: z
+      .object({
+        external_resource_url: z.string().optional(),
+      })
+      .optional(),
+    date_of_expiration: z.string().optional(),
+  })
+  .passthrough()
+
+/**
+ * Interfaces de domínio
  */
 export interface Customer {
-  id: string;
-  name: string;
-  email: string;
-  phone: string;
+  id: string
+  name: string
+  email: string
+  phone: string
 }
 
-/**
- * Interface para os itens do pedido
- */
 export interface OrderItem {
-  id: string;
-  productId: string;
-  productTitle?: string;
-  quantity: number;
-  priceAtTime: number;
-  isOrderBump?: boolean;
-  isUpsell?: boolean;
-  imageUrl?: string;
+  id: string
+  productId: string
+  quantity: number
+  priceAtTime: number
+  isOrderBump: boolean
+  isUpsell: boolean
 }
 
-/**
- * Interface para o pedido
- */
 export interface Order {
-  id: string;
-  status: string;
-  customer?: Customer;
-  orderItems?: OrderItem[];
+  id: string
+  status: string
+  customer?: Customer
+  orderItems?: OrderItem[]
 }
 
-/**
- * Interface para os dados do PIX
- */
 export interface PixData {
-  id: string;
-  status: string;
-  qr_code: string;
-  qr_code_base64: string;
-  ticket_url: string;
-  expiration_date: string;
-  amount?: number;
-  order?: Order;
+  id: string
+  status: string
+  qr_code: string
+  qr_code_base64: string
+  ticket_url: string
+  expiration_date: string
+  amount?: number
+  order?: Order
+
+  customerName: string
+  orderNumber: string
 }
 
 /**
- * Função para buscar dados do PIX pelo ID do Payment
- * @param id ID do Payment
- * @returns Dados do PIX ou null se não encontrado
+ * Singleton do Prisma para não abrir várias conexões em dev
  */
-export async function getPixData(id: string): Promise<PixData | null> {
-  
-  const prisma = new PrismaClient();
+declare global {
+  // eslint-disable-next-line no-var
+  var prisma: PrismaClient | undefined
+}
+const prisma = globalThis.prisma ?? new PrismaClient()
+if (process.env.NODE_ENV !== 'production') {
+  globalThis.prisma = prisma
+}
+
+/**
+ * Busca e normaliza os dados do PIX para a UI
+ */
+export async function getPixData(rawId: unknown): Promise<PixData | null> {
+  // 1. Validar e parsear o ID do pagamento
+  const parsedId = PaymentIdSchema.safeParse(rawId)
+  if (!parsedId.success) {
+    console.error('[getPixData] paymentId inválido:', rawId)
+    return null
+  }
+  const id = parsedId.data
 
   try {
-    // Buscar pelo ID do payment
-    const payment = await prisma.payment.findUnique({
+    // 2. Buscar no banco
+    const payment = await prisma.payment.findFirst({
       where: { id, deletedAt: null },
       include: {
         order: {
           include: {
-            checkout: true,
             orderItems: true,
             customer: true,
           },
         },
       },
-    });
+    })
+    if (!payment || !payment.rawData) return null
 
-    if (!payment) {
-      
-      return null;
-    }
+    // 3. Extrair rawData e validar com Zod
+    const raw = typeof payment.rawData === 'object'
+      ? payment.rawData
+      : (() => {
+          try { return JSON.parse(payment.rawData as string) }
+          catch (err) { console.error('[getPixData] JSON.parse falhou', err); return null }
+        })()
+    if (!raw) return null
 
-    
+    const simp = PixSimplificadoSchema.safeParse(raw)
+    const comp = PixCompletoSchema.safeParse(raw)
+    let qrCode = '', qrCodeBase64 = '', ticketUrl = '', expirationDate = ''
 
-    // Definir interfaces para os dados do PIX
-    interface PixDataSimplificado {
-      id: string | number;
-      status: string;
-      qr_code: string;
-      qr_code_base64: string;
-      ticket_url?: string;
-      expiration_date?: string;
-    }
-
-    interface PixDataCompleto {
-      point_of_interaction?: {
-        transaction_data?: {
-          qr_code?: string;
-          qr_code_base64?: string;
-        };
-      };
-      transaction_details?: {
-        external_resource_url?: string;
-      };
-      date_of_expiration?: string;
-    }
-
-    // Extrair os dados do PIX do campo rawData
-    let rawData: PixDataSimplificado | PixDataCompleto;
-    
-    // Verifica se rawData já é um objeto
-    if (typeof payment.rawData === 'object' && payment.rawData !== null) {
-      
-      rawData = payment.rawData as PixDataSimplificado | PixDataCompleto;
+    if (simp.success) {
+      qrCode = simp.data.qr_code
+      qrCodeBase64 = simp.data.qr_code_base64
+      ticketUrl = simp.data.ticket_url ?? ''
+      expirationDate = simp.data.expiration_date ?? ''
+    } else if (comp.success && comp.data.point_of_interaction?.transaction_data) {
+      qrCode = comp.data.point_of_interaction.transaction_data.qr_code ?? ''
+      qrCodeBase64 = comp.data.point_of_interaction.transaction_data.qr_code_base64 ?? ''
+      ticketUrl = comp.data.transaction_details?.external_resource_url ?? ''
+      expirationDate = comp.data.date_of_expiration ?? ''
     } else {
-      // Tenta fazer parse se for string
-      try {
-        
-        rawData = JSON.parse(payment.rawData as string);
-        
-      } catch (error) {
-        console.error('[getPixData] Erro ao fazer parse do rawData:', error);
-        return null;
-      }
+      console.error('[getPixData] rawData não corresponde a nenhum schema Zod')
+      return null
     }
 
-    // Verificar se os dados do PIX estão na raiz do objeto ou aninhados
-    let qrCode = '';
-    let qrCodeBase64 = '';
-    let ticketUrl = '';
-    let expirationDate = '';
+    // 4. Campos extras para o fluxo
+    const customerName = payment.order?.customer?.name ?? 'Cliente'
+    const orderNumber = payment.order?.id ?? payment.id
 
-    // Verificar o formato dos dados
-    const isSimplificado = 'qr_code' in rawData && 'qr_code_base64' in rawData;
-    const isCompleto =
-      'point_of_interaction' in rawData && rawData.point_of_interaction?.transaction_data;
-
-    // Formato 1: Dados na raiz do objeto (formato simplificado)
-    if (isSimplificado) {
-      const pixSimples = rawData as PixDataSimplificado;
-      qrCode = pixSimples.qr_code;
-      qrCodeBase64 = pixSimples.qr_code_base64;
-      ticketUrl = pixSimples.ticket_url || '';
-      expirationDate = pixSimples.expiration_date || '';
-    }
-    // Formato 2: Dados aninhados (formato original do Mercado Pago)
-    else if (isCompleto) {
-      const pixCompleto = rawData as PixDataCompleto;
-      const transactionData = pixCompleto.point_of_interaction!.transaction_data!;
-      qrCode = transactionData.qr_code || '';
-      qrCodeBase64 = transactionData.qr_code_base64 || '';
-      ticketUrl = pixCompleto.transaction_details?.external_resource_url || '';
-      expirationDate = pixCompleto.date_of_expiration || '';
-    } else {
-      return null;
-    }
-
-    // Dados que serão enviados para o cliente
-    const pixData = {
+    // 5. Montar e retornar PixData
+    const pixData: PixData = {
       id: payment.id,
       status: payment.status,
       qr_code: qrCode,
       qr_code_base64: qrCodeBase64,
       ticket_url: ticketUrl,
       expiration_date: expirationDate,
-      amount: payment.amount / 100, // Convertendo de centavos para reais
-      order: payment.order ? {
-        id: payment.order.id,
-        status: payment.order.status,
-        customer: payment.order.customer ? {
-          id: payment.order.customer.id,
-          name: payment.order.customer.name,
-          email: payment.order.customer.email,
-          phone: payment.order.customer.phone
-        } : undefined,
-        orderItems: payment.order.orderItems?.map(item => ({
-          id: item.id,
-          productId: item.productId,
-          quantity: item.quantity,
-          priceAtTime: item.priceAtTime,
-          isOrderBump: item.isOrderBump,
-          isUpsell: item.isUpsell
-        }))
-      } : undefined
-    };
+      amount: payment.amount / 100,
+      order: payment.order
+        ? {
+            id: payment.order.id,
+            status: payment.order.status,
+            customer: payment.order.customer
+              ? {
+                  id: payment.order.customer.id,
+                  name: payment.order.customer.name,
+                  email: payment.order.customer.email,
+                  phone: payment.order.customer.phone,
+                }
+              : undefined,
+            orderItems: payment.order.orderItems.map((it) => ({
+              id: it.id,
+              productId: it.productId,
+              quantity: it.quantity,
+              priceAtTime: it.priceAtTime,
+              isOrderBump: it.isOrderBump,
+              isUpsell: it.isUpsell,
+            })),
+          }
+        : undefined,
+      customerName,
+      orderNumber: String(orderNumber),
+    }
 
-    
-
-    return pixData;
-  } catch {
-    return null;
-  } finally {
-    await prisma.$disconnect();
+    return pixData
+  } catch (err) {
+    console.error('[getPixData] erro inesperado:', err)
+    return null
   }
 }

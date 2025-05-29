@@ -12,7 +12,6 @@ interface PaymentFlowProps {
   transactionId: string
   customerName: string
   orderNumber: string
-  customerPhone?: string
 }
 
 export default function PaymentFlow({
@@ -23,47 +22,59 @@ export default function PaymentFlow({
 }: PaymentFlowProps) {
   const { status, error } = usePaymentStatus(transactionId)
 
-  // Enquanto estiver pendente, mostra o QR Code
-  if (status === 'pending') {
+  const statusMessages: Record<'rejected' | 'cancelled', string> = {
+    rejected:
+      'O pagamento foi recusado. Por favor, tente novamente ou entre em contato com o suporte.',
+    cancelled:
+      'O pagamento foi cancelado. Se foi um engano, você pode tentar novamente.',
+  }
+
+  if (error) {
     return (
       <div className="min-h-screen bg-white font-sans text-gray-800">
         <main className="container mx-auto py-6 px-4 max-w-[600px]">
-          {error && (
-            <div className="mb-4 p-4 bg-red-50 text-red-700 rounded-lg">
-              {error}
-            </div>
-          )}
-          <PixDisplay pixData={pixData} />
+          <div className="p-6 bg-red-50 text-red-800 rounded-lg border border-red-200">
+            <p className="font-medium">{error}</p>
+            <p className="mt-2 text-sm">Código do pedido: {orderNumber}</p>
+          </div>
         </main>
       </div>
     )
   }
 
-  // Quando for aprovado, mostra tela de sucesso
   if (status === 'approved') {
     return (
-      <div className="min-h-screen bg-white font-sans text-gray-800">
-        <main className="container mx-auto py-6 px-4 max-w-[600px]">
-          <PaymentSuccess
-            orderNumber={orderNumber}
-            customerName={customerName}
-          />
-        </main>
-      </div>
+      <PaymentSuccess
+        orderNumber={orderNumber}
+        customerName={customerName}
+      />
     )
   }
 
-  // Caso seja rejeitado ou cancelado
-  const statusMessages = {
-    rejected: 'O pagamento foi recusado. Por favor, tente novamente ou entre em contato com o suporte.',
-    cancelled: 'O pagamento foi cancelado. Se foi um engano, você pode tentar novamente.'
+  if (status === 'pending') {
+    return <PixDisplay pixData={pixData} />
+  }
+
+  if (status === 'rejected' || status === 'cancelled') {
+    return (
+      <div className="min-h-screen bg-white font-sans text-gray-800">
+        <main className="container mx-auto py-6 px-4 max-w-[600px]">
+          <div className="p-6 bg-yellow-50 text-yellow-800 rounded-lg border border-yellow-200">
+            <p className="font-medium">{statusMessages[status]}</p>
+            <p className="mt-2 text-sm">Código do pedido: {orderNumber}</p>
+          </div>
+        </main>
+      </div>
+    )
   }
 
   return (
     <div className="min-h-screen bg-white font-sans text-gray-800">
       <main className="container mx-auto py-6 px-4 max-w-[600px]">
-        <div className="p-6 bg-yellow-50 text-yellow-800 rounded-lg border border-yellow-200">
-          <p className="font-medium">{statusMessages[status] || 'Ocorreu um erro no processamento do pagamento.'}</p>
+        <div className="p-6 bg-gray-50 text-gray-800 rounded-lg border border-gray-200">
+          <p className="font-medium">
+            Ocorreu um erro no processamento do pagamento.
+          </p>
           <p className="mt-2 text-sm">Código do pedido: {orderNumber}</p>
         </div>
       </main>

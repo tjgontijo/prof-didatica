@@ -1,102 +1,87 @@
-// src/hooks/usePaymentStatus.ts
+// usePaymentStatus.ts
 'use client'
 
-import { useEffect, useState } from 'react'
+import { useState, useEffect, useRef } from 'react'
+import { z } from 'zod'
 
-export type PaymentStatus = 'pending' | 'approved' | 'rejected' | 'cancelled'
+// ————— Zod Schema & Type —————
+const PaymentStatusSchema = z.enum([
+  'pending',
+  'approved',
+  'rejected',
+  'cancelled',
+])
+export type PaymentStatus = z.infer<typeof PaymentStatusSchema>
 
-interface SSEMessage {
-  type: string
-  status?: PaymentStatus
-  updatedAt?: string
-  // Adicione outros campos específicos que podem vir na mensagem
-  [key: string]: string | PaymentStatus | undefined
-}
-
-export function usePaymentStatus(paymentId: string): { 
-  status: PaymentStatus
-  error: string | null 
-  lastEventId?: string
-} {
+// ————— Hook Implementation —————
+export function usePaymentStatus(transactionId: string) {
   const [status, setStatus] = useState<PaymentStatus>('pending')
   const [error, setError] = useState<string | null>(null)
-  const [lastEventId, setLastEventId] = useState<string>('')
+  const retryCountRef = useRef(0)
+  const maxRetries = 5
 
   useEffect(() => {
-    if (!paymentId) {
-      console.error('No paymentId provided to usePaymentStatus')
+    if (!transactionId) {
+      setError('transactionId inválido')
       return
     }
 
-    let reconnectAttempts = 0
-    const maxReconnectAttempts = 5
-    let eventSource: EventSource | null = null
-    let reconnectTimeout: NodeJS.Timeout
+    let didFinish = false
+    let es: EventSource | null = null
 
     const connect = () => {
-      const url = `/api/payment/sse?paymentId=${encodeURIComponent(paymentId)}`
-      console.log(`Connecting to SSE: ${url}`)
-      eventSource = new EventSource(url)
+      // Abre conexão SSE
+      es = new EventSource(
+        `/api/payment/sse?paymentId=${encodeURIComponent(transactionId)}`
+      )
 
-      eventSource.onopen = () => {
-        console.log('SSE connection opened')
-        reconnectAttempts = 0
-      }
-
-      eventSource.onmessage = (event: MessageEvent) => {
+      // Listener para eventos de status
+      es.addEventListener('status', (e) => {
         try {
-          console.log('SSE message received:', event.data)
-          
-          if (event.data === ':ping') {
-            console.log('SSE ping received')
-            return
-          }
+          const payload = JSON.parse(e.data)
+          const newStatus = PaymentStatusSchema.parse(payload.status)
+          setStatus(newStatus)
 
-          const data: SSEMessage = JSON.parse(event.data)
-          setLastEventId(event.lastEventId || '')
-
-          if (data.status) {
-            console.log('Status updated:', data.status)
-            setStatus(data.status)
-            
-            // Fecha a conexão se o pagamento for concluído
-            if (data.status !== 'pending') {
-              console.log('Payment finalized, closing SSE connection')
-              eventSource?.close()
-            }
+          // Se for estado final, fecha conexão e marca conclusão
+          if (newStatus !== 'pending') {
+            es?.close()
+            didFinish = true
           }
         } catch (err) {
-          console.error('Error processing SSE message:', err)
-          setError('Erro ao processar a mensagem do servidor')
+          console.error('Falha na validação do payload SSE:', err)
+          setError('Resposta inválida do servidor')
+          es?.close()
+          didFinish = true
         }
-      }
+      })
 
-      eventSource.onerror = (err: Event) => {
-        console.error('SSE error:', err)
-        eventSource?.close()
-        
-        if (reconnectAttempts < maxReconnectAttempts) {
-          const delay = Math.min(1000 * Math.pow(2, reconnectAttempts), 30000)
-          console.log(`Reconnecting in ${delay}ms... (attempt ${reconnectAttempts + 1}/${maxReconnectAttempts})`)
-          
-          reconnectTimeout = setTimeout(() => {
-            reconnectAttempts++
-            connect()
-          }, delay)
+      // Tratamento de erro / reconexão
+      es.onerror = () => {
+        es?.close()
+
+        // Se já chegou num estado final, não reconectar
+        if (didFinish) return
+
+        retryCountRef.current += 1
+        if (retryCountRef.current <= maxRetries) {
+          // Exponential backoff: 1s, 2s, 4s, ...
+          const delay = 1000 * 2 ** (retryCountRef.current - 1)
+          setTimeout(connect, delay)
         } else {
           setError('Não foi possível conectar ao servidor de atualizações')
         }
       }
     }
 
+    // Inicia a conexão SSE
     connect()
 
+    // Cleanup ao desmontar componente ou mudar transactionId
     return () => {
-      console.log('Cleaning up SSE connection')
-      clearTimeout(reconnectTimeout)
-      eventSource?.close()
+      es?.close()
+      retryCountRef.current = 0
     }
-  }, [paymentId])
+  }, [transactionId])  // Apenas reconecta quando transactionId muda
 
-  return { status, error, lastEventId }
+  return { status, error }
 }
