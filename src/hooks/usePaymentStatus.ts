@@ -39,8 +39,10 @@ export function usePaymentStatus(transactionId: string) {
       es.addEventListener('status', (e) => {
         try {
           const payload = JSON.parse(e.data)
+          console.log('[FRONTEND][SSE] Evento SSE recebido:', payload)
           const newStatus = PaymentStatusSchema.parse(payload.status)
           setStatus(newStatus)
+          console.log('[FRONTEND][SSE] Novo status do pagamento:', newStatus)
 
           // Se for estado final, fecha conexão e marca conclusão
           if (newStatus !== 'pending') {
