@@ -58,7 +58,7 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
 
       if (!payment) {
         console.log(
-          `Pagamento com ID ${paymentId} não encontrado no banco de dados. Webhook será ignorado, mas retornando 200 para Mercado Pago.`
+          `[WEBHOOK] Pagamento com ID ${paymentId} não encontrado no banco de dados. Webhook será ignorado, mas retornando 200 para Mercado Pago.`
         )
         return NextResponse.json({ success: true })
       }
@@ -82,8 +82,9 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
       })
 
       // 6. Broadcast SSE para quem estiver conectado
-      console.log('Disparando SSE para payment.id:', updatedPayment.id, 'status:', updatedPayment.status)
+      console.log('[WEBHOOK] Disparando SSE para payment.id:', updatedPayment.id, 'status:', updatedPayment.status)
       broadcastSSE(updatedPayment.id, updatedPayment.status)
+      console.log('[WEBHOOK] Evento SSE enviado para payment.id:', updatedPayment.id)
 
       // 7. Se aprovado, atualizar pedido e histórico
       if (status === 'approved' && (paymentMethodId === 'pix' || true)) {
