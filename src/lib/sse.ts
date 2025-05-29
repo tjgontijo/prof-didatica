@@ -74,7 +74,12 @@ export function broadcastSSE(
   const paymentId = PaymentIdSchema.parse(rawPaymentId)
   const status = PaymentStatusSchema.parse(rawStatus)
   const conns = connections.get(paymentId)
-  if (!conns) return
+  if (!conns) {
+    console.log('[SSE] Nenhum cliente SSE registrado para paymentId:', paymentId)
+    return
+  }
+
+  console.log('[SSE] Enviando evento SSE para paymentId:', paymentId, 'status:', status, 'total de conexões:', conns.size)
 
   const encoder = new TextEncoder()
   const payload = JSON.stringify({ status })
@@ -84,6 +89,7 @@ export function broadcastSSE(
   )
 
   for (const conn of conns) {
+    console.log('[SSE] Enviando evento para cliente SSE de paymentId:', paymentId)
     conn.writer.write(message).catch(() => {
       // falha ao escrever, remove a conexão
       clearInterval(conn.keepAliveTimer)
