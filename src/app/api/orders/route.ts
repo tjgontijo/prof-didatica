@@ -3,6 +3,8 @@ import { z } from 'zod';
 import { prisma } from '@/lib/prisma';
 import { OrderStatus } from '@prisma/client';
 import type { Prisma } from '@prisma/client';
+import { getOrderEventsService } from '@/services/webhook/order';
+
 
 // Schema para validação forte dos dados recebidos
 const orderSchema = z.object({
@@ -153,6 +155,8 @@ export async function POST(request: NextRequest) {
         customer: true,
       },
     });
+    const orderEventsService = getOrderEventsService();
+    await orderEventsService.orderCreated(order.id);
 
     return NextResponse.json({ success: true, orderId: order.id, order });
   } catch (error) {

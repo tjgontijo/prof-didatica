@@ -146,11 +146,9 @@ model OrderStatusHistory {
 model Webhook {
   id          String    @id @default(uuid())
   url         String
-  events      String[]  // array de eventos: "order.created", "payment.approved", etc.
-  active      Boolean   @default(true)
-  secretKey   String?   // chave para assinatura HMAC
-  description String?
-  retryCount  Int       @default(0) // Número de tentativas de envio
+  events      String[]
+  active      Boolean   @default(true)  
+  description String? 
   createdAt   DateTime  @default(now())
   updatedAt   DateTime  @updatedAt
   deletedAt   DateTime?
