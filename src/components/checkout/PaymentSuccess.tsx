@@ -26,14 +26,14 @@ const PaymentSuccess: React.FC<PaymentSuccessProps> = ({
             <FaCheckCircle className="text-green-600 text-xl" />
           </div>
         </div>
-        <h2 className="text-lg font-medium text-green-700">Pagamento confirmado!</h2>
+        <h2 className="text-lg font-bold text-green-800">Pagamento confirmado!</h2>
       </div>
 
       {/* Mensagem de confirmação */}
       <div className="mb-6">
-        <p className="text-[15px] font-medium mb-1">Pedido processado com sucesso!</p>
-        <p className="text-sm text-gray-600">
-          Olá, <span className="font-medium">{firstName}</span>! Seu pagamento foi confirmado com sucesso.          
+        <p className="text-[15px] font-semibold mb-1 text-green-800">Pedido processado com sucesso!</p>
+        <p className="text-sm text-gray-800">
+          Olá, <span className="font-medium">{firstName}</span>! Seu pagamento foi confirmado com sucesso.
         </p>
       </div>
 
@@ -45,7 +45,7 @@ const PaymentSuccess: React.FC<PaymentSuccessProps> = ({
               <FaCheckCircle size={18} />
             </div>
             <div>
-              <h3 className="font-medium text-gray-800">Detalhes do pedido</h3>
+              <h3 className="font-bold text-green-800">Detalhes do pedido</h3>
               <p className="text-sm text-gray-600 mt-1">
                 Número do pedido: <span className="font-medium">{orderNumber}</span>
               </p>
@@ -54,13 +54,13 @@ const PaymentSuccess: React.FC<PaymentSuccessProps> = ({
         </div>
 
         {/* Instruções de suporte */}
-        <div className="w-full bg-blue-50 p-4 rounded-lg">
+        <div className="w-full bg-blue-50 p-4 rounded-lg border border-blue-100">
           <div className="flex items-start gap-3">
             <div className="mt-1 text-blue-500">
               <FaCheckCircle size={18} />
             </div>
             <div>
-              <h3 className="font-medium text-[#2c4f71]">Suporte</h3>
+              <h3 className="font-bold text-blue-800">Suporte</h3>
               <p className="text-sm text-gray-600 mt-1">
                 Caso precise de alguma ajuda para ter acesso ao material, basta nos chamar no
                 suporte do WhatsApp pelo botão abaixo.
