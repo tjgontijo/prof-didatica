@@ -66,7 +66,7 @@ export default function PixDisplay({ pixData }: PixDisplayProps) {
         {/* Código PIX */}
         <div className="w-full">
           <div className="relative">
-            <div className="p-4 bg-gray-50 rounded-lg text-sm font-mono break-all border border-gray-200">
+            <div className="p-4 bg-gray-50 rounded-lg text-sm break-all border border-gray-200">
               {pixData.qr_code}
             </div>
             <button

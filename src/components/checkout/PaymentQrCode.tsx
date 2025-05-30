@@ -52,7 +52,7 @@ const PaymentQrCode: React.FC<PaymentQrCodeProps> = ({ respostaPix }) => {
         <div className="w-full">
           <p className="text-sm text-[#666] mb-2">Copie o código PIX:</p>
           <div className="relative">
-            <div className="p-3 bg-gray-100 rounded-lg text-xs font-mono break-all">
+            <div className="p-3 bg-gray-100 rounded-lg text-xs break-all">
               {respostaPix.qr_code}
             </div>
             <button
