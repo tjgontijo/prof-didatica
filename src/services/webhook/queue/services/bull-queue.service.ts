@@ -1,5 +1,5 @@
 import Bull, { Queue, Job } from 'bull';
-import { QueueService, WebhookPayload } from '../types';
+import { QueueService, WebhookPayload, Webhook } from '../types';
 import { PrismaClient } from '@prisma/client';
 
 export class BullQueueService implements QueueService {
@@ -14,11 +14,7 @@ export class BullQueueService implements QueueService {
   }
 
   async addToQueue<T>(
-    webhook: {
-      id: string;
-      url: string;
-      headers: Record<string, string>;
-    },
+    webhook: Webhook,
     payload: WebhookPayload<T>
   ): Promise<void> {
     await this.queue.add('cart-reminder', { webhook, payload }, { delay: 100 * 1000, removeOnComplete: true, attempts: 3 });
