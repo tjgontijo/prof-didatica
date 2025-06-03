@@ -4,7 +4,7 @@ import React, { useState, useRef, useEffect } from 'react';
 import { z } from 'zod';
 import { FaWhatsapp } from 'react-icons/fa';
 import { cleanPhone, formatBrazilianPhone } from '@/lib/phone';
-import { WhatsappService } from '@/services/whatsapp.service';
+import { WhatsappService } from '@/services/whatsapp/whatsapp.service';
 
 // Schema de validação
 const clienteSchema = z.object({
