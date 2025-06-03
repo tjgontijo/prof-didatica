@@ -1,2 +1,10 @@
 // src/services/webhook/order/index.ts
-export * from './events.service';
+
+// Tipos
+export * from './types';
+
+// Serviços
+export * from './services/order-webhook.service';
+
+// Utilitários
+export * from './dispatcher';

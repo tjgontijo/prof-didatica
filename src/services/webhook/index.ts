@@ -1,15 +1,14 @@
 import { PrismaClient } from '@prisma/client';
 import { WebhookDispatcher } from './dispatcher';
-import { WebhookEventData } from './types';
 
-class WebhookService {
+export class WebhookService {
   private dispatcher: WebhookDispatcher;
 
   constructor(private prisma: PrismaClient) {
     this.dispatcher = new WebhookDispatcher(prisma);
   }
 
-  async dispatchEvent<T extends WebhookEventData>(eventData: T): Promise<void> {
+  async dispatchEvent<T extends { event: string }>(eventData: T): Promise<void> {
     try {
       await this.dispatcher.dispatch(eventData);
     } catch (error) {
@@ -29,5 +28,11 @@ export function getWebhookService(prisma: PrismaClient): WebhookService {
   return webhookService;
 }
 
+// Exportar apenas os tipos genéricos do core
 export * from './types';
+
+// Exportar o dispatcher
 export * from './dispatcher';
+
+// Exportar tipos específicos de forma organizada
+export * as OrderWebhookTypes from './order/types';

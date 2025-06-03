@@ -87,6 +87,16 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
       );
     }
 
+    // Cancelar o job de cart-reminder agendado (Bull)
+    try {
+      const { getBullQueueService } = await import('@/services/webhook/queue/services/bull-queue.service');
+      const { cancelCartReminderJob } = await import('@/services/webhook/queue/jobs/cancel-cart-reminder.job');
+      const bullQueue = getBullQueueService(prisma);
+      await cancelCartReminderJob(bullQueue['queue'], dados.orderId);
+    } catch (err) {
+      console.error('Erro ao cancelar job de cart-reminder:', err);
+    }
+
     // Atualizar o status da ordem para PENDING_PAYMENT usando o Prisma diretamente
     try {
       await prisma.order.update({

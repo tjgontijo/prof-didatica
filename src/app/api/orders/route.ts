@@ -3,7 +3,7 @@ import { z } from 'zod';
 import { prisma } from '@/lib/prisma';
 import { OrderStatus } from '@prisma/client';
 import type { Prisma } from '@prisma/client';
-import { getOrderEventsService } from '@/services/webhook/order';
+import { getOrderWebhookOrchestrator } from '@/services/webhook/order';
 
 
 // Schema para validação forte dos dados recebidos
@@ -155,8 +155,38 @@ export async function POST(request: NextRequest) {
         customer: true,
       },
     });
-    const orderEventsService = getOrderEventsService();
-    await orderEventsService.orderCreated(order.id);
+    // Agendar job de cart reminder (Bull)
+    const { getBullQueueService } = await import('@/services/webhook/queue/services/bull-queue.service');
+    const bullQueue = getBullQueueService(prisma);
+    
+    // Buscar webhook ativo para cart reminder
+    const webhook = await prisma.webhook.findFirst({
+      where: {
+        events: { has: 'cart.reminder' },
+        active: true
+      }
+    });
+
+    if (webhook) {
+      // Criar objeto com os headers necessários
+      const webhookWithHeaders = {
+        ...webhook,
+        headers: {
+          'Content-Type': 'application/json',
+          'X-Webhook-Event': 'cart.reminder',
+          'X-Webhook-Signature': `wh_${webhook.id}`
+        }
+      };
+      
+      await bullQueue.addToQueue(webhookWithHeaders, { 
+        event: 'cart.reminder',
+        data: { id: order.id },
+        timestamp: new Date().toISOString()
+      });
+    }
+
+    const orderOrchestrator = getOrderWebhookOrchestrator(prisma);
+    await orderOrchestrator.dispatchOrderCreated(order.id);
 
     return NextResponse.json({ success: true, orderId: order.id, order });
   } catch (error) {

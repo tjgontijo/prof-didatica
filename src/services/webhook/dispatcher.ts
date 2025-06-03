@@ -1,12 +1,16 @@
 // src/services/webhook/dispatcher.ts
 import { Webhook, WebhookLog } from '@prisma/client';
 import * as crypto from 'crypto';
-import { WebhookEventData, WebhookPayload, WebhookDispatcherParams } from './types';
+import { WebhookDispatcherParams } from './types';
+import { WebhookPayload } from './queue/types';
+import { getQueueService } from './queue/in-memory-queue.service';
 
 export class WebhookDispatcher {
+  private queueService = getQueueService();
+
   constructor(private prisma: WebhookDispatcherParams['prisma']) {}
 
-  async dispatch<T extends WebhookEventData>(eventData: T): Promise<void> {
+  async dispatch<T extends { event: string }>(eventData: T): Promise<void> {
     try {
       const webhooks = await this.prisma.webhook.findMany({
         where: {
@@ -15,69 +19,68 @@ export class WebhookDispatcher {
         }
       });
 
+      // Adiciona cada webhook à fila para processamento assíncrono
       await Promise.all(
         webhooks.map(webhook => 
-          this.sendWebhook(webhook, eventData)
+          this.enqueueWebhook(webhook, eventData)
         )
       );
     } catch (error) {
-      console.error('Erro ao disparar webhooks:', error);
+      console.error('Erro ao enfileirar webhooks:', error);
       throw error;
     }
   }
 
-  private async sendWebhook<T extends WebhookEventData>(
-    webhook: Webhook,
+  private async enqueueWebhook<T extends { event: string }>(
+    webhook: Webhook & { secret?: string | null },
     eventData: T
   ): Promise<void> {
-    const payload: WebhookPayload<T> = {
-      event: eventData.event,
-      data: { ...eventData } as Omit<T, 'event'>,
+    const { event, ...data } = eventData;
+    const payload: WebhookPayload<typeof data> = {
+      event,
+      data,
       timestamp: new Date().toISOString()
     };
 
+    // Gera a assinatura para o payload
     const signature = this.generateSignature(payload, webhook.secret || '');
-
-    try {
-      const response = await fetch(webhook.url, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'X-Webhook-Signature': signature,
-          'X-Webhook-Event': eventData.event,
-          'X-Webhook-Delivery': crypto.randomUUID()
-        },
-        body: JSON.stringify(payload)
-      });
-
-      await this.logWebhook(webhook.id, eventData.event, payload, {
-        status: response.status,
-        statusText: response.statusText,
-        headers: Object.fromEntries(response.headers.entries())
-      }, response.ok);
-    } catch (error) {
-      await this.logWebhook(
-        webhook.id,
-        eventData.event,
-        payload,
-        { error: error instanceof Error ? error.message : 'Erro desconhecido' },
-        false
-      );
-      throw error;
-    }
+    
+    // Adiciona a assinatura ao payload antes de enfileirar
+    const signedPayload = {
+      ...payload,
+      signature
+    };
+    
+    // Adiciona à fila para processamento assíncrono
+    await this.queueService.addToQueue(webhook, signedPayload);
+    
+    // Registra o log do webhook enfileirado
+    await this.logWebhook<typeof data>(
+      webhook.id,
+      event,
+      signedPayload,
+      { status: 202, statusText: 'Enqueued for processing' },
+      true
+    );
   }
 
-  private generateSignature(payload: unknown, secret: string): string {
+  private generateSignature<T>(payload: WebhookPayload<T>, secret: string): string {
+    if (!secret) return '';
     const hmac = crypto.createHmac('sha256', secret);
     hmac.update(JSON.stringify(payload));
     return hmac.digest('hex');
   }
 
-  private async logWebhook(
+  private async logWebhook<T>(
     webhookId: string,
     event: string,
-    payload: unknown,
-    response: Record<string, any>,
+    payload: WebhookPayload<T> & { signature?: string },
+    response: {
+      status?: number;
+      statusText?: string;
+      headers?: Record<string, string>;
+      error?: string;
+    },
     success: boolean
   ): Promise<WebhookLog> {
     return this.prisma.webhookLog.create({
@@ -86,7 +89,7 @@ export class WebhookDispatcher {
         event,
         payload: JSON.stringify(payload),
         response: JSON.stringify(response),
-        statusCode: 'status' in response ? response.status : null,
+        statusCode: response.status ?? null,
         success
       }
     });

@@ -1,28 +1,11 @@
 // src/services/webhook/order/events.service.ts
-import { Order, OrderItem, PrismaClient } from '@prisma/client';
+import { PrismaClient } from '@prisma/client';
 import { getWebhookService } from '..';
-import { OrderCreatedResource, OrderPaidResource } from '../types';
-
-type OrderWithRelations = Order & {
-  orderItems: (OrderItem & {
-    product: {
-      id: string;
-      name: string;
-      price: number;
-    };
-  })[];
-  customer: {
-    id: string;
-    name: string;
-    email: string;
-    phone: string | null;
-  };
-  payment?: {
-    id: string;
-    method: string;
-    paidAt: Date | null;
-  } | null;
-};
+import { 
+  OrderCreatedResource, 
+  OrderPaidResource, 
+  OrderWithRelations 
+} from './types';
 
 export class OrderEventsService {
   private webhookService = getWebhookService(new PrismaClient());
