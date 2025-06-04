@@ -1,5 +1,5 @@
 -- CreateEnum
-CREATE TYPE "OrderStatus" AS ENUM ('DRAFT', 'PENDING_PAYMENT', 'PAYMENT_PROCESSING', 'PAID', 'CANCELLED', 'REFUNDED', 'DELIVERED');
+CREATE TYPE "OrderStatus" AS ENUM ('DRAFT', 'ABANDONED_CART', 'PENDING_PAYMENT', 'PAYMENT_PROCESSING', 'PAID', 'CANCELLED', 'REFUNDED', 'DELIVERED');
 
 -- CreateTable
 CREATE TABLE "Product" (
@@ -59,6 +59,7 @@ CREATE TABLE "Order" (
     "paidAmount" DOUBLE PRECISION NOT NULL,
     "status" "OrderStatus" NOT NULL DEFAULT 'DRAFT',
     "statusUpdatedAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "paidAt" TIMESTAMP(3),
     "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "updatedAt" TIMESTAMP(3) NOT NULL,
     "deletedAt" TIMESTAMP(3),
@@ -150,6 +151,37 @@ CREATE TABLE "Customer" (
     CONSTRAINT "Customer_pkey" PRIMARY KEY ("id")
 );
 
+-- CreateTable
+CREATE TABLE "WebhookJob" (
+    "id" TEXT NOT NULL,
+    "orderId" TEXT NOT NULL,
+    "jobId" TEXT NOT NULL,
+    "jobType" TEXT NOT NULL,
+    "status" TEXT NOT NULL,
+    "scheduledAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "completedAt" TIMESTAMP(3),
+    "errorMsg" TEXT,
+
+    CONSTRAINT "WebhookJob_pkey" PRIMARY KEY ("id")
+);
+
+-- CreateTable
+CREATE TABLE "ExternalWebhookLog" (
+    "id" TEXT NOT NULL,
+    "webhookId" TEXT NOT NULL,
+    "source" TEXT NOT NULL,
+    "paymentId" TEXT,
+    "action" TEXT NOT NULL,
+    "status" TEXT,
+    "payload" TEXT NOT NULL,
+    "headers" TEXT,
+    "processedAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "success" BOOLEAN NOT NULL DEFAULT true,
+    "errorMsg" TEXT,
+
+    CONSTRAINT "ExternalWebhookLog_pkey" PRIMARY KEY ("id")
+);
+
 -- CreateIndex
 CREATE INDEX "Product_isActive_deletedAt_idx" ON "Product"("isActive", "deletedAt");
 
@@ -213,6 +245,27 @@ CREATE INDEX "Customer_email_idx" ON "Customer"("email");
 -- CreateIndex
 CREATE INDEX "Customer_phone_idx" ON "Customer"("phone");
 
+-- CreateIndex
+CREATE INDEX "WebhookJob_orderId_idx" ON "WebhookJob"("orderId");
+
+-- CreateIndex
+CREATE INDEX "WebhookJob_jobType_status_idx" ON "WebhookJob"("jobType", "status");
+
+-- CreateIndex
+CREATE INDEX "WebhookJob_scheduledAt_idx" ON "WebhookJob"("scheduledAt");
+
+-- CreateIndex
+CREATE UNIQUE INDEX "ExternalWebhookLog_webhookId_key" ON "ExternalWebhookLog"("webhookId");
+
+-- CreateIndex
+CREATE INDEX "ExternalWebhookLog_webhookId_idx" ON "ExternalWebhookLog"("webhookId");
+
+-- CreateIndex
+CREATE INDEX "ExternalWebhookLog_source_paymentId_idx" ON "ExternalWebhookLog"("source", "paymentId");
+
+-- CreateIndex
+CREATE INDEX "ExternalWebhookLog_action_processedAt_idx" ON "ExternalWebhookLog"("action", "processedAt");
+
 -- AddForeignKey
 ALTER TABLE "Checkout" ADD CONSTRAINT "Checkout_productId_fkey" FOREIGN KEY ("productId") REFERENCES "Product"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
 
@@ -245,3 +298,6 @@ ALTER TABLE "WebhookLog" ADD CONSTRAINT "WebhookLog_webhookId_fkey" FOREIGN KEY 
 
 -- AddForeignKey
 ALTER TABLE "Payment" ADD CONSTRAINT "Payment_orderId_fkey" FOREIGN KEY ("orderId") REFERENCES "Order"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "WebhookJob" ADD CONSTRAINT "WebhookJob_orderId_fkey" FOREIGN KEY ("orderId") REFERENCES "Order"("id") ON DELETE RESTRICT ON UPDATE CASCADE;

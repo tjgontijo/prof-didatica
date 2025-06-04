@@ -1,35 +1,46 @@
-import { NextRequest, NextResponse } from 'next/server';
-import { z } from 'zod';
-import { prisma } from '@/lib/prisma';
-import { OrderStatus } from '@prisma/client';
-import type { Prisma } from '@prisma/client';
-import { getOrderWebhookOrchestrator } from '@/services/webhook/order';
-
+import { NextRequest, NextResponse } from 'next/server'
+import { z } from 'zod'
+import { prisma } from '@/lib/prisma'
+import { OrderStatus } from '@prisma/client'
+import type { Prisma } from '@prisma/client'
+import { WebhookOrchestrator } from '@/services/webhook'
+import { validateBrazilianPhone, cleanPhone } from '@/lib/phone'
+import { orderRateLimit } from '@/lib/rate-limit'
+import { getCachedProduct } from '@/lib/cache'
 
 // Schema para validação forte dos dados recebidos
 const orderSchema = z.object({
   productId: z.string().uuid(),
   checkoutId: z.string().uuid(),
-  customerName: z.string().min(2),
+  customerName: z.string().min(2).max(100),
   customerEmail: z.string().email(),
-  customerPhone: z.string().min(10),
+  customerPhone: z.string()
+    .min(10, 'Telefone deve ter pelo menos 10 dígitos')
+    .max(15, 'Telefone deve ter no máximo 15 dígitos')
+    .refine(validateBrazilianPhone, 'Telefone deve ser um número brasileiro válido')
+    .transform(cleanPhone), // Limpa o telefone após validação
   orderBumps: z
     .array(
       z.object({
         productId: z.string().uuid(),
-        quantity: z.number().min(1),
+        quantity: z.number().min(1).max(10),
       }),
     )
     .optional(),
-  quantity: z.number().min(1).default(1),
+  quantity: z.number().min(1).max(10).default(1),
 });
 
 // Schema para validação parcial (PATCH)
 const patchOrderSchema = z.object({
   id: z.string().uuid(),
-  customerName: z.string().min(2).optional(),
+  customerName: z.string().min(2).max(100).optional(),
   customerEmail: z.string().email().optional(),
-  customerPhone: z.string().min(10).optional(),
+  customerPhone: z.string()
+    .min(10, 'Telefone deve ter pelo menos 10 dígitos')
+    .max(15, 'Telefone deve ter no máximo 15 dígitos')
+    .refine(validateBrazilianPhone, 'Telefone deve ser um número brasileiro válido')
+    .transform(cleanPhone)
+    .optional(),
   status: z.nativeEnum(OrderStatus).optional(),
 });
 
@@ -87,114 +98,172 @@ export async function DELETE(request: NextRequest) {
 
 export async function POST(request: NextRequest) {
   try {
+    // 1. Verificar rate limiting
+    const rateLimitResult = await orderRateLimit(request);
+    if (!rateLimitResult.success) {
+      return NextResponse.json(
+        { 
+          success: false, 
+          error: 'Muitas tentativas. Tente novamente em alguns minutos.',
+          retryAfter: Math.ceil((rateLimitResult.resetTime - Date.now()) / 1000)
+        },
+        { 
+          status: 429,
+          headers: {
+            'X-RateLimit-Limit': rateLimitResult.limit.toString(),
+            'X-RateLimit-Remaining': rateLimitResult.remaining.toString(),
+            'X-RateLimit-Reset': rateLimitResult.resetTime.toString()
+          }
+        }
+      );
+    }
+
     const body = await request.json();
     const data = orderSchema.parse(body);
 
-    // Primeiro verifica se existe cliente com o mesmo telefone (prioridade) ou email
-    let customer = await prisma.customer.findFirst({
-      where: {
-        OR: [{ phone: data.customerPhone }, { email: data.customerEmail }],
-      },
-    });
-
-    // Se existir, atualiza os dados
-    if (customer) {
-      customer = await prisma.customer.update({
-        where: { id: customer.id },
-        data: {
-          name: data.customerName,
-          email: data.customerEmail,
-          phone: data.customerPhone,
-        },
+    // Usar transação para garantir consistência
+    const result = await prisma.$transaction(async (tx) => {
+      // Buscar ou criar customer (com tratamento de concorrência)
+      let customer = await tx.customer.findUnique({
+        where: { email: data.customerEmail },
       });
-    } else {
-      // Se não existir, cria um novo
-      customer = await prisma.customer.create({
-        data: {
-          name: data.customerName,
-          email: data.customerEmail,
-          phone: data.customerPhone,
-        },
-      });
-    }
 
-    // Criação do pedido principal
-    const order = await prisma.order.create({
-      data: {
-        productId: data.productId,
-        checkoutId: data.checkoutId,
-        customerId: customer.id,
-        paidAmount: 0, // Inicialmente 0, só será preenchido após pagamento
-        orderItems: {
-          create: [
-            {
-              productId: data.productId,
-              quantity: data.quantity,
-              priceAtTime: 0, // Preencher depois conforme regra de preço
-              isOrderBump: false,
+      if (!customer) {
+        try {
+          // Tentar criar novo customer
+          customer = await tx.customer.create({
+            data: {
+              name: data.customerName,
+              email: data.customerEmail,
+              phone: data.customerPhone,
             },
-            ...(data.orderBumps?.map((bump) => ({
-              productId: bump.productId,
-              quantity: bump.quantity,
-              priceAtTime: 0, // Preencher depois conforme regra de preço
-              isOrderBump: true,
-            })) || []),
-          ],
-        },
-        statusHistory: {
-          create: {
-            previousStatus: null,
-            newStatus: OrderStatus.DRAFT,
-            notes: 'Pedido criado',
+          });
+        } catch (error: unknown) {
+          // Se falhar por duplicata (race condition), buscar o existente
+          if (error instanceof Error && 'code' in error && (error as { code: string }).code === 'P2002') {
+            customer = await tx.customer.findUnique({
+              where: { email: data.customerEmail },
+            });
+            if (!customer) {
+              throw new Error('Erro ao criar/buscar customer');
+            }
+          } else {
+            throw error;
+          }
+        }
+      }
+
+      // Buscar preços dos produtos usando cache
+      const mainProduct = await getCachedProduct(data.productId);
+
+      if (!mainProduct || !mainProduct.isActive) {
+        throw new Error('Produto principal não encontrado ou inativo');
+      }
+
+      let orderBumpProducts: Array<{ id: string; price: number; name: string }> = [];
+      if (data.orderBumps?.length) {
+        // Buscar order bumps com cache
+        orderBumpProducts = await Promise.all(
+          data.orderBumps.map(async (bump) => {
+            const product = await getCachedProduct(bump.productId);
+            if (!product || !product.isActive) {
+              throw new Error(`Order bump ${bump.productId} não encontrado ou inativo`);
+            }
+            return product;
+          })
+        );
+      }
+
+      // Criação do pedido principal
+      const order = await tx.order.create({
+        data: {
+          productId: data.productId,
+          checkoutId: data.checkoutId,
+          customerId: customer.id,
+          paidAmount: 0, // Inicialmente 0, só será preenchido após pagamento
+          orderItems: {
+            create: [
+              {
+                productId: data.productId,
+                quantity: data.quantity,
+                priceAtTime: mainProduct.price,
+                isOrderBump: false,
+              },
+              ...(data.orderBumps?.map((bump) => {
+                const product = orderBumpProducts.find(p => p.id === bump.productId)!;
+                return {
+                  productId: bump.productId,
+                  quantity: bump.quantity,
+                  priceAtTime: product.price,
+                  isOrderBump: true,
+                };
+              }) || []),
+            ],
+          },
+          statusHistory: {
+            create: {
+              previousStatus: null,
+              newStatus: OrderStatus.DRAFT,
+              notes: 'Pedido criado',
+            },
           },
         },
-      },
-      include: {
-        orderItems: true,
-        statusHistory: true,
-        customer: true,
-      },
-    });
-    // Agendar job de cart reminder (Bull)
-    const { getBullQueueService } = await import('@/services/webhook/queue/services/bull-queue.service');
-    const bullQueue = getBullQueueService(prisma);
-    
-    // Buscar webhook ativo para cart reminder
-    const webhook = await prisma.webhook.findFirst({
-      where: {
-        events: { has: 'cart.reminder' },
-        active: true
-      }
+        include: {
+          orderItems: true,
+          statusHistory: true,
+          customer: true,
+        },
+      });
+
+      return order;
     });
 
-    if (webhook) {
-      // Criar objeto com os headers necessários
-      const webhookWithHeaders = {
-        ...webhook,
-        headers: {
-          'Content-Type': 'application/json',
-          'X-Webhook-Event': 'cart.reminder',
-          'X-Webhook-Signature': `wh_${webhook.id}`
-        }
-      };
-      
-      await bullQueue.addToQueue(webhookWithHeaders, { 
-        event: 'cart.reminder',
-        data: { id: order.id },
-        timestamp: new Date().toISOString()
-      });
+    console.log(`Pedido criado: ${result.id} com status ${result.status}`);
+    
+    // Disparar order.created apenas se não for DRAFT (pois DRAFT dispara quando payment é iniciado)
+    if (result.status !== OrderStatus.DRAFT) {
+      const webhookOrchestrator = new WebhookOrchestrator(prisma);
+      await webhookOrchestrator.processOrderCreated(result.id);
+      console.log(`Evento order.created disparado para pedido ${result.id}`);
     }
 
-    const orderOrchestrator = getOrderWebhookOrchestrator(prisma);
-    await orderOrchestrator.dispatchOrderCreated(order.id);
+    if (result.status === OrderStatus.DRAFT) {
+      // Agendar cart reminder usando nova API
+      const orchestrator = new WebhookOrchestrator(prisma);
+      const cartReminderJobId = await orchestrator.scheduleCartReminder(result.id);
 
-    return NextResponse.json({ success: true, orderId: order.id, order });
+      // Salvar job ID na tabela WebhookJob
+      await prisma.webhookJob.create({
+        data: {
+          orderId: result.id,
+          jobId: cartReminderJobId,
+          jobType: 'cart_reminder',
+          status: 'active',
+        },
+      });
+
+      console.log(`Pedido ${result.id} criado com status DRAFT. Cart reminder agendado: ${cartReminderJobId}`);
+
+      return NextResponse.json(
+        { 
+          success: true, 
+          order: { 
+            id: result.id, 
+            status: result.status,
+            cartReminderJobId 
+          } 
+        },
+        { status: 201 }
+      );
+    } else {
+      return NextResponse.json({ success: true, orderId: result.id, order: result });
+    }
   } catch (error) {
     if (error instanceof z.ZodError) {
       return NextResponse.json({ success: false, error: error.errors }, { status: 422 });
     }
     if (error instanceof Error) {
-      console.error(error);
+      console.error('Erro ao criar pedido:', error.message);
       return NextResponse.json({ success: false, error: error.message }, { status: 400 });
     }
     console.error('Erro desconhecido:', error);

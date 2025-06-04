@@ -10,13 +10,14 @@ generator client {
 
 enum OrderStatus {
   DRAFT
+  ABANDONED_CART 
   PENDING_PAYMENT
   PAYMENT_PROCESSING
   PAID
   CANCELLED
   REFUNDED
   DELIVERED
-}
+  }
 
 // ========================
 // Checkout and Digital Sales
@@ -95,6 +96,7 @@ model Order {
   paidAmount      Float
   status          OrderStatus   @default(DRAFT)
   statusUpdatedAt DateTime      @default(now())
+  paidAt          DateTime?     // Data do pagamento
 
   createdAt       DateTime      @default(now())
   updatedAt       DateTime      @updatedAt
@@ -106,6 +108,7 @@ model Order {
   orderItems      OrderItem[]
   statusHistory   OrderStatusHistory[]
   customer        Customer      @relation(fields: [customerId], references: [id])
+  webhookJobs     WebhookJob[]  // Jobs de webhook relacionados
 
   @@index([createdAt])
   @@index([customerId])
@@ -205,4 +208,44 @@ model Customer {
   
   @@index([email])
   @@index([phone])
+}
+
+// Modelo para gerenciar jobs de webhook (cart reminder, order events, etc)
+model WebhookJob {
+  id          String   @id @default(uuid())
+  orderId     String
+  jobId       String   // ID do job no Bull Queue
+  jobType     String   // 'cart_reminder', 'order_created', 'order_paid'
+  status      String   // 'active', 'cancelled', 'completed', 'failed'
+  scheduledAt DateTime @default(now())
+  completedAt DateTime?
+  errorMsg    String?
+  
+  order       Order    @relation(fields: [orderId], references: [id])
+  
+  @@index([orderId])
+  @@index([jobType, status])
+  @@index([scheduledAt])
+}
+
+// ========================
+// External Webhook Logs (Mercado Pago, etc)
+// ========================
+
+model ExternalWebhookLog {
+  id          String   @id @default(uuid())
+  webhookId   String   @unique // ID único do webhook (x-request-id ou gerado)
+  source      String   // 'mercadopago', 'stripe', etc
+  paymentId   String?  // ID do pagamento externo
+  action      String   // Ação do webhook (payment.created, payment.updated, etc)
+  status      String?  // Status processado
+  payload     String   // JSON payload recebido
+  headers     String?  // Headers importantes (JSON)
+  processedAt DateTime @default(now())
+  success     Boolean  @default(true)
+  errorMsg    String?  // Mensagem de erro se falhou
+  
+  @@index([webhookId])
+  @@index([source, paymentId])
+  @@index([action, processedAt])
 }
