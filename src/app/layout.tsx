@@ -1,7 +1,7 @@
 import type { Metadata } from 'next';
 import { Inter } from 'next/font/google';
 import { UtmifyScripts } from '@/scripts/utmifyScripts';
-import { ClarityScript } from '@/scripts/clarityScripts';
+// import { ClarityScript } from '@/scripts/clarityScripts';
 import './globals.css';
 
 const inter = Inter({ 
