@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { MercadoPagoConfig, Payment } from 'mercadopago';
 import { prisma } from '@/lib/prisma';
 import { z } from 'zod';
-import { WebhookOrchestrator } from '@/services/webhook';
+
 import { paymentRateLimit } from '@/lib/rate-limit';
 
 // Schemas de validação com Zod
@@ -132,36 +132,8 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
       });
     });
 
-    // Cancelar cart reminder usando nova API
-    const orchestrator = new WebhookOrchestrator(prisma);
-    
-    // Buscar e cancelar cart reminder ativo
-    const activeCartReminder = await prisma.webhookJob.findFirst({
-      where: {
-        orderId: dados.orderId,
-        jobType: 'cart_reminder',
-        status: 'active',
-      },
-    });
-
-    if (activeCartReminder) {
-      await orchestrator.cancelCartReminder(activeCartReminder.jobId);
-      
-      // Marcar como cancelado na tabela
-      await prisma.webhookJob.update({
-        where: { id: activeCartReminder.id },
-        data: { 
-          status: 'cancelled',
-          completedAt: new Date(),
-        },
-      });
-      
-      console.log(`Cart reminder cancelado para pedido ${dados.orderId}`);
-    }
-
-    // Disparar evento order.created agora que o payment foi iniciado
-    await orchestrator.processOrderCreated(dados.orderId);
-    console.log(`Evento order.created disparado para pedido ${dados.orderId}`);
+    // Pedido atualizado para PENDING_PAYMENT, pronto para processar pagamento
+    console.log(`Pedido ${dados.orderId} atualizado para PENDING_PAYMENT`);
 
     // Configurar o Mercado Pago
     const accessToken = process.env.MERCADOPAGO_ACCESS_TOKEN;

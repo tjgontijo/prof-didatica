@@ -1,16 +1,11 @@
 // src/services/webhook/core/webhook.service.ts
 import { PrismaClient } from '@prisma/client';
-import { getQueueService } from './queue.service';
-import { 
-  WebhookEvent, 
-  WebhookPayload, 
-  WebhookWithSecret,
-  QueueOptions
-} from './types';
+
+import { WebhookEvent, WebhookPayload } from './types';
 import { getWebhookConfig } from '../config/webhook.config';
 
 export class WebhookService {
-  private queueService = getQueueService(this.prisma);
+
   private config = getWebhookConfig();
 
   constructor(private prisma: PrismaClient) {}
@@ -19,64 +14,82 @@ export class WebhookService {
    * Despacha um evento de webhook para todos os webhooks configurados
    */
   async dispatchEvent<T extends WebhookEvent>(
-    eventData: T,
-    options?: QueueOptions
+    eventData: T
   ): Promise<string[]> {
     try {
       const webhooks = await this.getActiveWebhooksForEvent(eventData.event);
-      
       if (webhooks.length === 0) {
         console.log(`No active webhooks found for event: ${eventData.event}`);
         return [];
       }
 
       const payload = this.createPayload(eventData);
-      const jobIds: string[] = [];
+      const sentIds: string[] = [];
 
-      // Enfileira cada webhook para processamento assíncrono
       for (const webhook of webhooks) {
-        const jobId = await this.queueService.addToQueue(
-          webhook,
-          payload,
-          this.getQueueOptions(eventData.event, options)
-        );
-        jobIds.push(jobId);
+        let responseText = '';
+        let statusCode: number | null = null;
+        let success = false;
+        try {
+          const res = await fetch(webhook.url, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(payload),
+          });
+          statusCode = res.status;
+          responseText = await res.text();
+          success = res.ok;
+        } catch (error: unknown) {
+          if (error instanceof Error) {
+            responseText = error.message;
+          } else {
+            responseText = String(error);
+          }
+          statusCode = null;
+          success = false;
+        }
+        // Cria log do envio
+        await this.prisma.webhookLog.create({
+          data: {
+            webhookId: webhook.id,
+            event: eventData.event,
+            payload: JSON.stringify(payload),
+            response: responseText,
+            statusCode,
+            success,
+          },
+        });
+        sentIds.push(webhook.id);
       }
 
-      console.log(`Enqueued ${webhooks.length} webhooks for event: ${eventData.event}`);
-      return jobIds;
-
+      console.log(`Disparados ${webhooks.length} webhooks para o evento: ${eventData.event}`);
+      return sentIds;
     } catch (error) {
       console.error('Error dispatching webhook event:', error);
       throw error;
     }
   }
 
-  /**
-   * Cancela um job de webhook específico
-   */
-  async cancelWebhookJob(jobId: string): Promise<boolean> {
-    return this.queueService.cancelJob(jobId);
-  }
-
-  /**
-   * Obtém o status de um job de webhook
-   */
-  async getWebhookJobStatus(jobId: string) {
-    return this.queueService.getJobStatus(jobId);
-  }
+  // Métodos de fila removidos pois não há mais fila
 
   /**
    * Lista todos os webhooks ativos para um evento específico
    */
-  async getActiveWebhooksForEvent(event: string): Promise<WebhookWithSecret[]> {
+  async getActiveWebhooksForEvent(event: string): Promise<{id: string, url: string, events: string[], active: boolean, deletedAt: Date | null}[]> {
     return this.prisma.webhook.findMany({
       where: {
         active: true,
         events: { has: event },
         deletedAt: null,
       },
-    }) as Promise<WebhookWithSecret[]>;
+      select: {
+        id: true,
+        url: true,
+        events: true,
+        active: true,
+        deletedAt: true,
+      }
+    });
   }
 
   /**
@@ -201,26 +214,7 @@ export class WebhookService {
     };
   }
 
-  private getQueueOptions(event: string, options?: QueueOptions): QueueOptions {
-    const defaultOptions: QueueOptions = {
-      attempts: this.config.queue.maxRetries,
-      removeOnComplete: true,
-    };
 
-    // Configurações específicas por evento
-    if (event === this.config.events.CART_REMINDER) {
-      defaultOptions.delay = this.config.queue.defaultDelay;
-    }
-
-    return { ...defaultOptions, ...options };
-  }
-
-  /**
-   * Fecha o serviço e limpa recursos
-   */
-  async close(): Promise<void> {
-    await this.queueService.close();
-  }
 }
 
 // Singleton instance

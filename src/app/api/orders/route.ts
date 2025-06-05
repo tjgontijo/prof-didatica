@@ -1,9 +1,10 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { z } from 'zod'
 import { prisma } from '@/lib/prisma'
+import { Prisma } from '@prisma/client'
+
+// Definir OrderStatus para compatibilidade
 import { OrderStatus } from '@prisma/client'
-import type { Prisma } from '@prisma/client'
-import { WebhookOrchestrator } from '@/services/webhook'
 import { validateBrazilianPhone, cleanPhone } from '@/lib/phone'
 import { orderRateLimit } from '@/lib/rate-limit'
 import { getCachedProduct } from '@/lib/cache'
@@ -122,7 +123,7 @@ export async function POST(request: NextRequest) {
     const data = orderSchema.parse(body);
 
     // Usar transação para garantir consistência
-    const result = await prisma.$transaction(async (tx) => {
+    const result = await prisma.$transaction(async (tx: Prisma.TransactionClient) => {
       // Buscar ou criar customer (com tratamento de concorrência)
       let customer = await tx.customer.findUnique({
         where: { email: data.customerEmail },
@@ -220,44 +221,16 @@ export async function POST(request: NextRequest) {
 
     console.log(`Pedido criado: ${result.id} com status ${result.status}`);
     
-    // Disparar order.created apenas se não for DRAFT (pois DRAFT dispara quando payment é iniciado)
-    if (result.status !== OrderStatus.DRAFT) {
-      const webhookOrchestrator = new WebhookOrchestrator(prisma);
-      await webhookOrchestrator.processOrderCreated(result.id);
-      console.log(`Evento order.created disparado para pedido ${result.id}`);
-    }
+    // Pedido criado com sucesso
+    console.log(`Pedido ${result.id} criado com status ${result.status}`);
 
-    if (result.status === OrderStatus.DRAFT) {
-      // Agendar cart reminder usando nova API
-      const orchestrator = new WebhookOrchestrator(prisma);
-      const cartReminderJobId = await orchestrator.scheduleCartReminder(result.id);
-
-      // Salvar job ID na tabela WebhookJob
-      await prisma.webhookJob.create({
-        data: {
-          orderId: result.id,
-          jobId: cartReminderJobId,
-          jobType: 'cart_reminder',
-          status: 'active',
-        },
-      });
-
-      console.log(`Pedido ${result.id} criado com status DRAFT. Cart reminder agendado: ${cartReminderJobId}`);
-
-      return NextResponse.json(
-        { 
-          success: true, 
-          order: { 
-            id: result.id, 
-            status: result.status,
-            cartReminderJobId 
-          } 
-        },
-        { status: 201 }
-      );
-    } else {
-      return NextResponse.json({ success: true, orderId: result.id, order: result });
-    }
+    return NextResponse.json(
+      { 
+        success: true, 
+        order: result
+      },
+      { status: 201 }
+    );
   } catch (error) {
     if (error instanceof z.ZodError) {
       return NextResponse.json({ success: false, error: error.errors }, { status: 422 });

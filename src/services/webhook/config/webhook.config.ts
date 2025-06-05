@@ -31,7 +31,7 @@ export const DEFAULT_WEBHOOK_CONFIG: WebhookConfig = {
     maxConcurrent: 5,
     maxRetries: 3,
     retryDelays: [5000, 15000, 30000], // 5s, 15s, 30s
-    defaultDelay: 100 * 1000, // 100s para cart reminder
+    defaultDelay: process.env.NODE_ENV === 'development' ? 10 * 1000 : 100 * 1000, // 10s em dev, 100s em prod
   },
   http: {
     timeout: 10000, // 10s

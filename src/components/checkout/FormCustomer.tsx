@@ -151,9 +151,11 @@ const FormCustomer: React.FC<FormCustomerProps> = ({
   const handleBlur = async (campo: 'customerName' | 'customerEmail' | 'customerPhone') => {
     // Validar o campo atual
     const campoValido = await validarCampo(campo);
+    console.log(`[FormCustomer] handleBlur para campo: ${campo}, valido?`, campoValido, dadosCliente);
 
     // Verificar se todos os campos obrigatórios estão válidos
     if (campoValido && verificarFormularioValido()) {
+      console.log('[FormCustomer] Todos os campos obrigatórios válidos! Chamando onSave com:', dadosCliente);
       // Se todos os campos obrigatórios estiverem válidos, salvar os dados
       const normalizedPhone = cleanPhone(dadosCliente.customerPhone);
       onSave({

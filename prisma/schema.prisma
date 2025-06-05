@@ -108,8 +108,7 @@ model Order {
   orderItems      OrderItem[]
   statusHistory   OrderStatusHistory[]
   customer        Customer      @relation(fields: [customerId], references: [id])
-  webhookJobs     WebhookJob[]  // Jobs de webhook relacionados
-
+  
   @@index([createdAt])
   @@index([customerId])
   @@index([deletedAt])
@@ -208,24 +207,6 @@ model Customer {
   
   @@index([email])
   @@index([phone])
-}
-
-// Modelo para gerenciar jobs de webhook (cart reminder, order events, etc)
-model WebhookJob {
-  id          String   @id @default(uuid())
-  orderId     String
-  jobId       String   // ID do job no Bull Queue
-  jobType     String   // 'cart_reminder', 'order_created', 'order_paid'
-  status      String   // 'active', 'cancelled', 'completed', 'failed'
-  scheduledAt DateTime @default(now())
-  completedAt DateTime?
-  errorMsg    String?
-  
-  order       Order    @relation(fields: [orderId], references: [id])
-  
-  @@index([orderId])
-  @@index([jobType, status])
-  @@index([scheduledAt])
 }
 
 // ========================

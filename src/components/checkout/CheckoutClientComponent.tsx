@@ -5,7 +5,6 @@ import Image from 'next/image';
 import { useRouter } from 'next/navigation';
 import { initMercadoPago } from '@mercadopago/sdk-react';
 import { FaSpinner } from 'react-icons/fa';
-// Removemos a importação do PaymentQrCode pois não exibimos mais o QR code diretamente
 import FormCustomer from '@/components/checkout/FormCustomer';
 import ProductHeader from '@/components/checkout/ProductHeader';
 import OrderDetails from '@/components/checkout/OrderDetails';
@@ -26,8 +25,6 @@ type LocalProdutoInfo = {
 initMercadoPago(
   process.env.NEXT_PUBLIC_MERCADOPAGO_PUBLIC_KEY || 'APP_USR-4bc818f1-b6bb-4af8-94e8-4307c34853a8',
 );
-
-// Removemos a definição de tipo não utilizada
 
 export type ProdutoInfo = {
   id: string;
@@ -142,6 +139,7 @@ export default function CheckoutClientComponent({
 
   const [formValido, setFormValido] = useState(false);
   const [orderId, setOrderId] = useState<string>();
+  const [isCreatingOrder, setIsCreatingOrder] = useState(false);
 
   // Handler para salvar dados do cliente vindos do FormCustomer
   const handleSaveCustomerData = async (data: {
@@ -153,31 +151,50 @@ export default function CheckoutClientComponent({
     setDadosCliente(data);
 
     try {
-      if (!orderId) {
+      if (!orderId && !isCreatingOrder) {
+        // Ativa a flag para evitar chamadas duplicadas
+        setIsCreatingOrder(true);
+        
         const payload: OrderDraftPayload = { productId: product.id, checkoutId };
         if (requiredFields.includes('customerName')) payload.customerName = data.customerName;
         if (requiredFields.includes('customerEmail')) payload.customerEmail = data.customerEmail;
         if (requiredFields.includes('customerPhone')) payload.customerPhone = data.phoneNormalized;
+        
+        console.log('Iniciando criação de pedido com payload:', payload);
+        
         const res = await fetch('/api/orders', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify(payload),
         });
+        
         const data2 = await res.json();
-        if (data2.success) setOrderId(data2.orderId);
-      } else {
+        if (data2.success) {
+          console.log('Pedido criado com sucesso:', data2.orderId);
+          setOrderId(data2.orderId);
+        }
+        
+        // Desativa a flag após a conclusão
+        setIsCreatingOrder(false);
+      } else if (orderId) {
+        // Atualização de pedido existente
         const payload: OrderUpdatePayload = {};
         if (requiredFields.includes('customerName')) payload.customerName = data.customerName;
         if (requiredFields.includes('customerEmail')) payload.customerEmail = data.customerEmail;
         if (requiredFields.includes('customerPhone')) payload.customerPhone = data.phoneNormalized;
+        
         await fetch(`/api/orders?id=${orderId}`, {
           method: 'PATCH',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify(payload),
         });
+      } else {
+        console.log('Ignorando chamada duplicada enquanto pedido está sendo criado');
       }
     } catch (error) {
       console.error('Erro ao salvar dados do cliente:', error);
+      // Garante que a flag seja desativada em caso de erro
+      setIsCreatingOrder(false);
     }
   };
 

@@ -2,9 +2,10 @@
 
 import { NextRequest, NextResponse } from 'next/server'
 import { MercadoPagoConfig, Payment as MPayment } from 'mercadopago'
+import { Prisma } from '@prisma/client'
 import { prisma } from '@/lib/prisma'
 import { broadcastSSE } from '@/lib/sse'
-import { WebhookOrchestrator } from '@/services/webhook'
+
 import { webhookRateLimit } from '@/lib/rate-limit'
 import crypto from 'crypto'
 
@@ -173,7 +174,7 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
       }
 
       // 7. Usar transação para garantir consistência
-      await prisma.$transaction(async (tx) => {
+      await prisma.$transaction(async (tx: Prisma.TransactionClient) => {
         // Capturar status atual pra histórico
         const currentOrderStatus = payment.order?.status || 'PAYMENT_PROCESSING'
 
@@ -245,42 +246,8 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
       console.log('[WEBHOOK] Disparando SSE para payment.id:', payment.id, 'status:', status)
       broadcastSSE(payment.id, status)
 
-      // 9. Disparar webhooks do nosso sistema se pagamento aprovado
-      if (status === 'approved') {
-        try {
-          const orchestrator = new WebhookOrchestrator(prisma)
-          
-          // Cancelar cart reminder se existir
-          const activeCartReminder = await prisma.webhookJob.findFirst({
-            where: {
-              orderId: payment.orderId,
-              jobType: 'cart_reminder',
-              status: 'active',
-            },
-          });
-
-          if (activeCartReminder) {
-            await orchestrator.cancelCartReminder(activeCartReminder.jobId);
-            
-            // Marcar como cancelado
-            await prisma.webhookJob.update({
-              where: { id: activeCartReminder.id },
-              data: { 
-                status: 'cancelled',
-                completedAt: new Date(),
-              },
-            });
-          }
-
-          // Disparar evento order.paid
-          await orchestrator.processOrderPaid(payment.orderId);
-          
-          console.log(`Webhook order.paid disparado para pedido ${payment.orderId}`);
-        } catch (webhookError) {
-          console.error('Erro ao disparar webhooks internos:', webhookError)
-          // Não falhar o webhook principal por erro nos webhooks internos
-        }
-      }
+      // Pagamento processado com sucesso
+      console.log(`Pagamento ${paymentId} processado com sucesso. Status: ${status}`);
 
       return NextResponse.json({ success: true })
     }
