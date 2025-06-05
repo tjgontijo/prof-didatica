@@ -1,5 +1,4 @@
-// src/services/webhook/core/queue.service.ts
-import Bull, { Queue, Job } from 'bull';
+import { Queue, Worker, Job } from 'bullmq';
 import * as crypto from 'crypto';
 import { EventEmitter } from 'events';
 import { 
@@ -38,8 +37,8 @@ export class UnifiedQueueService implements QueueService {
 
   private initializeBullQueue(): void {
     try {
-      this.bullQueue = new Bull('webhook-queue', {
-        redis: this.config.queue.redis,
+      this.bullQueue = new Queue('webhook-queue', {
+        connection: this.config.queue.redis,
         defaultJobOptions: {
           removeOnComplete: 10,
           removeOnFail: 50,
@@ -51,7 +50,17 @@ export class UnifiedQueueService implements QueueService {
         },
       });
 
-      this.bullQueue.process('webhook', this.config.queue.maxConcurrent, this.processBullJob.bind(this));
+      // Criar o Worker para processar os jobs
+      const worker = new Worker('webhook-queue', this.processBullJob.bind(this), {
+        connection: this.config.queue.redis,
+        concurrency: this.config.queue.maxConcurrent
+      });
+
+      worker.on('error', (error) => {
+        console.error('BullMQ Worker Error:', error);
+      });
+
+      // Worker já configurado acima
       
       this.bullQueue.on('error', (error) => {
         console.error('Bull Queue Error:', error);
@@ -87,7 +96,7 @@ export class UnifiedQueueService implements QueueService {
           jobId,
         }
       );
-      return job.id.toString();
+      return (job.id ?? jobId).toString();
     } else {
       const job: WebhookJob<T> = {
         id: jobId,

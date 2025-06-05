@@ -14,7 +14,7 @@ declare global {
   }
 }
 
-export function Claritycript() {
+export function ClarityScript() {
   useEffect(() => {
     // Log para verificar se o script do Clarity está sendo inicializado
     console.log('Tentando inicializar o Microsoft Clarity...');
