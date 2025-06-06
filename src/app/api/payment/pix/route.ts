@@ -2,31 +2,42 @@ import { NextRequest, NextResponse } from 'next/server';
 import { MercadoPagoConfig, Payment } from 'mercadopago';
 import { prisma } from '@/lib/prisma';
 import { z } from 'zod';
-
+import { Prisma } from '@prisma/client';
 import { paymentRateLimit } from '@/lib/rate-limit';
 
-// Schemas de validação com Zod
-const itemSchema = z.object({
-  id: z.string().uuid(),
-  title: z.string().min(1).max(255),
-  unit_price: z.number().positive(),
-  quantity: z.number().int().positive().max(10),
-  picture_url: z.string().url().optional(),
-});
-
-const clienteSchema = z.object({
-  nome: z.string().min(2).max(100),
-  email: z.string().email(),
-  telefone: z.string().regex(/^\d{10,11}$/, 'Telefone deve ter 10 ou 11 dígitos'),
-});
-
-const dadosPedidoSchema = z.object({
-  items: z.array(itemSchema).min(1).max(20),
-  cliente: clienteSchema,
+// Schema para validação do payload
+const paymentSchema = z.object({
+  orderId: z.string(),
   valorTotal: z.number().positive(),
-  checkoutId: z.string().uuid(),
-  orderId: z.string().uuid(),
+  cliente: z.object({
+    nome: z.string().min(2),
+    email: z.string().email(),
+    telefone: z.string().min(11),
+  }),
+  items: z.array(
+    z.object({
+      id: z.string(),
+      nome: z.string(),
+      quantidade: z.number().int().positive(),
+      preco: z.number().positive(),
+    })
+  ),
 });
+
+// Tipo para resposta do Mercado Pago
+type MercadoPagoResponse = {
+  id: number;
+  status: string;
+  payment_method_id: string;
+  point_of_interaction?: {
+    transaction_data?: {
+      qr_code?: string;
+      qr_code_base64?: string;
+    };
+  };
+};
+
+
 
 export async function POST(request: NextRequest): Promise<NextResponse> {
   try {
@@ -50,25 +61,36 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
       );
     }
 
-    // Validar dados recebidos com Zod
-    const dados = dadosPedidoSchema.parse(await request.json());
+    // 2. Validar payload
+    const dados = await request.json();
+    const validationResult = paymentSchema.safeParse(dados);
 
-    // Log apenas em desenvolvimento (sem dados sensíveis)
+    if (!validationResult.success) {
+      console.error('Erro de validação:', validationResult.error);
+      return NextResponse.json(
+        { 
+          success: false, 
+          error: 'Dados inválidos',
+          details: validationResult.error.errors
+        },
+        { status: 400 }
+      );
+    }
+
+    const payload = validationResult.data;
+
     if (process.env.NODE_ENV === 'development') {
       console.log('Criação de pagamento PIX iniciada:', { 
-        orderId: dados.orderId, 
-        valorTotal: dados.valorTotal,
+        orderId: payload.orderId, 
+        valorTotal: payload.valorTotal,
         timestamp: new Date().toISOString()
       });
     }
 
-    // Verificar se o pedido existe e está no status correto
+    // 3. Verificar se o pedido existe e está no status correto
     const order = await prisma.order.findUnique({
-      where: { id: dados.orderId },
-      include: {
-        customer: true,
-        orderItems: true,
-      },
+      where: { id: payload.orderId },
+      include: { orderItems: true },
     });
 
     if (!order) {
@@ -80,169 +102,89 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
 
     if (order.status !== 'DRAFT') {
       return NextResponse.json(
-        { success: false, error: 'Pedido não está mais disponível para pagamento' },
+        { 
+          success: false, 
+          error: 'Pedido não está no status correto para pagamento' 
+        },
         { status: 400 }
       );
     }
 
-    // Usar transação para garantir consistência
-    await prisma.$transaction(async (tx) => {
-      // Verificar se há novos itens (order bumps) para adicionar
-      const existingItemIds = order.orderItems.map((item) => item.productId);
-      const newItems = dados.items.filter(
-        (item) => !existingItemIds.includes(item.id) && item.id !== order.productId,
-      );
+    // 4. Processar pagamento PIX
+    console.log('Iniciando transação para pedido:', payload.orderId);
 
-      // Criar novos OrderItems para os order bumps selecionados
-      if (newItems.length > 0) {
-        await Promise.all(
-          newItems.map((item) =>
-            tx.orderItem.create({
-              data: {
-                orderId: dados.orderId,
-                productId: item.id,
-                quantity: item.quantity,
-                priceAtTime: item.unit_price,
-                isOrderBump: true,
-                isUpsell: false,
-              },
-            }),
-          ),
-        );
-      }
-
-      // Atualizar o status da ordem para PENDING_PAYMENT
-      await tx.order.update({
-        where: { id: dados.orderId },
-        data: {
-          status: 'PENDING_PAYMENT',
-          statusUpdatedAt: new Date(),
-          paidAmount: 0,
-        },
+    const result = await prisma.$transaction(async (tx: Prisma.TransactionClient) => {
+      // 4.1 Atualizar status do pedido para PENDING
+      const updatedOrder = await tx.order.update({
+        where: { id: payload.orderId },
+        data: { status: 'PENDING_PAYMENT' },
       });
 
-      // Registrar a mudança de status na tabela de histórico
-      await tx.orderStatusHistory.create({
-        data: {
-          orderId: dados.orderId,
-          previousStatus: order.status,
-          newStatus: 'PENDING_PAYMENT',
-          notes: 'Iniciado processo de pagamento PIX',
-        },
+      console.log('Status do pedido atualizado para PENDING_PAYMENT:', updatedOrder.id);
+
+      // 4.2 Criar pagamento PIX via Mercado Pago
+      const client = new MercadoPagoConfig({
+        accessToken: process.env.MERCADOPAGO_ACCESS_TOKEN || '',
       });
-    });
 
-    // Pedido atualizado para PENDING_PAYMENT, pronto para processar pagamento
-    console.log(`Pedido ${dados.orderId} atualizado para PENDING_PAYMENT`);
+      const payment = new Payment(client);
+      const telefone = payload.cliente.telefone.replace(/\D/g, '');
+      const areaCode = telefone.substring(0, 2);
+      const phoneNumber = telefone.substring(2);
 
-    // Configurar o Mercado Pago
-    const accessToken = process.env.MERCADOPAGO_ACCESS_TOKEN;
-    if (!accessToken) {
-      return NextResponse.json(
-        { success: false, error: 'Configuração de pagamento indisponível' },
-        { status: 503 }
-      );
-    }
-
-    const client = new MercadoPagoConfig({ accessToken });
-    const payment = new Payment(client);
-
-    // Preparar dados do telefone
-    const telefone = dados.cliente.telefone.replace(/\D/g, '');
-    const areaCode = telefone.length === 11 ? telefone.substring(0, 2) : '11';
-    const phoneNumber = telefone.length === 11 ? telefone.substring(2) : telefone;
-
-    // Criar o pagamento PIX
-    const resultado = await payment.create({
-      body: {
-        transaction_amount: dados.valorTotal,
-        description: `Pedido ${dados.orderId}`,
+      const mpPaymentData = {
+        transaction_amount: payload.valorTotal,
+        description: `Pedido #${payload.orderId}`,
         payment_method_id: 'pix',
         payer: {
-          email: dados.cliente.email,
-          first_name: dados.cliente.nome.split(' ')[0],
-          last_name: dados.cliente.nome.split(' ').slice(1).join(' ') || dados.cliente.nome.split(' ')[0],
+          email: payload.cliente.email,
+          first_name: payload.cliente.nome.split(' ')[0],
+          last_name: payload.cliente.nome.split(' ').slice(1).join(' ') || payload.cliente.nome.split(' ')[0],
           phone: {
             area_code: areaCode,
             number: phoneNumber,
           },
         },
-        additional_info: {
-          items: dados.items.map(item => ({
-            id: item.id,
-            title: item.title,
-            description: item.title,
-            picture_url: item.picture_url,
-            category_id: 'digital_goods',
-            quantity: item.quantity,
-            unit_price: item.unit_price,
-          })),
-          payer: {
-            first_name: dados.cliente.nome.split(' ')[0],
-            last_name: dados.cliente.nome.split(' ').slice(1).join(' ') || dados.cliente.nome.split(' ')[0],
-            phone: {
-              area_code: areaCode,
-              number: phoneNumber,
-            },
-          },
+      };
+
+      console.log('Criando pagamento PIX no Mercado Pago...');
+
+      const mpResponse = (await payment.create({ body: mpPaymentData })) as MercadoPagoResponse;
+
+      console.log('Resposta do Mercado Pago:', {
+        id: mpResponse.id,
+        status: mpResponse.status,
+        paymentMethodId: mpResponse.payment_method_id
+      });
+
+      // 4.3 Criar registro de pagamento no banco
+      const paymentRecord = await tx.payment.create({
+        data: {
+          orderId: payload.orderId,
+          method: 'pix',
+          status: mpResponse.status,
+          amount: payload.valorTotal,
+          rawData: mpResponse,
         },
-        external_reference: dados.orderId,
-      },
+      });
+
+      console.log('Pagamento registrado no banco:', paymentRecord.id);
+
+      return {
+        success: true,
+        paymentId: paymentRecord.id,
+        qrCode: mpResponse.point_of_interaction?.transaction_data?.qr_code,
+        qrCodeBase64: mpResponse.point_of_interaction?.transaction_data?.qr_code_base64,
+        pixCopyPaste: mpResponse.point_of_interaction?.transaction_data?.qr_code,
+        expiresAt: new Date(Date.now() + 30 * 60 * 1000), // 30 minutos
+      };
     });
 
-    // Salvar o pagamento no banco de dados
-    const paymentData = await prisma.payment.create({
-      data: {
-        orderId: dados.orderId,
-        mercadoPagoId: String(resultado.id),
-        amount: dados.valorTotal,
-        method: 'pix',
-        status: resultado.status || 'pending',
-        rawData: {
-          qrCode: resultado.point_of_interaction?.transaction_data?.qr_code,
-          qrCodeBase64: resultado.point_of_interaction?.transaction_data?.qr_code_base64,
-          pixCopyPaste: resultado.point_of_interaction?.transaction_data?.qr_code,
-          expiresAt: resultado.date_of_expiration,
-          mercadoPagoResponse: JSON.parse(JSON.stringify(resultado)),
-        },
-      },
-    });
-
-    console.log(`Pagamento PIX criado: ${paymentData.id}`);
-
-    // Extrair dados do rawData para resposta
-    const pixData = paymentData.rawData as Record<string, unknown>;
-
-    // Retornar resposta com dados do PIX
-    return NextResponse.json({
-      success: true,
-      paymentId: paymentData.id,
-      mercadoPagoId: resultado.id,
-      status: resultado.status,
-      qrCode: pixData.qrCode,
-      qrCodeBase64: pixData.qrCodeBase64,
-      pixCopyPaste: pixData.pixCopyPaste,
-      expiresAt: pixData.expiresAt,
-    });
+    return NextResponse.json(result);
   } catch (error) {
-    if (error instanceof z.ZodError) {
-      return NextResponse.json(
-        { success: false, error: 'Dados inválidos', details: error.errors },
-        { status: 422 }
-      );
-    }
-
     console.error('Erro ao processar pagamento PIX:', error);
-    
-    if (error instanceof Error) {
-      return NextResponse.json(
-        { success: false, error: error.message },
-        { status: 400 }
-      );
-    }
-
     return NextResponse.json(
-      { success: false, error: 'Erro interno do servidor' },
+      { success: false, error: 'Erro ao processar pagamento' },
       { status: 500 }
     );
   }

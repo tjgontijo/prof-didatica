@@ -1,7 +1,6 @@
 // src/services/webhook/index.ts - Nova estrutura refatorada
 import { PrismaClient } from '@prisma/client';
 import { getWebhookService } from './core/webhook.service';
-
 import { OrderCreatedEventHandler } from './events/order-created.event';
 import { OrderPaidEventHandler } from './events/order-paid.event';
 
@@ -89,4 +88,3 @@ export * from './config/webhook.config';
 // Exportações dos handlers de eventos
 export { OrderCreatedEventHandler } from './events/order-created.event';
 export { OrderPaidEventHandler } from './events/order-paid.event';
-export { CartReminderEventHandler } from './events/cart-reminder.event';

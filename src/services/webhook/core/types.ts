@@ -1,5 +1,14 @@
-// src/services/webhook/core/types.ts
-import { Webhook as PrismaWebhook, OrderStatus } from '@prisma/client';
+type PrismaWebhook = {
+  id: string;
+  url: string;
+  secret?: string | null;
+  active: boolean;
+  events: string[];
+  createdAt: Date;
+  updatedAt: Date;
+};
+
+type OrderStatus = 'DRAFT' | 'PENDING' | 'PAID' | 'COMPLETED' | 'CANCELLED';
 import { z } from 'zod';
 
 // ========================
@@ -18,53 +27,12 @@ export interface WebhookPayload<T = unknown> {
   signature?: string;
 }
 
-export interface WebhookJob<T = unknown> {
-  id: string;
-  webhook: WebhookWithSecret;
-  payload: WebhookPayload<T>;
-  attempts: number;
-  maxAttempts: number;
-  scheduledFor?: Date;
-}
-
 export interface WebhookResponse {
   status?: number;
   statusText?: string;
   headers?: Record<string, string>;
   error?: string;
   success: boolean;
-}
-
-// ========================
-// Queue Service Interface
-// ========================
-
-export interface QueueService {
-  addToQueue<T>(
-    webhook: WebhookWithSecret, 
-    payload: WebhookPayload<T>, 
-    options?: QueueOptions
-  ): Promise<string>; // Retorna job ID
-  
-  cancelJob(jobId: string): Promise<boolean>;
-  getJobStatus(jobId: string): Promise<JobStatus | null>;
-  close(): Promise<void>;
-}
-
-export interface QueueOptions {
-  delay?: number;
-  attempts?: number;
-  removeOnComplete?: boolean;
-}
-
-export interface JobStatus {
-  id: string;
-  status: 'waiting' | 'active' | 'completed' | 'failed' | 'delayed';
-  attempts: number;
-  maxAttempts: number;
-  error?: string;
-  completedAt?: Date;
-  failedAt?: Date;
 }
 
 // ========================
@@ -88,6 +56,29 @@ export interface OrderItemData {
   isUpsell: boolean;
 }
 
+export interface PaymentRawData {
+  qrCode: string;
+  qrCodeBase64: string;
+  pixCopyPaste: string;
+  expiresAt: string;
+  mercadoPagoResponse: Record<string, unknown>;
+}
+
+export interface PaymentPixData {
+  qrCode: string;
+  qrCodeBase64: string;
+  pixCopyPaste: string;
+  expiresAt: string;
+}
+
+export interface PaymentData {
+  id: string;
+  method: string;
+  status: string;
+  amount: number;
+  pix?: PaymentPixData;
+}
+
 export interface OrderEventData {
   id: string;
   checkoutId: string;
@@ -98,6 +89,7 @@ export interface OrderEventData {
   totalValue: number;
   createdAt: string;
   updatedAt: string;
+  payment?: PaymentData;
 }
 
 // ========================
@@ -162,7 +154,10 @@ export interface OrderWithRelationsForEvent {
   payment?: {
     id: string;
     method: string;
+    status: string;
+    amount: number;
     paidAt: Date | null;
+    rawData: PaymentRawData | null;
   } | null;
 }
 
@@ -201,7 +196,7 @@ export const OrderEventDataSchema = z.object({
   checkoutId: z.string().uuid(),
   customer: CustomerDataSchema,
   items: z.array(OrderItemDataSchema),
-  status: z.nativeEnum(OrderStatus),
+  status: z.enum(['DRAFT', 'PENDING', 'PAID', 'COMPLETED', 'CANCELLED']),
   totalItems: z.number().min(0),
   totalValue: z.number().min(0),
   createdAt: z.string().datetime(),
@@ -235,14 +230,4 @@ export interface WebhookDispatchOptions {
   delay?: number;
   maxRetries?: number;
   priority?: number;
-}
-
-export interface WebhookJobData {
-  eventId: string;
-  webhookId: string;
-  url: string;
-  payload: Record<string, unknown>;
-  headers: Record<string, string>;
-  retryCount: number;
-  maxRetries: number;
 }

@@ -7,9 +7,10 @@ import {
   OrderItemData,
   validateWebhookPayload,
   OrderEventDataSchema,
-  OrderWithRelationsForEvent
-} from '../core/types';
-import { getWebhookConfig } from '../config/webhook.config';
+  OrderWithRelationsForEvent,
+  PaymentRawData
+} from '@/services/webhook/core/types';
+import { getWebhookConfig } from '@/services/webhook/config/webhook.config';
 
 export class OrderCreatedEventHandler {
   private config = getWebhookConfig();
@@ -53,6 +54,9 @@ export class OrderCreatedEventHandler {
           select: {
             id: true,
             method: true,
+            status: true,
+            amount: true,
+            rawData: true,
             paidAt: true,
           },
         },
@@ -81,6 +85,20 @@ export class OrderCreatedEventHandler {
     const totalItems = items.reduce((sum, item) => sum + item.quantity, 0);
     const totalValue = items.reduce((sum, item) => sum + (item.price * item.quantity), 0);
 
+    // Mapear dados do pagamento se existir
+    const payment = order.payment ? {
+      id: order.payment.id,
+      method: order.payment.method,
+      status: order.payment.status,
+      amount: order.payment.amount,
+      pix: order.payment.method === 'pix' && order.payment.rawData ? {
+        qrCode: (order.payment.rawData as PaymentRawData).qrCode,
+        qrCodeBase64: (order.payment.rawData as PaymentRawData).qrCodeBase64,
+        pixCopyPaste: (order.payment.rawData as PaymentRawData).pixCopyPaste,
+        expiresAt: (order.payment.rawData as PaymentRawData).expiresAt,
+      } : undefined
+    } : undefined;
+
     return {
       id: order.id,
       checkoutId: order.checkoutId,
@@ -91,6 +109,7 @@ export class OrderCreatedEventHandler {
       totalValue,
       createdAt: order.createdAt.toISOString(),
       updatedAt: order.updatedAt.toISOString(),
+      payment,
     };
   }
 }
