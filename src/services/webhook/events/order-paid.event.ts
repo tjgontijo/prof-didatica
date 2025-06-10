@@ -55,6 +55,7 @@ export class OrderPaidEventHandler {
                 id: true,
                 name: true,
                 price: true,
+                googleDriveUrl: true,
               },
             },
           },
@@ -86,6 +87,7 @@ export class OrderPaidEventHandler {
       price: item.product?.price || 0,
       isOrderBump: !!item.isOrderBump,
       isUpsell: !!item.isUpsell,
+      googleDriveUrl: item.product?.googleDriveUrl || '',
     }));
 
     const totalItems = items.reduce((sum, item) => sum + item.quantity, 0);

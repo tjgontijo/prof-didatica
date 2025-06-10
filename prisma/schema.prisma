@@ -30,6 +30,7 @@ model Product {
   imageUrl        String?  // URL da imagem do produto
   price           Int  
   salesPageUrl    String?  
+  googleDriveUrl  String?  // URL do Google Drive com o material digital
   isActive        Boolean  @default(true)
   createdAt       DateTime @default(now())
   updatedAt       DateTime @updatedAt

@@ -54,6 +54,7 @@ export interface OrderItemData {
   price: number;
   isOrderBump: boolean;
   isUpsell: boolean;
+  googleDriveUrl: string | null;
 }
 
 export interface PaymentRawData {
@@ -149,6 +150,7 @@ export interface OrderWithRelationsForEvent {
       id: string;
       name: string;
       price: number;
+      googleDriveUrl: string | null;
     } | null;
   }>;
   payment?: {
@@ -216,13 +218,14 @@ export function validateWebhookPayload<T>(
 
 export function normalizeOrderItem(item: Partial<OrderItemData>): OrderItemData {
   return {
-    id: item.id!,
-    productId: item.productId!,
-    name: item.name!,
-    quantity: item.quantity!,
-    price: item.price!,
+    id: item.id || '',
+    productId: item.productId || '',
+    name: item.name || '',
+    quantity: item.quantity || 0,
+    price: item.price || 0,
     isOrderBump: !!item.isOrderBump,
     isUpsell: !!item.isUpsell,
+    googleDriveUrl: item.googleDriveUrl || '',
   };
 }
 

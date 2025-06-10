@@ -9,6 +9,7 @@ CREATE TABLE "Product" (
     "imageUrl" TEXT,
     "price" INTEGER NOT NULL,
     "salesPageUrl" TEXT,
+    "googleDriveUrl" TEXT,
     "isActive" BOOLEAN NOT NULL DEFAULT true,
     "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "updatedAt" TIMESTAMP(3) NOT NULL,
@@ -152,20 +153,6 @@ CREATE TABLE "Customer" (
 );
 
 -- CreateTable
-CREATE TABLE "WebhookJob" (
-    "id" TEXT NOT NULL,
-    "orderId" TEXT NOT NULL,
-    "jobId" TEXT NOT NULL,
-    "jobType" TEXT NOT NULL,
-    "status" TEXT NOT NULL,
-    "scheduledAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    "completedAt" TIMESTAMP(3),
-    "errorMsg" TEXT,
-
-    CONSTRAINT "WebhookJob_pkey" PRIMARY KEY ("id")
-);
-
--- CreateTable
 CREATE TABLE "ExternalWebhookLog" (
     "id" TEXT NOT NULL,
     "webhookId" TEXT NOT NULL,
@@ -246,15 +233,6 @@ CREATE INDEX "Customer_email_idx" ON "Customer"("email");
 CREATE INDEX "Customer_phone_idx" ON "Customer"("phone");
 
 -- CreateIndex
-CREATE INDEX "WebhookJob_orderId_idx" ON "WebhookJob"("orderId");
-
--- CreateIndex
-CREATE INDEX "WebhookJob_jobType_status_idx" ON "WebhookJob"("jobType", "status");
-
--- CreateIndex
-CREATE INDEX "WebhookJob_scheduledAt_idx" ON "WebhookJob"("scheduledAt");
-
--- CreateIndex
 CREATE UNIQUE INDEX "ExternalWebhookLog_webhookId_key" ON "ExternalWebhookLog"("webhookId");
 
 -- CreateIndex
@@ -298,6 +276,3 @@ ALTER TABLE "WebhookLog" ADD CONSTRAINT "WebhookLog_webhookId_fkey" FOREIGN KEY 
 
 -- AddForeignKey
 ALTER TABLE "Payment" ADD CONSTRAINT "Payment_orderId_fkey" FOREIGN KEY ("orderId") REFERENCES "Order"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
-
--- AddForeignKey
-ALTER TABLE "WebhookJob" ADD CONSTRAINT "WebhookJob_orderId_fkey" FOREIGN KEY ("orderId") REFERENCES "Order"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
