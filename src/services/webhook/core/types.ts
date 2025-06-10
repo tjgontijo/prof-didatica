@@ -191,18 +191,31 @@ export const OrderItemDataSchema = z.object({
   price: z.number().min(0),
   isOrderBump: z.boolean(),
   isUpsell: z.boolean(),
+  googleDriveUrl: z.string().nullable(),
 });
 
 export const OrderEventDataSchema = z.object({
   id: z.string().uuid(),
   checkoutId: z.string().uuid(),
   customer: CustomerDataSchema,
-  items: z.array(OrderItemDataSchema),
+  items: z.array(OrderItemDataSchema).min(1, 'Deve conter pelo menos um item'),
   status: z.enum(['DRAFT', 'PENDING', 'PAID', 'COMPLETED', 'CANCELLED']),
   totalItems: z.number().min(0),
   totalValue: z.number().min(0),
   createdAt: z.string().datetime(),
   updatedAt: z.string().datetime(),
+  payment: z.object({
+    id: z.string().uuid(),
+    method: z.string(),
+    status: z.string(),
+    amount: z.number().min(0),
+    pix: z.object({
+      qrCode: z.string(),
+      qrCodeBase64: z.string(),
+      pixCopyPaste: z.string(),
+      expiresAt: z.string().datetime(),
+    }).optional(),
+  }).optional(),
 });
 
 // ========================

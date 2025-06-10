@@ -41,14 +41,7 @@ export class OrderCreatedEventHandler {
         customer: true,
         orderItems: {
           include: {
-            product: {
-              select: {
-                id: true,
-                name: true,
-                price: true,
-                googleDriveUrl: true,
-              },
-            },
+            product: true,
           },
         },
         payment: {
@@ -73,16 +66,20 @@ export class OrderCreatedEventHandler {
       phone: order.customer.phone || '',
     };
 
-    const items: OrderItemData[] = order.orderItems.map((item) => ({
-      id: item.id,
-      productId: item.productId,
-      name: item.product?.name || 'Produto não encontrado',
-      quantity: item.quantity,
-      price: item.product?.price || 0,
-      isOrderBump: !!item.isOrderBump,
-      isUpsell: !!item.isUpsell,
-      googleDriveUrl: item.product?.googleDriveUrl || '',
-    }));
+    const items = order.orderItems.map((item) => {
+      // Garantir que todos os campos obrigatórios estejam presentes e com tipos corretos
+      const orderItem = {
+        id: item.id,
+        productId: item.productId,
+        name: item.product?.name ?? 'Produto não encontrado',
+        quantity: item.quantity,
+        price: item.product?.price ?? 0,
+        isOrderBump: Boolean(item.isOrderBump),
+        isUpsell: Boolean(item.isUpsell),
+        googleDriveUrl: item.product?.googleDriveUrl ?? null,
+      } satisfies OrderItemData;
+      return orderItem;
+    });
 
     const totalItems = items.reduce((sum, item) => sum + item.quantity, 0);
     const totalValue = items.reduce((sum, item) => sum + (item.price * item.quantity), 0);
