@@ -79,16 +79,19 @@ export class OrderPaidEventHandler {
       phone: order.customer.phone || '',
     };
 
-    const items: OrderItemData[] = order.orderItems.map((item) => ({
-      id: item.id,
-      productId: item.productId,
-      name: item.product?.name || 'Produto não encontrado',
-      quantity: item.quantity,
-      price: item.product?.price || 0,
-      isOrderBump: !!item.isOrderBump,
-      isUpsell: !!item.isUpsell,
-      googleDriveUrl: item.product?.googleDriveUrl || '',
-    }));
+    const items = order.orderItems.map((item) => {
+      const orderItem = {
+        id: item.id,
+        productId: item.productId,
+        name: item.product?.name ?? 'Produto não encontrado',
+        quantity: item.quantity,
+        price: item.product?.price ?? 0,
+        isOrderBump: Boolean(item.isOrderBump),
+        isUpsell: Boolean(item.isUpsell),
+        googleDriveUrl: item.product?.googleDriveUrl ?? null,
+      } satisfies OrderItemData;
+      return orderItem;
+    });
 
     const totalItems = items.reduce((sum, item) => sum + item.quantity, 0);
     const totalValue = items.reduce((sum, item) => sum + (item.price * item.quantity), 0);
