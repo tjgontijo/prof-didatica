@@ -214,7 +214,7 @@ export default function CheckoutClientComponent({
     return totalGeral;
   }, [orderBumpsSelecionados, product.price]);
 
-  // Efeito para enviar o evento InitiateCheckout apenas uma vez quando o componente montar e apenas em produção
+  // Efeito para enviar o evento InitiateCheckout apenas uma vez por sessão
   useEffect(() => {
     // Verifica se está em ambiente de produção
     const isProduction = process.env.NODE_ENV === 'production';
@@ -225,6 +225,12 @@ export default function CheckoutClientComponent({
         return;
       }
 
+      // Verifica se o evento já foi enviado nesta sessão para este produto
+      const sessionKey = `checkout_initiated_${product.id}`;
+      if (sessionStorage.getItem(sessionKey)) {
+        return;
+      }
+
       if (typeof window.fbq !== 'function') {
         console.warn('Meta Pixel ainda não carregado. Tentando novamente em 2 segundos...');
         setTimeout(sendMetaEvent, 2000);
@@ -232,8 +238,8 @@ export default function CheckoutClientComponent({
       }
 
       try {
-        const utmifyLead = JSON.parse(localStorage.getItem('lead') || '{}');
-
+        // Marca que o evento foi enviado para este produto nesta sessão
+        sessionStorage.setItem(sessionKey, 'true');
         // Obter data e hora formatados
         const now = new Date();
         const days = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
@@ -275,33 +281,24 @@ export default function CheckoutClientComponent({
           value: product.price,
           currency: 'BRL',
 
-          // Dados do lead do Utmify
-          external_id: utmifyLead._id || undefined,
-          em: utmifyLead.email || undefined,
-          ph: utmifyLead.phone || undefined,
-          fn: utmifyLead.firstName || undefined,
-          ln: utmifyLead.lastName || undefined,
-
-          // Dados de geolocalização
-          country: utmifyLead.geolocation?.country || undefined,
-          ct: utmifyLead.geolocation?.city || undefined,
-          st: utmifyLead.geolocation?.state || undefined,
-          zp: utmifyLead.geolocation?.zipcode || undefined,
-
           // Dados do dispositivo
           client_user_agent: navigator.userAgent,
-          client_ip_address: utmifyLead.ip || utmifyLead.ipv6 || undefined,
+          
+          // Identificador único do evento para ajudar na deduplicação
+          event_id: `${product.id}_${Date.now()}`
         };
 
         console.log('Enviando evento InitiateCheckout para Meta Ads:', eventData);
         window.fbq('track', 'InitiateCheckout', eventData);
       } catch (error) {
         console.error('Erro ao enviar evento InitiateCheckout para Meta Ads:', error);
+        // Remove a marca de envio em caso de erro para permitir retry
+        sessionStorage.removeItem(`checkout_initiated_${product.id}`);
       }
     };
 
     sendMetaEvent();
-  }, [product.id, product.name, product.price]); // Executa quando o produto mudar
+  }, []); // Executa apenas uma vez no carregamento inicial do componente
 
   // Atualiza os order bumps selecionados quando mudar a seleção
   useEffect(() => {

@@ -176,6 +176,7 @@ const FormCustomer: React.FC<FormCustomerProps> = ({
             ref={nomeRef}
             type="text"
             id="customerName"
+            autoComplete="off"
             value={dadosCliente.customerName}
             onChange={(e) => setDadosCliente((prev) => ({ ...prev, customerName: e.target.value }))}
             onBlur={() => handleBlur('customerName')}
@@ -195,6 +196,7 @@ const FormCustomer: React.FC<FormCustomerProps> = ({
             ref={emailRef}
             type="email"
             id="customerEmail"
+            autoComplete="off"
             value={dadosCliente.customerEmail}
             onChange={(e) =>
               setDadosCliente((prev) => ({ ...prev, customerEmail: e.target.value }))
@@ -220,6 +222,7 @@ const FormCustomer: React.FC<FormCustomerProps> = ({
               ref={telefoneRef}
               type="tel"
               id="customerPhone"
+              autoComplete="off"
               value={dadosCliente.customerPhone}
               onChange={(e) => {
                 if (whatsappValidado && e.target.value !== dadosCliente.customerPhone)
