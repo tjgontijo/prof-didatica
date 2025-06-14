@@ -161,9 +161,12 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
           method: 'pix',
           status: mpResponse.status,
           amount: payload.valorTotal,
+          mercadoPagoId: String(mpResponse.id), // Adicionando o ID do Mercado Pago
           rawData: mpResponse,
         },
       });
+      
+      console.log('Pagamento registrado com mercadoPagoId:', String(mpResponse.id));
 
       console.log('Pagamento registrado no banco:', paymentRecord.id);
 
