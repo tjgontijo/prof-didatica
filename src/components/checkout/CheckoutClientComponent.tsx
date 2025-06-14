@@ -302,19 +302,17 @@ export default function CheckoutClientComponent({
           <ProductHeader
             produto={product}
           />
-          
+          <div className="border-b"></div>
           {currentStep === 'personal-info' && (
             <form onSubmit={handleSubmit(handleSaveCustomerDataAndProceed)}>
-              <div className="bg-white p-6 rounded-lg shadow-sm">
-                <FormCustomer
+              <FormCustomer
                   register={register}
                   errors={formState.errors}
                   isSubmitting={formState.isSubmitting}
                   trigger={trigger}
                   formState={formState}
                   onProceedToPayment={handleSubmit(handleSaveCustomerDataAndProceed)}
-                />
-              </div>
+                />              
             </form>
           )}
           {currentStep === 'payment' && (
