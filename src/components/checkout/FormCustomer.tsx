@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { UseFormRegister, FieldErrors, UseFormTrigger, FormState } from 'react-hook-form';
 import { FaArrowRight, FaWhatsapp } from 'react-icons/fa';
 import { FiUser, FiMail } from 'react-icons/fi';
@@ -160,7 +160,7 @@ const FormCustomer: React.FC<FormCustomerProps> = ({ register, errors, isSubmitt
         <h2 className="text-xl font-bold">Informações Pessoais</h2>
         <div>
           <label
-            htmlFor="name"
+            htmlFor="customerName"
             className="block text-sm font-medium text-gray-700"
           >
             Nome Completo
@@ -171,7 +171,7 @@ const FormCustomer: React.FC<FormCustomerProps> = ({ register, errors, isSubmitt
             </div>
             <input
               type="text"
-              id="name"
+              id="customerName"
               {...register('name')}
               onBlur={handleNameBlur}
               className={`block w-full px-3 py-2 pl-10 border ${errors.name ? 'border-red-500' : 'border-gray-300'} rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm`}
@@ -188,7 +188,7 @@ const FormCustomer: React.FC<FormCustomerProps> = ({ register, errors, isSubmitt
 
         <div>
           <label
-            htmlFor="phone"
+            htmlFor="customerPhone"
             className="block text-sm font-medium text-gray-700"
           >
             WhatsApp
@@ -199,11 +199,10 @@ const FormCustomer: React.FC<FormCustomerProps> = ({ register, errors, isSubmitt
             </div>
             <input
               type="tel"
-              id="phone"
+              id="customerPhone"
               {...phoneRegister}
               onChange={handlePhoneChange}
               onBlur={handlePhoneBlur}
-              placeholder="(99) 99999-9999"
               className={`block w-full px-3 py-2 pl-10 border ${errors.phone ? 'border-red-500' : 'border-gray-300'} rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm`}
               disabled={isSubmitting}
               aria-invalid={errors.phone ? 'true' : 'false'}
@@ -223,7 +222,7 @@ const FormCustomer: React.FC<FormCustomerProps> = ({ register, errors, isSubmitt
 
         <div>
           <label
-            htmlFor="email"
+            htmlFor="customerEmail"
             className="block text-sm font-medium text-gray-700"
           >
             Seu melhor e-mail
@@ -234,7 +233,7 @@ const FormCustomer: React.FC<FormCustomerProps> = ({ register, errors, isSubmitt
             </div>
             <input
               type="email"
-              id="email"
+              id="customerEmail"
               {...register('email')}
               onBlur={handleEmailBlur}
               className={`block w-full px-3 py-2 pl-10 border ${errors.email ? 'border-red-500' : 'border-gray-300'} rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm`}
