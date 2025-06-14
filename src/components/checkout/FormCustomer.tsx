@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { UseFormRegister, FieldErrors, UseFormTrigger, FormState } from 'react-hook-form';
 import { FaArrowRight, FaWhatsapp } from 'react-icons/fa';
 import { FiUser, FiMail } from 'react-icons/fi';
