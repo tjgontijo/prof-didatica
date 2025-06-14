@@ -1,24 +1,22 @@
 // Tipos para o checkout
 export type ProdutoInfo = {
-  nome: string;
+  id: string;
+  name: string;
   price: number;
   imagemUrl: string;
-  sku: string;
-  descricao?: string;
+  description?: string;
 };
 
 export type OrderBump = {
   id: string;
-  nome: string;
-  descricao: string;
-  initialPrice: number; // Preço original do produto
-  specialPrice: number; // Preço especial do order bump
-  imagemUrl: string;
-  sku: string;
-  selecionado?: boolean;
-  percentDesconto?: number; // Percentual de desconto calculado
-  displayOrder?: number | null; // Ordem de exibição (pode ser nulo)
-  callToAction?: string; // Texto do botão de ação
+  name: string;
+  description: string;
+  initialPrice: number;
+  specialPrice: number;
+  imagemUrl: string;  
+  selected: boolean; // Não é mais opcional e padronizado como 'selected'
+  percentDiscont?: number;
+  displayOrder?: number | null;
 };
 
 export type ProdutoComOrderBumps = {
@@ -27,9 +25,9 @@ export type ProdutoComOrderBumps = {
 };
 
 export type DadosCliente = {
-  nome: string;
+  name: string;
   email: string;
-  telefone: string;
+  whatsapp: string;
 };
 
 export type MetodoPagamento = 'pix' | 'credit_card';

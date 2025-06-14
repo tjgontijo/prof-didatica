@@ -4,7 +4,7 @@ import { Inter } from 'next/font/google';
 import { UtmifyScripts } from '@/scripts/utmifyScripts';
 import { ClarityScript } from '@/scripts/clarityScripts';
 
-const inter = Inter({ 
+const inter = Inter({
   subsets: ['latin'],
   display: 'swap',
   variable: '--font-inter',

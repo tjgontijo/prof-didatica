@@ -6,15 +6,12 @@ import { FaCheckCircle, FaWhatsapp } from 'react-icons/fa';
 
 interface PaymentSuccessProps {
   orderNumber: string;
-  customerName: string;  
+  customerName: string;
   accessLink?: string;
   whatsappLink?: string;
 }
 
-const PaymentSuccess: React.FC<PaymentSuccessProps> = ({
-  orderNumber,
-  customerName,  
-}) => {
+const PaymentSuccess: React.FC<PaymentSuccessProps> = ({ orderNumber, customerName }) => {
   const firstName = customerName.split(' ')[0];
 
   return (
@@ -31,9 +28,12 @@ const PaymentSuccess: React.FC<PaymentSuccessProps> = ({
 
       {/* Mensagem de confirmação */}
       <div className="mb-6">
-        <p className="text-[15px] font-semibold mb-1 text-green-800">Pedido processado com sucesso!</p>
+        <p className="text-[15px] font-semibold mb-1 text-green-800">
+          Pedido processado com sucesso!
+        </p>
         <p className="text-sm text-gray-800">
-          Olá, <span className="font-medium">{firstName}</span>! Seu pagamento foi confirmado com sucesso.
+          Olá, <span className="font-medium">{firstName}</span>! Seu pagamento foi confirmado com
+          sucesso.
         </p>
       </div>
 

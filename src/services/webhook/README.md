@@ -25,18 +25,21 @@ src/services/webhook/
 ## Principais Melhorias
 
 ### 🐛 Bugs Corrigidos
+
 - **Status ABANDONED_CART**: Corrigido uso de status inexistente no enum
 - **Singleton Pattern**: Implementação correta para evitar vazamentos de memória
 - **Type Assertions**: Substituídas por tipagem forte e validação com Zod
 - **Tratamento de Erros**: Implementado tratamento robusto em todas as operações
 
 ### 🔧 Arquitetura
+
 - **Centralização**: Configurações unificadas em `webhook.config.ts`
 - **Tipagem Forte**: Todos os tipos definidos e validados com Zod
 - **Serviço Unificado**: Queue service que suporta Bull e InMemory
 - **Separação de Responsabilidades**: Cada evento tem seu próprio handler
 
 ### 🚀 Funcionalidades
+
 - **Retry Automático**: Configurável por evento
 - **Logging Detalhado**: Sucesso e falha de todos os webhooks
 - **Assinatura HMAC**: Segurança dos payloads
@@ -80,7 +83,7 @@ const stats = await webhookOrchestrator.getWebhookStats();
 // Logs de um webhook específico
 const logs = await webhookOrchestrator.getWebhookLogs({
   webhookId: 'uuid-do-webhook',
-  limit: 50
+  limit: 50,
 });
 ```
 
@@ -115,9 +118,11 @@ INSERT INTO "Webhook" (id, url, events, secret, active) VALUES (
 ## Eventos Suportados
 
 ### order.created
+
 Disparado quando um pedido é criado (status DRAFT).
 
 **Payload:**
+
 ```typescript
 {
   event: 'order.created',
@@ -136,9 +141,11 @@ Disparado quando um pedido é criado (status DRAFT).
 ```
 
 ### order.paid
+
 Disparado quando um pedido é pago (status PAID).
 
 **Payload:** Mesmo que `order.created` + campos de pagamento:
+
 ```typescript
 {
   paymentId: string,
@@ -148,9 +155,11 @@ Disparado quando um pedido é pago (status PAID).
 ```
 
 ### cart.reminder
+
 Disparado após delay configurado se pedido ainda estiver em DRAFT.
 
 **Payload:**
+
 ```typescript
 {
   event: 'cart.reminder',
@@ -169,6 +178,7 @@ Disparado após delay configurado se pedido ainda estiver em DRAFT.
 Todos os webhooks são assinados com HMAC-SHA256 usando o secret configurado no banco de dados. O header `X-Webhook-Signature` contém a assinatura.
 
 **Verificação no endpoint:**
+
 ```typescript
 const signature = req.headers['x-webhook-signature'];
 const expectedSignature = crypto
@@ -184,6 +194,7 @@ if (signature !== expectedSignature) {
 ## Logs e Monitoramento
 
 O sistema registra todos os webhooks enviados na tabela `WebhookLog` com:
+
 - Payload enviado
 - Resposta recebida
 - Status code
@@ -204,16 +215,18 @@ beforeEach(() => {
 
 ## Migração do Sistema Antigo
 
-1. **Substitua imports**: 
+1. **Substitua imports**:
+
    - `WebhookService` → `WebhookOrchestrator`
    - `WebhookDispatcher` → Use métodos do orquestrador
 
 2. **Atualize chamadas**:
+
    ```typescript
    // Antes
    await webhookService.dispatchEvent({ event: 'order.created', data });
-   
-   // Depois  
+
+   // Depois
    await webhookOrchestrator.processOrderCreated(orderId);
    ```
 

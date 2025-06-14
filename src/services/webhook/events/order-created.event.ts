@@ -1,14 +1,14 @@
 // src/services/webhook/events/order-created.event.ts
 import { PrismaClient } from '@prisma/client';
-import { 
-  OrderCreatedEvent, 
-  OrderEventData, 
-  CustomerData, 
+import {
+  OrderCreatedEvent,
+  OrderEventData,
+  CustomerData,
   OrderItemData,
   validateWebhookPayload,
   OrderEventDataSchema,
   OrderWithRelationsForEvent,
-  PaymentRawData
+  PaymentRawData,
 } from '@/services/webhook/core/types';
 import { getWebhookConfig } from '@/services/webhook/config/webhook.config';
 
@@ -24,7 +24,7 @@ export class OrderCreatedEventHandler {
     }
 
     const eventData = this.mapToOrderEventData(order);
-    
+
     // Valida os dados antes de criar o evento
     const validatedData = validateWebhookPayload(eventData, OrderEventDataSchema);
 
@@ -82,21 +82,26 @@ export class OrderCreatedEventHandler {
     });
 
     const totalItems = items.reduce((sum, item) => sum + item.quantity, 0);
-    const totalValue = items.reduce((sum, item) => sum + (item.price * item.quantity), 0);
+    const totalValue = items.reduce((sum, item) => sum + item.price * item.quantity, 0);
 
     // Mapear dados do pagamento se existir
-    const payment = order.payment ? {
-      id: order.payment.id,
-      method: order.payment.method,
-      status: order.payment.status,
-      amount: order.payment.amount,
-      pix: order.payment.method === 'pix' && order.payment.rawData ? {
-        qrCode: (order.payment.rawData as PaymentRawData).qrCode,
-        qrCodeBase64: (order.payment.rawData as PaymentRawData).qrCodeBase64,
-        pixCopyPaste: (order.payment.rawData as PaymentRawData).pixCopyPaste,
-        expiresAt: (order.payment.rawData as PaymentRawData).expiresAt,
-      } : undefined
-    } : undefined;
+    const payment = order.payment
+      ? {
+          id: order.payment.id,
+          method: order.payment.method,
+          status: order.payment.status,
+          amount: order.payment.amount,
+          pix:
+            order.payment.method === 'pix' && order.payment.rawData
+              ? {
+                  qrCode: (order.payment.rawData as PaymentRawData).qrCode,
+                  qrCodeBase64: (order.payment.rawData as PaymentRawData).qrCodeBase64,
+                  pixCopyPaste: (order.payment.rawData as PaymentRawData).pixCopyPaste,
+                  expiresAt: (order.payment.rawData as PaymentRawData).expiresAt,
+                }
+              : undefined,
+        }
+      : undefined;
 
     return {
       id: order.id,

@@ -1,12 +1,12 @@
 // src/services/webhook/events/order-paid.event.ts
 import { PrismaClient } from '@prisma/client';
-import { 
-  OrderPaidEvent, 
-  CustomerData, 
+import {
+  OrderPaidEvent,
+  CustomerData,
   OrderItemData,
   validateWebhookPayload,
   OrderEventDataSchema,
-  OrderWithRelationsForEvent
+  OrderWithRelationsForEvent,
 } from '../core/types';
 import { getWebhookConfig } from '../config/webhook.config';
 import { z } from 'zod';
@@ -33,7 +33,7 @@ export class OrderPaidEventHandler {
     }
 
     const eventData = this.mapToOrderPaidEventData(order);
-    
+
     // Valida os dados antes de criar o evento
     const validatedData = validateWebhookPayload(eventData, OrderPaidEventDataSchema);
 
@@ -94,7 +94,7 @@ export class OrderPaidEventHandler {
     });
 
     const totalItems = items.reduce((sum, item) => sum + item.quantity, 0);
-    const totalValue = items.reduce((sum, item) => sum + (item.price * item.quantity), 0);
+    const totalValue = items.reduce((sum, item) => sum + item.price * item.quantity, 0);
 
     return {
       id: order.id,

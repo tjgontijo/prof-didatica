@@ -13,6 +13,19 @@ interface PixDisplayProps {
 export default function PixDisplay({ pixData }: PixDisplayProps) {
   const [copiado, setCopiado] = useState(false);
 
+  // Log detalhado dos dados do PIX
+  console.log('[PixDisplay] Dados do PIX recebidos:', {
+    id: pixData?.id,
+    status: pixData?.status,
+    qr_code: pixData?.qr_code ? `${pixData.qr_code.substring(0, 20)}...` : 'Ausente',
+    qr_code_base64: pixData?.qr_code_base64 ? 'Presente (base64)' : 'Ausente',
+    ticket_url: pixData?.ticket_url || 'Ausente',
+    expiration_date: pixData?.expiration_date || 'Ausente',
+    amount: pixData?.amount,
+    orderInfo: pixData?.order ? `ID: ${pixData.order.id}, Status: ${pixData.order.status}` : 'Sem dados do pedido',
+    customerInfo: pixData?.order?.customer ? `Nome: ${pixData.order.customer.name}, Telefone: ${pixData.order.customer.phone}` : 'Sem dados do cliente'
+  });
+
   // Função para copiar código PIX
   const copiarCodigoPix = () => {
     if (pixData?.qr_code) {
@@ -36,15 +49,21 @@ export default function PixDisplay({ pixData }: PixDisplayProps) {
 
       {/* Instruções de pagamento */}
       <div className="mb-6">
-        <p className="text-[15px] font-semibold mb-1 text-blue-800">Pague o Pix para finalizar sua compra!</p>
+        <p className="text-[15px] font-semibold mb-1 text-blue-800">
+          Pague o Pix para finalizar sua compra!
+        </p>
         <p className="text-sm text-gray-600">
-          Quando o pagamento for aprovado, você receberá no WhatsApp <span className="font-medium">{pixData.order?.customer?.phone || ''}</span> as informações de acesso. Fique atento às mensagens recebidas.
+          Quando o pagamento for aprovado, você receberá no WhatsApp{' '}
+          <span className="font-medium">{pixData.order?.customer?.phone || ''}</span> as informações
+          de acesso. Fique atento às mensagens recebidas.
         </p>
       </div>
       <div className="mb-6">
         <div className="flex justify-between items-center mb-1 px-2">
           <span className="text-sm font-semibold text-blue-800">Código Pix</span>
-          <span className="text-sm font-bold text-blue-800">R$ {pixData.amount?.toFixed(2) || '0.00'}</span>
+          <span className="text-sm font-bold text-blue-800">
+            R$ {pixData.amount?.toFixed(2) || '0.00'}
+          </span>
         </div>
       </div>
 

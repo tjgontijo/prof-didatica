@@ -1,401 +1,285 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
-import Image from 'next/image';
+import React, { useState, useEffect, useMemo, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
-import { initMercadoPago } from '@mercadopago/sdk-react';
+import { useForm, SubmitHandler } from 'react-hook-form';
+import { zodResolver } from '@hookform/resolvers/zod';
 import { FaSpinner } from 'react-icons/fa';
-import FormCustomer from '@/components/checkout/FormCustomer';
-import ProductHeader from '@/components/checkout/ProductHeader';
-import OrderDetails from '@/components/checkout/OrderDetails';
+
+import { ProdutoInfo, OrderBump } from './types';
+
 import OrderBumps from '@/components/checkout/OrderBumps';
-import { FormPix } from '@/components/checkout';
-import { PaymentSelector } from '@/components/checkout';
+import FormCustomer, { CustomerFormValues, customerFormSchema } from '@/components/checkout/FormCustomer';
+import OrderDetails from '@/components/checkout/OrderDetails';
+import PaymentSelector from '@/components/checkout/PaymentSelector';
+import FormPix from '@/components/checkout/FormPix';
+import ProductHeader from '@/components/checkout/ProductHeader';
+import { cleanPhone } from '@/lib/phone';
 
-// Tipo local para compatibilidade com o ProductHeader
-type LocalProdutoInfo = {
-  nome: string;
-  price: number;
-  imagemUrl: string;
-  sku: string;
-  descricao?: string;
-  id?: string;
-};
+import Image from 'next/image';
 
-initMercadoPago(
-  process.env.NEXT_PUBLIC_MERCADOPAGO_PUBLIC_KEY || 'APP_USR-4bc818f1-b6bb-4af8-94e8-4307c34853a8',
-);
-
-export type ProdutoInfo = {
-  id: string;
-  name: string;
-  price: number;
-  description: string | null;
-  imageUrl: string | null;
-  sku: string;
-  isActive: boolean;
-};
-
-export type OrderBump = {
-  id: string;
-  title: string;
-  description: string | null;
-  specialPrice: number;
-  callToAction: string | null;
-  showProductImage: boolean;
-  displayOrder: number | null;
-  isActive: boolean;
-  bumpProduct: {
-    id: string;
-    name: string;
-    description: string | null;
-    price: number;
-    imageUrl: string | null;
-    isActive: boolean;
-    sku: string;
-  };
-  selecionado?: boolean;
-  percentDesconto?: number;
-};
-
-interface CheckoutClientComponentProps {
-  product: ProdutoInfo;
-  orderBumps: OrderBump[];
-  checkoutId: string;
-  requiredFields: Array<'customerName' | 'customerEmail' | 'customerPhone'>;
-}
-
-// --- Tipo para payload de criação de Order em draft ---
 type OrderDraftPayload = {
   productId: string;
   checkoutId: string;
   customerName?: string;
   customerEmail?: string;
   customerPhone?: string;
+  orderBumps?: Array<{
+    productId: string;
+    quantity: number;
+  }>;
 };
 
-// --- Tipo para payload de atualização de Order ---
 type OrderUpdatePayload = {
   customerName?: string;
   customerEmail?: string;
   customerPhone?: string;
 };
 
+interface CheckoutClientComponentProps {
+  product: ProdutoInfo;
+  orderBumps: OrderBump[];
+  checkoutId: string;
+}
+
 export default function CheckoutClientComponent({
   product,
-  orderBumps: initialOrderBumps,
+  orderBumps,
   checkoutId,
-  requiredFields,
 }: CheckoutClientComponentProps) {
-  // Função utilitária para mapear ProdutoInfo para LocalProdutoInfo
-  const mapProductToLocalInfo = (product: ProdutoInfo): LocalProdutoInfo => ({
-    nome: product.name,
-    price: product.price,
-    imagemUrl: product.imageUrl || '/images/placeholder-product.png',
-    sku: product.sku,
-    descricao: product.description || '',
-    id: product.id,
-  });
-
-  // Função utilitária para mapear OrderBump para o formato esperado pelo componente OrderBumps
-  const mapOrderBumpToComponent = (bump: OrderBump) => ({
-    id: bump.id,
-    nome: bump.title,
-    descricao: bump.description || '',
-    initialPrice: bump.bumpProduct.price,
-    specialPrice: bump.specialPrice,
-    imagemUrl: bump.bumpProduct.imageUrl || '/images/placeholder-product.png',
-    sku: bump.bumpProduct.sku,
-    selecionado: bump.selecionado,
-    percentDesconto: bump.percentDesconto,
-    displayOrder: bump.displayOrder,
-    callToAction: bump.callToAction || 'Adicionar',
-  });
   const router = useRouter();
-
-  // Função para calcular o percentual de desconto
-  const calcularDesconto = (precoOriginal: number, precoComDesconto: number) => {
-    return Math.round(((precoOriginal - precoComDesconto) / precoOriginal) * 100);
-  };
-
-  // Mapear os orderBumps iniciais para adicionar campos calculados
-  const [orderBumps, setOrderBumps] = useState(() =>
-    initialOrderBumps.map((bump) => ({
-      ...bump,
-      selecionado: false,
-      percentDesconto: calcularDesconto(bump.bumpProduct.price, bump.specialPrice),
-    })),
-  );
-
+  // Estado para armazenar o ID do pedido
+  const [orderId, setOrderId] = useState<string | null>(null);
   const [orderBumpsSelecionados, setOrderBumpsSelecionados] = useState<OrderBump[]>([]);
+  const [valorTotal, setValorTotal] = useState(product.price);
   const [carregando, setCarregando] = useState(false);
   const [erro, setErro] = useState<string | null>(null);
-  const [dadosCliente, setDadosCliente] = useState({
-    customerName: '',
-    customerEmail: '',
-    customerPhone: '',
-    phoneNormalized: '',
+  const [dadosCliente, setDadosCliente] = useState<CustomerFormValues | null>(null);
+  // Estado para controlar a criação de pedido
+  const [, setIsCreatingOrder] = useState(false);
+  const [currentStep, setCurrentStep] = useState<'personal-info' | 'payment'>('personal-info');
+
+  const {
+    register,
+    handleSubmit,
+    trigger,
+    formState,
+  } = useForm<CustomerFormValues>({
+    resolver: zodResolver(customerFormSchema),
+    mode: 'onBlur', // Usando onBlur para validar apenas quando o campo perde o foco
+    reValidateMode: 'onBlur', // Revalidar apenas no evento onBlur, não durante a digitação
+    defaultValues: {
+      name: '',
+      email: '',
+      phone: '',
+    },
   });
 
-  const [formValido, setFormValido] = useState(false);
-  const [orderId, setOrderId] = useState<string>();
-  const [isCreatingOrder, setIsCreatingOrder] = useState(false);
-
-  // Handler para salvar dados do cliente vindos do FormCustomer
-  const handleSaveCustomerData = async (data: {
-    customerName: string;
-    customerEmail: string;
-    customerPhone: string;
-    phoneNormalized: string;
-  }) => {
-    setDadosCliente(data);
-
-    try {
-      if (!orderId && !isCreatingOrder) {
-        // Ativa a flag para evitar chamadas duplicadas
-        setIsCreatingOrder(true);
-        
-        const payload: OrderDraftPayload = { productId: product.id, checkoutId };
-        if (requiredFields.includes('customerName')) payload.customerName = data.customerName;
-        if (requiredFields.includes('customerEmail')) payload.customerEmail = data.customerEmail;
-        if (requiredFields.includes('customerPhone')) payload.customerPhone = data.phoneNormalized;
-        
-        console.log('Iniciando criação de pedido com payload:', payload);
-        
-        const res = await fetch('/api/orders', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify(payload),
-        });
-        
-        const data2 = await res.json();
-        if (data2.success) {
-          console.log('Pedido criado com sucesso:', data2.orderId);
-          setOrderId(data2.orderId);
-        }
-        
-        // Desativa a flag após a conclusão
-        setIsCreatingOrder(false);
-      } else if (orderId) {
-        // Atualização de pedido existente
-        const payload: OrderUpdatePayload = {};
-        if (requiredFields.includes('customerName')) payload.customerName = data.customerName;
-        if (requiredFields.includes('customerEmail')) payload.customerEmail = data.customerEmail;
-        if (requiredFields.includes('customerPhone')) payload.customerPhone = data.phoneNormalized;
-        
-        await fetch(`/api/orders?id=${orderId}`, {
-          method: 'PATCH',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify(payload),
-        });
-      } else {
-        console.log('Ignorando chamada duplicada enquanto pedido está sendo criado');
-      }
-    } catch (error) {
-      console.error('Erro ao salvar dados do cliente:', error);
-      // Garante que a flag seja desativada em caso de erro
-      setIsCreatingOrder(false);
-    }
-  };
-
-  // Handler para atualizar o estado de validação do formulário
-  const handleFormValidationChange = (isValid: boolean) => {
-    setFormValido(isValid);
-  };
-
-  // Calcula o valor total
-  const valorTotal = React.useMemo(() => {
-    // Calcular totais
-    const totalOrderBumps = orderBumpsSelecionados.reduce(
-      (total, bump) => total + bump.specialPrice,
-      0,
-    );
-    const totalGeral = product.price + totalOrderBumps;
-    return totalGeral;
-  }, [orderBumpsSelecionados, product.price]);
-
-  // Efeito para enviar o evento InitiateCheckout apenas uma vez por sessão
   useEffect(() => {
-    // Verifica se está em ambiente de produção
-    const isProduction = process.env.NODE_ENV === 'production';
-
-    const sendMetaEvent = () => {
-      // Se não estiver em produção, não executa o código
-      if (!isProduction) {
-        return;
-      }
-
-      // Verifica se o evento já foi enviado nesta sessão para este produto
-      const sessionKey = `checkout_initiated_${product.id}`;
-      if (sessionStorage.getItem(sessionKey)) {
-        return;
-      }
-
-      if (typeof window.fbq !== 'function') {
-        console.warn('Meta Pixel ainda não carregado. Tentando novamente em 2 segundos...');
-        setTimeout(sendMetaEvent, 2000);
-        return;
-      }
-
-      try {
-        // Marca que o evento foi enviado para este produto nesta sessão
-        sessionStorage.setItem(sessionKey, 'true');
-        // Obter data e hora formatados
-        const now = new Date();
-        const days = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
-        const months = [
-          'January',
-          'February',
-          'March',
-          'April',
-          'May',
-          'June',
-          'July',
-          'August',
-          'September',
-          'October',
-          'November',
-          'December',
-        ];
-
-        const eventData = {
-          // Dados básicos do evento
-          event_name: 'InitiateCheckout',
-          event_time: Math.floor(now.getTime() / 1000),
-          event_source_url: window.location.href,
-          event_url: window.location.href,
-          traffic_source: document.referrer || undefined,
-          parameters: window.location.search,
-          content_type: 'product',
-          page_title: document.title,
-
-          // Informações de tempo
-          event_day: days[now.getDay()],
-          event_day_in_month: now.getDate(),
-          event_month: months[now.getMonth()],
-          event_time_interval: `${now.getHours()}-${now.getHours() + 1}`,
-
-          // Dados do produto
-          content_ids: product.id,
-          content_name: product.name,
-          value: product.price,
-          currency: 'BRL',
-
-          // Dados do dispositivo
-          client_user_agent: navigator.userAgent,
-          
-          // Identificador único do evento para ajudar na deduplicação
-          event_id: `${product.id}_${Date.now()}`
-        };
-
-        console.log('Enviando evento InitiateCheckout para Meta Ads:', eventData);
-        window.fbq('track', 'InitiateCheckout', eventData);
-      } catch (error) {
-        console.error('Erro ao enviar evento InitiateCheckout para Meta Ads:', error);
-        // Remove a marca de envio em caso de erro para permitir retry
-        sessionStorage.removeItem(`checkout_initiated_${product.id}`);
-      }
-    };
-
-    sendMetaEvent();
-  }, []); // Executa apenas uma vez no carregamento inicial do componente
-
-  // Atualiza os order bumps selecionados quando mudar a seleção
-  useEffect(() => {
-    const selecionados = orderBumps.filter((bump) => bump.selecionado);
-    setOrderBumpsSelecionados(selecionados);
+    // Garante que todos os order bumps tenham a propriedade selected definida como false inicialmente
+    const bumpsInicial = orderBumps.map((bump) => ({ 
+      ...bump, 
+      selected: false 
+    }));
+    setOrderBumpsSelecionados(bumpsInicial);
   }, [orderBumps]);
 
-  // Toggle order bump seleção
-  const handleToggleOrderBump = (id: string) => {
-    setOrderBumps((prevBumps) =>
-      prevBumps.map((bump) =>
-        bump.id === id ? { ...bump, selecionado: !bump.selecionado } : bump,
-      ),
-    );
-  };
+  // Não precisamos mais recuperar o orderId da sessão
 
-  // Handler para finalizar pagamento
-  const handleFinalizarPagamento = async () => {
-    setCarregando(true);
-    setErro(null);
+  // Função para lidar com a seleção/deseleção de order bumps
+  const handleToggleOrderBump = useCallback((id: string) => {
+    setOrderBumpsSelecionados(prev => {
+      const updated = prev.map(bump => {
+        if (bump.id === id) {
+          return { ...bump, selected: !bump.selected };
+        }
+        return bump;
+      });
+      
+      return updated;
+    });
+  }, []);
+
+  // Calcula o valor total (produto principal + order bumps selecionados) usando useMemo
+  const calculatedTotal = useMemo(() => {
+    // Valor do produto principal
+    let total = product.price;
+
+    // Adiciona o valor dos order bumps selecionados
+    orderBumpsSelecionados.forEach((bump) => {
+      if (bump.selected) {
+        total += bump.specialPrice;
+      }
+    });
+
+    return total;
+  }, [product.price, orderBumpsSelecionados]);
+
+  // Atualiza o estado do valorTotal quando o calculatedTotal mudar
+  useEffect(() => {
+    setValorTotal(calculatedTotal);
+  }, [calculatedTotal]);
+
+  // Função para salvar o ID do pedido no estado e na sessão
+  const saveOrderId = useCallback((id: string) => {
+    try {
+      console.log(`Salvando order ID '${id}' no estado...`);
+      setOrderId(id);
+      console.log(`Order ID '${id}' salvo com sucesso`);
+      return true;
+    } catch (error) {
+      console.error('Erro ao salvar orderId:', error);
+      return false;
+    }
+  }, []);
+
+  // Função para criar um novo pedido
+  const createOrder = useCallback(async (data: CustomerFormValues, phoneNormalized: string) => {
+    setIsCreatingOrder(true);
+    try {
+      // Preparar o payload
+      const payload: OrderDraftPayload = {
+        productId: product.id,
+        checkoutId,
+        customerName: data.name,
+        customerEmail: data.email,
+        customerPhone: phoneNormalized,
+        orderBumps: orderBumpsSelecionados
+          .filter((bump) => bump.selected)
+          .map((bump) => ({
+            productId: bump.id,
+            quantity: 1
+          })),
+      };
+      
+      console.log('Enviando payload para criar pedido:', payload);
+      
+      // Fazer a chamada API
+      const res = await fetch('/api/orders', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload),
+      });
+      
+      if (!res.ok) {
+        console.error(`Erro HTTP na criação do pedido: ${res.status} ${res.statusText}`);
+        throw new Error(`Erro ao criar pedido: ${res.status} ${res.statusText}`);
+      }
+      
+      // Processar a resposta
+      const orderData = await res.json();
+      console.log('Resposta completa da API:', orderData);
+      
+      // Verificação detalhada da estrutura da resposta
+      if (!orderData) {
+        console.error('Resposta da API é nula ou indefinida');
+        throw new Error('Resposta inválida da API: sem dados');
+      }
+      
+      if (!orderData.success) {
+        console.error('API reportou falha:', orderData);
+        throw new Error(`Falha ao criar pedido: ${orderData.message || 'erro desconhecido'}`);
+      }
+      
+      if (!orderData.order) {
+        console.error('Objeto order ausente na resposta:', orderData);
+        throw new Error('Resposta inválida da API: objeto order ausente');
+      }
+      
+      // Obter e validar o ID
+      const newOrderId = orderData.order.id;
+      console.log('Order ID extraído com sucesso:', newOrderId);
+      
+      if (!newOrderId) {
+        console.error('ID do pedido é inválido ou inexistente:', orderData.order);
+        throw new Error('ID do pedido inválido ou inexistente na resposta');
+      }
+      
+      // Salvar o ID no estado React
+      setOrderId(newOrderId); // Atualiza diretamente
+      console.log(`OrderId '${newOrderId}' salvo diretamente no estado`);
+      
+      return newOrderId;
+    } catch (error) {
+      console.error('Erro detalhado na criação do pedido:', error);
+      throw error; // Re-lança para tratamento no nível superior
+    } finally {
+      setIsCreatingOrder(false);
+    }
+  }, [checkoutId, orderBumpsSelecionados, product.id, setOrderId]);
+
+  // Função para atualizar um pedido existente
+  const updateOrder = useCallback(async (orderId: string, data: CustomerFormValues, phoneNormalized: string) => {
+    console.log('Atualizando pedido existente:', orderId);
+    
+    const payload: OrderUpdatePayload = {
+      customerName: data.name,
+      customerEmail: data.email,
+      customerPhone: phoneNormalized,
+    };
+    
+    const res = await fetch(`/api/orders?id=${orderId}`, {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(payload),
+    });
+    
+    if (!res.ok) {
+      throw new Error(`Erro ao atualizar pedido: ${res.status} ${res.statusText}`);
+    }
+    
+    // Garante que o ID do pedido está armazenado na sessão
+    saveOrderId(orderId);
+    console.log('Order ID existente confirmado na sessão:', orderId);
+    
+    return orderId;
+  }, [saveOrderId]);
+
+  const handleSaveCustomerDataAndProceed: SubmitHandler<CustomerFormValues> = useCallback(async (
+    data,
+  ) => {
+    console.log('Iniciando handleSaveCustomerDataAndProceed com dados:', data);
+    console.log('Estado atual do orderId:', orderId);
+    
+    setDadosCliente(data);
+    const phoneNormalized = cleanPhone(data.phone);
 
     try {
-      // Verificar se o formulário está válido
-      if (!formValido) {
-        setErro('Por favor, preencha todos os campos corretamente');
-        setCarregando(false);
-        return;
-      }
-
-      // Preparar items para o pedido (produto principal + order bumps)
-      const items = [
-        {
-          id: product.sku,
-          title: product.name,
-          description: product.description || product.name,
-          quantity: 1,
-          unit_price: Math.round(product.price * 100), // Converter para centavos e arredondar
-          category_id: 'digital_goods',
-        },
-        ...orderBumpsSelecionados.map((bump) => ({
-          id: bump.bumpProduct.sku,
-          title: bump.title,
-          description: bump.description || bump.bumpProduct.description || '',
-          unit_price: Math.round(bump.specialPrice * 100), // Já está em reais, converter para centavos
-          quantity: 1,
-          picture_url: bump.bumpProduct.imageUrl || '',
-        })),
-      ];
-
-      // Verificar se temos um orderId válido
-      if (!orderId) {
-        throw new Error('ID do pedido não encontrado. Por favor, preencha seus dados novamente.');
-      }
-
-      // Preparar dados do pedido
-      const dadosPedido = {
-        items,
-        cliente: {
-          nome: dadosCliente.customerName,
-          email: dadosCliente.customerEmail,
-          telefone: dadosCliente.phoneNormalized,
-        },
-        valorTotal,
-        checkoutId, // Usar o ID do checkout recebido via props
-        orderId, // Usar o ID do pedido que já foi criado
-      };
-
-      // Enviar para a API
-      const resposta = await fetch('/api/payment/pix', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(dadosPedido),
-      });
-
-      if (!resposta.ok) {
-        throw new Error('Erro ao processar pagamento. Por favor, tente novamente.');
-      }
-
-      const dadosResposta = await resposta.json();
-
-      // Redirecionar para a página de agradecimento usando o ID do Payment
-      router.push(`/payment/${dadosResposta.id}`);
-
-      // Não precisamos mais salvar o estado, pois o usuário será redirecionado
-    } catch (error) {
-      if (error instanceof Error) {
-        setErro(error.message);
+      let currentOrderId = orderId;
+      
+      if (!currentOrderId) {
+        console.log('Criando novo pedido...');
+        try {
+          currentOrderId = await createOrder(data, phoneNormalized);
+          console.log('Pedido criado com sucesso, ID:', currentOrderId);
+          // Garante que o ID está no estado antes de prosseguir
+          setOrderId(currentOrderId);
+        } catch (createError) {
+          console.error('Erro específico ao criar pedido:', createError);
+          throw createError; // Re-lança para ser capturado pelo catch externo
+        }
       } else {
-        setErro('Erro ao processar pagamento');
+        console.log('Atualizando pedido existente, ID:', currentOrderId);
+        await updateOrder(currentOrderId, data, phoneNormalized);
+        console.log('Pedido atualizado com sucesso');
       }
-      console.error(error);
-    } finally {
-      setCarregando(false);
+      
+      // Pequeno timeout para garantir que o estado foi atualizado
+      setTimeout(() => {
+        console.log('Navegando para etapa de pagamento com orderId:', currentOrderId);
+        setCurrentStep('payment');
+        console.log('Etapa alterada para payment');
+      }, 100);
+    } catch (error) {
+      console.error('Erro ao salvar dados do cliente:', error);
+      setErro(error instanceof Error ? error.message : 'Erro ao processar seus dados. Por favor, tente novamente.');
     }
-  };
+  }, [orderId, createOrder, updateOrder, setOrderId]);
+
+  // Lista de order bumps selecionados usando useMemo para evitar recálculos desnecessários
+  const selectedOrderBumps = useMemo(() => {
+    return orderBumpsSelecionados.filter((bump) => bump.selected);
+  }, [orderBumpsSelecionados]);
 
   return (
     <div className="min-h-screen bg-[#FFF9F5] font-sans text-[#333] ">
@@ -415,58 +299,151 @@ export default function CheckoutClientComponent({
         {/* Container Principal */}
         <div className="bg-white rounded-[8px] p-5 my-[16px] md:my-[24px] w-full flex flex-col gap-6 shadow-xl border border-gray-200">
           {/* Produto */}
-          <ProductHeader produto={mapProductToLocalInfo(product)} />
-          <div className="border-b"></div>
-
-          {/* Formulário Cliente */}
-          <FormCustomer
-            initialData={{
-              customerName: dadosCliente.customerName,
-              customerEmail: dadosCliente.customerEmail,
-              customerPhone: dadosCliente.customerPhone,
-            }}
-            onSave={handleSaveCustomerData}
-            onValidationChange={handleFormValidationChange}
-            requiredFields={requiredFields}
+          <ProductHeader
+            produto={product}
           />
-          <PaymentSelector />
-          <FormPix />
-          {/* Order Bumps */}
-          <div className="mb-6">
-            <h3 className="text-lg font-bold mb-3">Aproveite e Compre Junto</h3>
-            <OrderBumps
-              orderBumps={orderBumps.map(mapOrderBumpToComponent)}
-              onToggleOrderBump={handleToggleOrderBump}
-            />
-          </div>
-          <div className="border-b"></div>
-          {/* Detalhes do Pedido */}
-          <OrderDetails
-            produto={mapProductToLocalInfo(product)}
-            orderBumpsSelecionados={orderBumpsSelecionados.map(mapOrderBumpToComponent)}
-          />
+          
+          {currentStep === 'personal-info' && (
+            <form onSubmit={handleSubmit(handleSaveCustomerDataAndProceed)}>
+              <div className="bg-white p-6 rounded-lg shadow-sm">
+                <FormCustomer
+                  register={register}
+                  errors={formState.errors}
+                  isSubmitting={formState.isSubmitting}
+                  trigger={trigger}
+                  formState={formState}
+                  onProceedToPayment={handleSubmit(handleSaveCustomerDataAndProceed)}
+                />
+              </div>
+            </form>
+          )}
+          {currentStep === 'payment' && (
+            <>
+              <PaymentSelector />
+              <FormPix />
+              {/* Order Bumps */}
+              <div className="mb-6">
+                <h3 className="text-lg font-bold mb-3">Aproveite e Compre Junto</h3>
+                <OrderBumps
+                  orderBumps={orderBumpsSelecionados}
+                  onToggleOrderBump={handleToggleOrderBump}
+                />
+              </div>
+              <div className="border-b"></div>
+              {/* Detalhes do Pedido */}
+              <OrderDetails
+                produto={product}
+                orderBumpsSelecionados={selectedOrderBumps}
+              />
 
-          {/* Botão de Finalização */}
-          <button
-            className="w-full h-12 bg-[#00A859] text-white font-bold rounded-[6px] flex items-center justify-center"
-            onClick={handleFinalizarPagamento}
-            disabled={carregando}
-          >
-            {carregando ? (
-              <>
-                <FaSpinner className="animate-spin mr-2" />
-                Processando...
-              </>
-            ) : (
-              'Gerar PIX'
-            )}
-          </button>
+              {/* Botão de Finalização */}
+              <button
+                className="w-full h-12 bg-[#00A859] text-white font-bold rounded-[6px] flex items-center justify-center"
+                onClick={async () => {
+                  setCarregando(true);
+                  setErro(null);
 
-          {/* Mensagem de Erro */}
-          {erro && (
-            <div className="mt-4 p-3 bg-red-100 border border-red-400 text-red-700 rounded-lg">
-              {erro}
-            </div>
+                  try {
+                    // Obter o orderId atual do estado
+                    const currentOrderId = orderId;
+                    
+                    if (!currentOrderId) {
+                      console.error('Order ID não encontrado no estado');
+                      setErro('ID do pedido não encontrado. Por favor, preencha seus dados novamente.');
+                      return;
+                    }
+                    
+                    console.log('Usando Order ID para gerar PIX:', currentOrderId);
+                    
+                    const items = [
+                      {
+                        id: product.id,
+                        nome: product.name,
+                        quantidade: 1,
+                        preco: product.price,
+                      },
+                      ...orderBumpsSelecionados
+                        .filter(bump => bump.selected)
+                        .map((bump) => ({
+                          id: bump.id,
+                          nome: bump.name,
+                          quantidade: 1,
+                          preco: bump.specialPrice, // Usando specialPrice em vez de price
+                        })),
+                    ];
+                    
+                    const dadosPedido = {
+                      items,
+                      cliente: {
+                        nome: dadosCliente?.name,
+                        email: dadosCliente?.email,
+                        telefone: dadosCliente?.phone,
+                      },
+                      valorTotal,
+                      checkoutId,
+                      orderId: currentOrderId,
+                    };
+                    
+                    console.log('Enviando dados para gerar PIX:', {
+                      ...dadosPedido,
+                      items: dadosPedido.items.length + ' itens',
+                      orderId: currentOrderId // Verificando se o orderId está sendo enviado
+                    });
+
+                    const resposta = await fetch('/api/payment/pix', {
+                      method: 'POST',
+                      headers: {
+                        'Content-Type': 'application/json',
+                      },
+                      body: JSON.stringify(dadosPedido),
+                    });
+
+                    if (!resposta.ok) {
+                      console.error('Erro na resposta da API de PIX:', resposta.status, resposta.statusText);
+                      throw new Error(`Erro ao processar pagamento: ${resposta.status} ${resposta.statusText}`);
+                    }
+
+                    const dadosResposta = await resposta.json();
+                    console.log('Resposta da API de PIX:', dadosResposta);
+                    
+                    // A API retorna paymentId, não id
+                    if (!dadosResposta.paymentId) {
+                      console.error('ID do pagamento não encontrado na resposta:', dadosResposta);
+                      throw new Error('ID do pagamento não encontrado na resposta');
+                    }
+                    
+                    console.log('Redirecionando para página de pagamento:', `/payment/${dadosResposta.paymentId}`);
+                    router.push(`/payment/${dadosResposta.paymentId}`);
+                  } catch (error) {
+                    if (error instanceof Error) {
+                      setErro(error.message);
+                    } else {
+                      setErro('Erro ao processar pagamento');
+                    }
+                    console.error(error);
+                  } finally {
+                    setCarregando(false);
+                  }
+                }}
+                disabled={carregando}
+              >
+                {carregando ? (
+                  <>
+                    <FaSpinner className="animate-spin mr-2" />
+                    Processando...
+                  </>
+                ) : (
+                  'Gerar PIX'
+                )}
+              </button>
+
+              {/* Mensagem de Erro */}
+              {erro && (
+                <div className="mt-4 p-3 bg-red-100 border border-red-400 text-red-700 rounded-lg">
+                  {erro}
+                </div>
+              )}
+            </>
           )}
         </div>
       </main>

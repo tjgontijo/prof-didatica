@@ -1,13 +1,13 @@
-import { NextRequest, NextResponse } from 'next/server'
-import { z } from 'zod'
-import { prisma } from '@/lib/prisma'
-import { Prisma } from '@prisma/client'
+import { NextRequest, NextResponse } from 'next/server';
+import { z } from 'zod';
+import { prisma } from '@/lib/prisma';
+import { Prisma } from '@prisma/client';
 
 // Definir OrderStatus para compatibilidade
-import { OrderStatus } from '@prisma/client'
-import { validateBrazilianPhone, cleanPhone } from '@/lib/phone'
-import { orderRateLimit } from '@/lib/rate-limit'
-import { getCachedProduct } from '@/lib/cache'
+import { OrderStatus } from '@prisma/client';
+import { validateBrazilianPhone, cleanPhone } from '@/lib/phone';
+import { orderRateLimit } from '@/lib/rate-limit';
+import { getCachedProduct } from '@/lib/cache';
 
 // Schema para validação forte dos dados recebidos
 const orderSchema = z.object({
@@ -15,7 +15,8 @@ const orderSchema = z.object({
   checkoutId: z.string().uuid(),
   customerName: z.string().min(2).max(100),
   customerEmail: z.string().email(),
-  customerPhone: z.string()
+  customerPhone: z
+    .string()
     .min(10, 'Telefone deve ter pelo menos 10 dígitos')
     .max(15, 'Telefone deve ter no máximo 15 dígitos')
     .refine(validateBrazilianPhone, 'Telefone deve ser um número brasileiro válido')
@@ -36,7 +37,8 @@ const patchOrderSchema = z.object({
   id: z.string().uuid(),
   customerName: z.string().min(2).max(100).optional(),
   customerEmail: z.string().email().optional(),
-  customerPhone: z.string()
+  customerPhone: z
+    .string()
     .min(10, 'Telefone deve ter pelo menos 10 dígitos')
     .max(15, 'Telefone deve ter no máximo 15 dígitos')
     .refine(validateBrazilianPhone, 'Telefone deve ser um número brasileiro válido')
@@ -103,19 +105,19 @@ export async function POST(request: NextRequest) {
     const rateLimitResult = await orderRateLimit(request);
     if (!rateLimitResult.success) {
       return NextResponse.json(
-        { 
-          success: false, 
+        {
+          success: false,
           error: 'Muitas tentativas. Tente novamente em alguns minutos.',
-          retryAfter: Math.ceil((rateLimitResult.resetTime - Date.now()) / 1000)
+          retryAfter: Math.ceil((rateLimitResult.resetTime - Date.now()) / 1000),
         },
-        { 
+        {
           status: 429,
           headers: {
             'X-RateLimit-Limit': rateLimitResult.limit.toString(),
             'X-RateLimit-Remaining': rateLimitResult.remaining.toString(),
-            'X-RateLimit-Reset': rateLimitResult.resetTime.toString()
-          }
-        }
+            'X-RateLimit-Reset': rateLimitResult.resetTime.toString(),
+          },
+        },
       );
     }
 
@@ -141,7 +143,11 @@ export async function POST(request: NextRequest) {
           });
         } catch (error: unknown) {
           // Se falhar por duplicata (race condition), buscar o existente
-          if (error instanceof Error && 'code' in error && (error as { code: string }).code === 'P2002') {
+          if (
+            error instanceof Error &&
+            'code' in error &&
+            (error as { code: string }).code === 'P2002'
+          ) {
             customer = await tx.customer.findUnique({
               where: { email: data.customerEmail },
             });
@@ -171,7 +177,7 @@ export async function POST(request: NextRequest) {
               throw new Error(`Order bump ${bump.productId} não encontrado ou inativo`);
             }
             return product;
-          })
+          }),
         );
       }
 
@@ -191,7 +197,7 @@ export async function POST(request: NextRequest) {
                 isOrderBump: false,
               },
               ...(data.orderBumps?.map((bump) => {
-                const product = orderBumpProducts.find(p => p.id === bump.productId)!;
+                const product = orderBumpProducts.find((p) => p.id === bump.productId)!;
                 return {
                   productId: bump.productId,
                   quantity: bump.quantity,
@@ -220,16 +226,16 @@ export async function POST(request: NextRequest) {
     });
 
     console.log(`Pedido criado: ${result.id} com status ${result.status}`);
-    
+
     // Pedido criado com sucesso
     console.log(`Pedido ${result.id} criado com status ${result.status}`);
 
     return NextResponse.json(
-      { 
-        success: true, 
-        order: result
+      {
+        success: true,
+        order: result,
       },
-      { status: 201 }
+      { status: 201 },
     );
   } catch (error) {
     if (error instanceof z.ZodError) {

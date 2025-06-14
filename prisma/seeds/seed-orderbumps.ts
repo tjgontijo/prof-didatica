@@ -47,12 +47,10 @@ export async function seedOrderBumps(prisma: PrismaClient) {
       await prisma.orderBump.create({
         data: {
           mainProductId: produtoPrincipal.id,
-          bumpProductId: bump.id,
-          callToAction: 'Aproveite e leve junto!',
+          bumpProductId: bump.id,          
           title: bump.name,
           description: `Aproveite este produto com ${discount * 100}% de desconto!`,
-          specialPrice: specialPrice,
-          showProductImage: true,
+          specialPrice: specialPrice,          
           displayOrder: displayOrder,
           isActive: true,
         }

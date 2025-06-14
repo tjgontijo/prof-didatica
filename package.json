@@ -11,6 +11,7 @@
     "seed": "ts-node --project prisma/tsconfig.json -r tsconfig-paths/register prisma/seed.ts"
   },
   "dependencies": {
+    "@hookform/resolvers": "^5.1.1",
     "@mercadopago/sdk-react": "^1.0.3",
     "@prisma/client": "^6.9.0",
     "logger": "^0.0.1",
@@ -20,6 +21,7 @@
     "pino": "^9.7.0",
     "react": "^18.2.0",
     "react-dom": "^18.2.0",
+    "react-hook-form": "^7.57.0",
     "react-icons": "^5.5.0",
     "swiper": "^11.2.5",
     "zod": "^3.25.20"

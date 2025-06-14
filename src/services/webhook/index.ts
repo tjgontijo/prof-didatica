@@ -4,13 +4,11 @@ import { getWebhookService } from './core/webhook.service';
 import { OrderCreatedEventHandler } from './events/order-created.event';
 import { OrderPaidEventHandler } from './events/order-paid.event';
 
-
 export class WebhookOrchestrator {
   private webhookService = getWebhookService(this.prisma);
 
   private orderCreatedHandler = new OrderCreatedEventHandler(this.prisma);
   private orderPaidHandler = new OrderPaidEventHandler(this.prisma);
-
 
   constructor(private prisma: PrismaClient) {}
 
@@ -40,7 +38,6 @@ export class WebhookOrchestrator {
     }
   }
 
-
   /**
    * Obtém estatísticas de webhooks
    */
@@ -51,17 +48,17 @@ export class WebhookOrchestrator {
   /**
    * Obtém logs de webhooks
    */
-  async getWebhookLogs(filters: {
-    webhookId?: string;
-    event?: string;
-    success?: boolean;
-    limit?: number;
-    offset?: number;
-  } = {}) {
+  async getWebhookLogs(
+    filters: {
+      webhookId?: string;
+      event?: string;
+      success?: boolean;
+      limit?: number;
+      offset?: number;
+    } = {},
+  ) {
     return this.webhookService.getWebhookLogs(filters);
   }
-
-
 }
 
 // Singleton instance

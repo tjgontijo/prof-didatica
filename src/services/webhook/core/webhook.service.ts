@@ -5,7 +5,6 @@ import { WebhookEvent, WebhookPayload } from './types';
 import { getWebhookConfig } from '../config/webhook.config';
 
 export class WebhookService {
-
   private config = getWebhookConfig();
 
   constructor(private prisma: PrismaClient) {}
@@ -13,9 +12,7 @@ export class WebhookService {
   /**
    * Despacha um evento de webhook para todos os webhooks configurados
    */
-  async dispatchEvent<T extends WebhookEvent>(
-    eventData: T
-  ): Promise<string[]> {
+  async dispatchEvent<T extends WebhookEvent>(eventData: T): Promise<string[]> {
     try {
       const webhooks = await this.getActiveWebhooksForEvent(eventData.event);
       if (webhooks.length === 0) {
@@ -75,7 +72,11 @@ export class WebhookService {
   /**
    * Lista todos os webhooks ativos para um evento específico
    */
-  async getActiveWebhooksForEvent(event: string): Promise<{id: string, url: string, events: string[], active: boolean, deletedAt: Date | null}[]> {
+  async getActiveWebhooksForEvent(
+    event: string,
+  ): Promise<
+    { id: string; url: string; events: string[]; active: boolean; deletedAt: Date | null }[]
+  > {
     return this.prisma.webhook.findMany({
       where: {
         active: true,
@@ -88,7 +89,7 @@ export class WebhookService {
         events: true,
         active: true,
         deletedAt: true,
-      }
+      },
     });
   }
 
@@ -126,7 +127,7 @@ export class WebhookService {
       active: boolean;
       secret: string;
       headers: Record<string, string>;
-    }>
+    }>,
   ) {
     return this.prisma.webhook.update({
       where: { id },
@@ -156,15 +157,17 @@ export class WebhookService {
   /**
    * Obtém logs de webhook com filtros
    */
-  async getWebhookLogs(filters: {
-    webhookId?: string;
-    event?: string;
-    success?: boolean;
-    limit?: number;
-    offset?: number;
-  } = {}) {
+  async getWebhookLogs(
+    filters: {
+      webhookId?: string;
+      event?: string;
+      success?: boolean;
+      limit?: number;
+      offset?: number;
+    } = {},
+  ) {
     const where: Record<string, unknown> = {};
-    
+
     if (filters.webhookId) where.webhookId = filters.webhookId;
     if (filters.event) where.event = filters.event;
     if (typeof filters.success === 'boolean') where.success = filters.success;
@@ -213,8 +216,6 @@ export class WebhookService {
       timestamp: new Date().toISOString(),
     };
   }
-
-
 }
 
 // Singleton instance

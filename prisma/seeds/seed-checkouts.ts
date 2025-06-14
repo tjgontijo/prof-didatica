@@ -17,8 +17,7 @@ export async function seedCheckouts(prisma: PrismaClient) {
       productId: principal.id,
       isActive: true,
       campaignName: 'Campanha Principal',
-//      upsellPageUrl: 'https://lp.profdidatica.com.br/planejamentos-bncc-2025',
-      requiredFields: ['customerName', 'customerEmail', 'customerPhone'],
+//      upsellPageUrl: 'https://lp.profdidatica.com.br/planejamentos-bncc-2025',      
     }
   });
 }

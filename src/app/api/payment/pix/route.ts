@@ -20,7 +20,7 @@ const paymentSchema = z.object({
       nome: z.string(),
       quantidade: z.number().int().positive(),
       preco: z.number().positive(),
-    })
+    }),
   ),
 });
 
@@ -37,27 +37,25 @@ type MercadoPagoResponse = {
   };
 };
 
-
-
 export async function POST(request: NextRequest): Promise<NextResponse> {
   try {
     // 1. Verificar rate limiting
     const rateLimitResult = await paymentRateLimit(request);
     if (!rateLimitResult.success) {
       return NextResponse.json(
-        { 
-          success: false, 
+        {
+          success: false,
           error: 'Muitas tentativas de pagamento. Aguarde alguns minutos.',
-          retryAfter: Math.ceil((rateLimitResult.resetTime - Date.now()) / 1000)
+          retryAfter: Math.ceil((rateLimitResult.resetTime - Date.now()) / 1000),
         },
-        { 
+        {
           status: 429,
           headers: {
             'X-RateLimit-Limit': rateLimitResult.limit.toString(),
             'X-RateLimit-Remaining': rateLimitResult.remaining.toString(),
-            'X-RateLimit-Reset': rateLimitResult.resetTime.toString()
-          }
-        }
+            'X-RateLimit-Reset': rateLimitResult.resetTime.toString(),
+          },
+        },
       );
     }
 
@@ -68,22 +66,22 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
     if (!validationResult.success) {
       console.error('Erro de validação:', validationResult.error);
       return NextResponse.json(
-        { 
-          success: false, 
+        {
+          success: false,
           error: 'Dados inválidos',
-          details: validationResult.error.errors
+          details: validationResult.error.errors,
         },
-        { status: 400 }
+        { status: 400 },
       );
     }
 
     const payload = validationResult.data;
 
     if (process.env.NODE_ENV === 'development') {
-      console.log('Criação de pagamento PIX iniciada:', { 
-        orderId: payload.orderId, 
+      console.log('Criação de pagamento PIX iniciada:', {
+        orderId: payload.orderId,
         valorTotal: payload.valorTotal,
-        timestamp: new Date().toISOString()
+        timestamp: new Date().toISOString(),
       });
     }
 
@@ -94,19 +92,16 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
     });
 
     if (!order) {
-      return NextResponse.json(
-        { success: false, error: 'Pedido não encontrado' },
-        { status: 404 }
-      );
+      return NextResponse.json({ success: false, error: 'Pedido não encontrado' }, { status: 404 });
     }
 
     if (order.status !== 'DRAFT') {
       return NextResponse.json(
-        { 
-          success: false, 
-          error: 'Pedido não está no status correto para pagamento' 
+        {
+          success: false,
+          error: 'Pedido não está no status correto para pagamento',
         },
-        { status: 400 }
+        { status: 400 },
       );
     }
 
@@ -139,7 +134,9 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
         payer: {
           email: payload.cliente.email,
           first_name: payload.cliente.nome.split(' ')[0],
-          last_name: payload.cliente.nome.split(' ').slice(1).join(' ') || payload.cliente.nome.split(' ')[0],
+          last_name:
+            payload.cliente.nome.split(' ').slice(1).join(' ') ||
+            payload.cliente.nome.split(' ')[0],
           phone: {
             area_code: areaCode,
             number: phoneNumber,
@@ -154,7 +151,7 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
       console.log('Resposta do Mercado Pago:', {
         id: mpResponse.id,
         status: mpResponse.status,
-        paymentMethodId: mpResponse.payment_method_id
+        paymentMethodId: mpResponse.payment_method_id,
       });
 
       // 4.3 Criar registro de pagamento no banco
@@ -185,7 +182,7 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
     console.error('Erro ao processar pagamento PIX:', error);
     return NextResponse.json(
       { success: false, error: 'Erro ao processar pagamento' },
-      { status: 500 }
+      { status: 500 },
     );
   }
 }

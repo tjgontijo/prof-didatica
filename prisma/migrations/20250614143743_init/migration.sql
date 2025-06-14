@@ -27,7 +27,6 @@ CREATE TABLE "Checkout" (
     "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "updatedAt" TIMESTAMP(3) NOT NULL,
     "deletedAt" TIMESTAMP(3),
-    "requiredFields" JSONB DEFAULT '["customerName","customerEmail","customerPhone"]',
 
     CONSTRAINT "Checkout_pkey" PRIMARY KEY ("id")
 );
@@ -37,11 +36,9 @@ CREATE TABLE "OrderBump" (
     "id" TEXT NOT NULL,
     "mainProductId" TEXT NOT NULL,
     "bumpProductId" TEXT NOT NULL,
-    "callToAction" TEXT NOT NULL,
     "title" TEXT NOT NULL,
     "description" TEXT NOT NULL,
     "specialPrice" INTEGER NOT NULL,
-    "showProductImage" BOOLEAN NOT NULL DEFAULT false,
     "displayOrder" INTEGER,
     "isActive" BOOLEAN NOT NULL DEFAULT true,
     "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,

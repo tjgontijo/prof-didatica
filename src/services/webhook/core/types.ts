@@ -204,28 +204,29 @@ export const OrderEventDataSchema = z.object({
   totalValue: z.number().min(0),
   createdAt: z.string().datetime(),
   updatedAt: z.string().datetime(),
-  payment: z.object({
-    id: z.string().uuid(),
-    method: z.string(),
-    status: z.string(),
-    amount: z.number().min(0),
-    pix: z.object({
-      qrCode: z.string(),
-      qrCodeBase64: z.string(),
-      pixCopyPaste: z.string(),
-      expiresAt: z.string().datetime(),
-    }).optional(),
-  }).optional(),
+  payment: z
+    .object({
+      id: z.string().uuid(),
+      method: z.string(),
+      status: z.string(),
+      amount: z.number().min(0),
+      pix: z
+        .object({
+          qrCode: z.string(),
+          qrCodeBase64: z.string(),
+          pixCopyPaste: z.string(),
+          expiresAt: z.string().datetime(),
+        })
+        .optional(),
+    })
+    .optional(),
 });
 
 // ========================
 // Utility Functions
 // ========================
 
-export function validateWebhookPayload<T>(
-  payload: unknown,
-  schema: z.ZodSchema<T>
-): T {
+export function validateWebhookPayload<T>(payload: unknown, schema: z.ZodSchema<T>): T {
   return schema.parse(payload);
 }
 
