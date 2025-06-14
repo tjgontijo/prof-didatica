@@ -11,6 +11,7 @@ interface RespostaPix {
   qr_code_base64: string;
   ticket_url: string;
   expiration_date: string;
+  amount?: number;
 }
 
 interface PaymentQrCodeProps {
@@ -34,6 +35,14 @@ const PaymentQrCode: React.FC<PaymentQrCodeProps> = ({ respostaPix }) => {
   return (
     <div className="bg-white rounded-[8px] p-5 mb-6 text-center">
       <h2 className="text-[16px] font-bold text-[#333] mb-4 border-b pb-2">Pagamento PIX</h2>
+      
+      {respostaPix.amount && (
+        <div className="mb-4 text-center">
+          <p className="text-lg font-bold text-[#1D3557]">
+            Valor: {new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(respostaPix.amount)}
+          </p>
+        </div>
+      )}
 
       <div className="flex flex-col items-center space-y-4">
         {respostaPix.qr_code_base64 && (
