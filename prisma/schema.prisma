@@ -91,7 +91,7 @@ model Order {
   checkoutId      String
   productId       String
   customerId      String
-  paidAmount      Float
+  paidAmount      Int
   status          OrderStatus   @default(DRAFT)
   statusUpdatedAt DateTime      @default(now())
   paidAt          DateTime?     // Data do pagamento
