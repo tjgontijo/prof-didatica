@@ -1,7 +1,7 @@
 import type { Metadata } from 'next';
 import './globals.css';
 import { Inter } from 'next/font/google';
-// import { UtmifyScripts } from '@/scripts/utmifyScripts';
+import { UtmifyScripts } from '@/scripts/utmifyScripts';
 // import { ClarityScript } from '@/scripts/clarityScripts';
 
 const inter = Inter({
@@ -23,12 +23,12 @@ export default function RootLayout({
   return (
     <html lang="pt-BR">
       <head>
-        {/* {process.env.NODE_ENV === 'production' && (
+        {process.env.NODE_ENV === 'production' && (
           <>
             <UtmifyScripts />
-            <ClarityScript />
+            {/* <ClarityScript /> */}
           </>
-        )} */}
+        )}
       </head>
       <body className={`${inter.variable} font-sans antialiased`}>{children}</body>
     </html>
