@@ -66,10 +66,10 @@ export interface PaymentRawData {
 }
 
 export interface PaymentPixData {
-  qrCode: string;
-  qrCodeBase64: string;
-  pixCopyPaste: string;
-  expiresAt: string;
+  qrCode?: string;
+  qrCodeBase64?: string;
+  pixCopyPaste?: string;
+  expiresAt?: string;
 }
 
 export interface PaymentData {
@@ -212,10 +212,10 @@ export const OrderEventDataSchema = z.object({
       amount: z.number().min(0),
       pix: z
         .object({
-          qrCode: z.string(),
-          qrCodeBase64: z.string(),
-          pixCopyPaste: z.string(),
-          expiresAt: z.string().datetime(),
+          qrCode: z.string().optional(),
+          qrCodeBase64: z.string().optional(),
+          pixCopyPaste: z.string().optional(),
+          expiresAt: z.string().datetime().optional(),
         })
         .optional(),
     })
