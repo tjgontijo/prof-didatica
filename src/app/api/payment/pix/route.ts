@@ -3,6 +3,8 @@ import { MercadoPagoConfig, Payment } from 'mercadopago';
 import { prisma } from '@/lib/prisma';
 import { z } from 'zod';
 import { Prisma } from '@prisma/client';
+import { getWebhookService } from '@/services/webhook';
+import { OrderCreatedEventHandler } from '@/services/webhook/events/order-created.event';
 import { paymentRateLimit } from '@/lib/rate-limit';
 
 // Schema para validação do payload
@@ -172,6 +174,21 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
       console.log('Pagamento registrado com mercadoPagoId:', String(mpResponse.id));
 
       console.log('Pagamento registrado no banco:', paymentRecord.id);
+      
+      // Disparar evento order.created
+      setTimeout(async () => {
+        try {
+          const webhookService = getWebhookService(prisma);
+          const orderCreatedEventHandler = new OrderCreatedEventHandler(prisma);
+          const orderCreatedEvent = await orderCreatedEventHandler.createEvent(payload.orderId);
+          
+          console.log(`Disparando webhook para order.created do pedido ${payload.orderId}`);
+          const sentWebhooks = await webhookService.dispatchEvent(orderCreatedEvent);
+          console.log(`Webhooks disparados: ${sentWebhooks.length}`);
+        } catch (error) {
+          console.error(`Erro ao disparar webhook order.created: ${error}`);
+        }
+      }, 100); // Pequeno delay para garantir que a transação foi concluída
 
       return {
         success: true,
