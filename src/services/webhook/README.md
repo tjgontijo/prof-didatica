@@ -82,7 +82,7 @@ const stats = await webhookOrchestrator.getWebhookStats();
 
 // Logs de um webhook específico
 const logs = await webhookOrchestrator.getWebhookLogs({
-  webhookId: 'uuid-do-webhook',
+  webhookId: 'cuid-do-webhook',
   limit: 50,
 });
 ```
@@ -107,7 +107,7 @@ CART_REMINDER_DELAY=100
 ```sql
 -- Exemplo de webhook no banco
 INSERT INTO "Webhook" (id, url, events, secret, active) VALUES (
-  gen_random_uuid(),
+  gen_random_cuid(),
   'https://seu-endpoint.com/webhook',
   ARRAY['order.created', 'order.paid', 'cart.reminder'],
   'seu-secret-hmac',

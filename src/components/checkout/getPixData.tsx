@@ -6,7 +6,7 @@ import { z } from 'zod';
 /**
  * Zod Schemas
  */
-const PaymentIdSchema = z.string().uuid();
+const PaymentIdSchema = z.string().cuid();
 
 /**
  * Interfaces de domínio
@@ -175,6 +175,21 @@ export async function getPixData(rawId: unknown): Promise<PixData | null> {
       return null;
     }
 
+    // Extrair o valor do pagamento
+    let amount = payment.amount;
+    
+    // Se o valor estiver em centavos no banco (Int), converter para reais (Float)
+    if (amount && Number.isInteger(amount) && amount > 100) {
+      amount = amount / 100;
+    }
+    
+    // Também tentar extrair o valor dos dados brutos do Mercado Pago
+    if (!amount && raw.transaction_amount) {
+      amount = Number(raw.transaction_amount);
+    } else if (!amount && raw.transaction_details?.total_paid_amount) {
+      amount = Number(raw.transaction_details.total_paid_amount);
+    }
+    
     // 4. Construir objeto PixData
     const pixData: PixData = {
       id: payment.id,
@@ -183,7 +198,7 @@ export async function getPixData(rawId: unknown): Promise<PixData | null> {
       qr_code_base64: qrCodeBase64,
       ticket_url: ticketUrl,
       expiration_date: expirationDate,
-      amount: payment.amount,
+      amount: amount,
       order: payment.order ? {
         id: payment.order.id,
         status: payment.order.status,

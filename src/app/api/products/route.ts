@@ -14,7 +14,7 @@ const productSchema = z.object({
 });
 
 const updateProductSchema = z.object({
-  id: z.string().uuid('ID do produto inválido'),
+  id: z.string().cuid('ID do produto inválido'),
   name: z.string().min(2, 'Nome deve ter pelo menos 2 caracteres').optional(),
   description: z.string().min(2, 'Descrição deve ter pelo menos 2 caracteres').optional(),
   price: z.number().int().min(0, 'Preço deve ser maior ou igual a zero').optional(),

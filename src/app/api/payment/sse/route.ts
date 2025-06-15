@@ -5,7 +5,7 @@ import { webhookRateLimit } from '@/lib/rate-limit';
 
 export const dynamic = 'force-dynamic';
 
-const PaymentIdSchema = z.string().uuid('ID de pagamento inválido');
+const PaymentIdSchema = z.string().cuid('ID de pagamento inválido');
 
 export async function GET(req: NextRequest) {
   try {

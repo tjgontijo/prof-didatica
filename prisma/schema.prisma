@@ -24,7 +24,7 @@ enum OrderStatus {
 // ========================
 
 model Product {
-  id              String   @id @default(uuid())
+  id              String   @id @default(cuid())
   name            String
   description     String
   imageUrl        String?  // URL da imagem do produto
@@ -50,7 +50,7 @@ model Product {
 }
 
 model Checkout {
-  id              String    @id @default(uuid())  
+  id              String    @id @default(cuid())  
   productId       String
   campaignName    String? 
   isActive        Boolean   @default(true)
@@ -65,7 +65,7 @@ model Checkout {
 }
 
 model OrderBump {
-  id                String   @id @default(uuid())
+  id                String   @id @default(cuid())
   mainProductId     String
   bumpProductId     String
 
@@ -87,7 +87,7 @@ model OrderBump {
 }
 
 model Order {
-  id              String        @id @default(uuid())
+  id              String        @id @default(cuid())
   checkoutId      String
   productId       String
   customerId      String
@@ -113,7 +113,7 @@ model Order {
 }
 
 model OrderItem {
-  id          String  @id @default(uuid())
+  id          String  @id @default(cuid())
   orderId     String
   productId   String
   quantity    Int     @default(1)
@@ -132,7 +132,7 @@ model OrderItem {
 }
 
 model OrderStatusHistory {
-  id             String        @id @default(uuid())
+  id             String        @id @default(cuid())
   orderId        String
   previousStatus OrderStatus?
   newStatus      OrderStatus
@@ -144,7 +144,7 @@ model OrderStatusHistory {
 }
 
 model Webhook {
-  id          String    @id @default(uuid())
+  id          String    @id @default(cuid())
   url         String
   events      String[]
   active      Boolean   @default(true)  
@@ -159,7 +159,7 @@ model Webhook {
 }
 
 model WebhookLog {
-  id          String   @id @default(uuid())
+  id          String   @id @default(cuid())
   webhookId   String
   event       String
   payload     String   // JSON payload enviado
@@ -175,7 +175,7 @@ model WebhookLog {
 }
 
 model Payment {
-  id             String   @id @default(uuid())
+  id             String   @id @default(cuid())
   orderId        String   @unique
   status         String   // era PaymentStatus
   method         String   // pix, credit_card, boleto, etc.
@@ -195,7 +195,7 @@ model Payment {
 
 // Dados de clientes (leads e clientes)
 model Customer {
-  id         String    @id @default(uuid())
+  id         String    @id @default(cuid())
   name       String
   email      String    @unique
   phone      String    @unique
@@ -212,7 +212,7 @@ model Customer {
 // ========================
 
 model ExternalWebhookLog {
-  id          String   @id @default(uuid())
+  id          String   @id @default(cuid())
   webhookId   String   @unique // ID único do webhook (x-request-id ou gerado)
   source      String   // 'mercadopago', 'stripe', etc
   paymentId   String?  // ID do pagamento externo

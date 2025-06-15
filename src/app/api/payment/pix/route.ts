@@ -155,12 +155,15 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
       });
 
       // 4.3 Criar registro de pagamento no banco
+      // Converter o valor para centavos antes de salvar no banco de dados
+      const valorEmCentavos = Math.round(payload.valorTotal * 100);
+      
       const paymentRecord = await tx.payment.create({
         data: {
           orderId: payload.orderId,
           method: 'pix',
           status: mpResponse.status,
-          amount: payload.valorTotal,
+          amount: valorEmCentavos, // Valor convertido para centavos (Int)
           mercadoPagoId: String(mpResponse.id), // Adicionando o ID do Mercado Pago
           rawData: mpResponse,
         },

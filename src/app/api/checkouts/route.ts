@@ -6,7 +6,7 @@ import { orderRateLimit } from '@/lib/rate-limit';
 import { getCachedData, invalidateCache } from '@/lib/cache';
 
 const checkoutSchema = z.object({
-  productId: z.string().uuid('ID do produto inválido'),
+  productId: z.string().cuid('ID do produto inválido'),
   campaignName: z
     .string()
     .min(1, 'Nome da campanha deve ter pelo menos 1 caractere')
@@ -16,8 +16,8 @@ const checkoutSchema = z.object({
 });
 
 const updateCheckoutSchema = z.object({
-  id: z.string().uuid('ID do checkout inválido'),
-  productId: z.string().uuid('ID do produto inválido').optional(),
+  id: z.string().cuid('ID do checkout inválido'),
+  productId: z.string().cuid('ID do produto inválido').optional(),
   campaignName: z
     .string()
     .min(1, 'Nome da campanha deve ter pelo menos 1 caractere')

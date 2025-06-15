@@ -11,20 +11,33 @@ import { getCachedProduct } from '@/lib/cache';
 
 // Schema para validação forte dos dados recebidos
 const orderSchema = z.object({
-  productId: z.string().uuid(),
-  checkoutId: z.string().uuid(),
-  customerName: z.string().min(2).max(100),
-  customerEmail: z.string().email(),
+  productId: z.string().cuid(),
+  checkoutId: z.string().cuid(),
+  // Aceita tanto os campos antigos quanto os novos
+  customerName: z.string().min(2).max(100).optional(),
+  customerEmail: z.string().email().optional(),
   customerPhone: z
     .string()
     .min(10, 'Telefone deve ter pelo menos 10 dígitos')
     .max(15, 'Telefone deve ter no máximo 15 dígitos')
     .refine(validateBrazilianPhone, 'Telefone deve ser um número brasileiro válido')
-    .transform(cleanPhone), // Limpa o telefone após validação
+    .transform(cleanPhone)
+    .optional(), // Limpa o telefone após validação
+  
+  // Novos campos
+  name: z.string().min(2).max(100).optional(),
+  email: z.string().email().optional(),
+  phone: z
+    .string()
+    .min(10, 'Telefone deve ter pelo menos 10 dígitos')
+    .max(15, 'Telefone deve ter no máximo 15 dígitos')
+    .refine(validateBrazilianPhone, 'Telefone deve ser um número brasileiro válido')
+    .transform(cleanPhone)
+    .optional(),
   orderBumps: z
     .array(
       z.object({
-        productId: z.string().uuid(),
+        productId: z.string().cuid(),
         quantity: z.number().min(1).max(10),
       }),
     )
@@ -34,7 +47,7 @@ const orderSchema = z.object({
 
 // Schema para validação parcial (PATCH)
 const patchOrderSchema = z.object({
-  id: z.string().uuid(),
+  id: z.string().cuid(),
   customerName: z.string().min(2).max(100).optional(),
   customerEmail: z.string().email().optional(),
   customerPhone: z
@@ -123,12 +136,22 @@ export async function POST(request: NextRequest) {
 
     const body = await request.json();
     const data = orderSchema.parse(body);
+    
+    // Normalizar os campos para compatibilidade com ambos os formatos
+    const customerName = data.name || data.customerName;
+    const customerEmail = data.email || data.customerEmail;
+    const customerPhone = data.phone || data.customerPhone;
+    
+    // Verificar se temos os dados necessários
+    if (!customerName || !customerEmail || !customerPhone) {
+      throw new Error('Dados do cliente incompletos. Forneça name/customerName, email/customerEmail e phone/customerPhone.');
+    }
 
     // Usar transação para garantir consistência
     const result = await prisma.$transaction(async (tx: Prisma.TransactionClient) => {
       // Buscar ou criar customer (com tratamento de concorrência)
       let customer = await tx.customer.findUnique({
-        where: { email: data.customerEmail },
+        where: { email: customerEmail },
       });
 
       if (!customer) {
@@ -136,9 +159,9 @@ export async function POST(request: NextRequest) {
           // Tentar criar novo customer
           customer = await tx.customer.create({
             data: {
-              name: data.customerName,
-              email: data.customerEmail,
-              phone: data.customerPhone,
+              name: customerName,
+              email: customerEmail,
+              phone: customerPhone,
             },
           });
         } catch (error: unknown) {
@@ -149,7 +172,7 @@ export async function POST(request: NextRequest) {
             (error as { code: string }).code === 'P2002'
           ) {
             customer = await tx.customer.findUnique({
-              where: { email: data.customerEmail },
+              where: { email: customerEmail },
             });
             if (!customer) {
               throw new Error('Erro ao criar/buscar customer');

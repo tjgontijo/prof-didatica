@@ -177,15 +177,15 @@ export interface WebhookLogCreateInput {
 // ========================
 
 export const CustomerDataSchema = z.object({
-  id: z.string().uuid(),
+  id: z.string().cuid(),
   name: z.string().min(1),
   email: z.string().email(),
   phone: z.string().min(1),
 });
 
 export const OrderItemDataSchema = z.object({
-  id: z.string().uuid(),
-  productId: z.string().uuid(),
+  id: z.string().cuid(),
+  productId: z.string().cuid(),
   name: z.string().min(1),
   quantity: z.number().min(1),
   price: z.number().min(0),
@@ -195,8 +195,8 @@ export const OrderItemDataSchema = z.object({
 });
 
 export const OrderEventDataSchema = z.object({
-  id: z.string().uuid(),
-  checkoutId: z.string().uuid(),
+  id: z.string().cuid(),
+  checkoutId: z.string().cuid(),
   customer: CustomerDataSchema,
   items: z.array(OrderItemDataSchema).min(1, 'Deve conter pelo menos um item'),
   status: z.enum(['DRAFT', 'PENDING', 'PAID', 'COMPLETED', 'CANCELLED']),
@@ -206,7 +206,7 @@ export const OrderEventDataSchema = z.object({
   updatedAt: z.string().datetime(),
   payment: z
     .object({
-      id: z.string().uuid(),
+      id: z.string().cuid(),
       method: z.string(),
       status: z.string(),
       amount: z.number().min(0),

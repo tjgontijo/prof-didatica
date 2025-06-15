@@ -12,7 +12,7 @@ import { getWebhookConfig } from '../config/webhook.config';
 import { z } from 'zod';
 
 const OrderPaidEventDataSchema = OrderEventDataSchema.extend({
-  paymentId: z.string().uuid(),
+  paymentId: z.string().cuid(),
   paidAt: z.string().datetime(),
   paymentMethod: z.string().min(1),
 });
