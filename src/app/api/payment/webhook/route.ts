@@ -144,7 +144,7 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
       // 7. Usar transação para garantir consistência
       await prisma.$transaction(async (tx: Prisma.TransactionClient) => {
         // Capturar status atual pra histórico
-        const currentOrderStatus = payment.order?.status || 'PAYMENT_PROCESSING';
+        const currentOrderStatus = payment.order?.status || 'PENDING';
 
         // Atualizar o registro de pagamento
         await tx.payment.update({
