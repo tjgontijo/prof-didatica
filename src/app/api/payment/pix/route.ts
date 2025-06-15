@@ -114,10 +114,10 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
       // 4.1 Atualizar status do pedido para PENDING
       const updatedOrder = await tx.order.update({
         where: { id: payload.orderId },
-        data: { status: 'PENDING_PAYMENT' },
+        data: { status: 'PENDING' },
       });
 
-      console.log('Status do pedido atualizado para PENDING_PAYMENT:', updatedOrder.id);
+      console.log('Status do pedido atualizado para PENDING:', updatedOrder.id);
 
       // 4.2 Criar pagamento PIX via Mercado Pago
       const client = new MercadoPagoConfig({
