@@ -94,10 +94,10 @@ export class OrderCreatedEventHandler {
           pix:
             order.payment.method === 'pix' && order.payment.rawData
               ? {
-                  qrCode: (order.payment.rawData as PaymentRawData).qrCode,
-                  qrCodeBase64: (order.payment.rawData as PaymentRawData).qrCodeBase64,
-                  pixCopyPaste: (order.payment.rawData as PaymentRawData).pixCopyPaste,
-                  expiresAt: (order.payment.rawData as PaymentRawData).expiresAt,
+                  qrCode: (order.payment.rawData as PaymentRawData)?.qrCode || '',
+                  qrCodeBase64: (order.payment.rawData as PaymentRawData)?.qrCodeBase64 || '',
+                  pixCopyPaste: (order.payment.rawData as PaymentRawData)?.pixCopyPaste || '',
+                  expiresAt: (order.payment.rawData as PaymentRawData)?.expiresAt || new Date().toISOString(),
                 }
               : undefined,
         }
