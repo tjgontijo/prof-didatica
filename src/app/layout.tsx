@@ -23,12 +23,12 @@ export default function RootLayout({
   return (
     <html lang="pt-BR">
       <head>
-        {process.env.NODE_ENV === 'production' && (
+        {/* {process.env.NODE_ENV === 'production' && (
           <>
             <UtmifyScripts />
             <ClarityScript />
           </>
-        )}
+        )} */}
       </head>
       <body className={`${inter.variable} font-sans antialiased`}>{children}</body>
     </html>
