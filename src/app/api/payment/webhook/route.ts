@@ -7,30 +7,7 @@ import { prisma } from '@/lib/prisma';
 import { broadcastSSE } from '@/lib/sse';
 
 import { webhookRateLimit } from '@/lib/rate-limit';
-import crypto from 'crypto';
 
-// Função para validar assinatura do webhook
-function validateWebhookSignature(body: string, signature: string | null, secret: string): boolean {
-  if (!signature || !secret) {
-    return false;
-  }
-
-  try {
-    // Mercado Pago usa HMAC-SHA256
-    const expectedSignature = crypto.createHmac('sha256', secret).update(body).digest('hex');
-
-    // Remove prefixos como "sha256=" se existirem
-    const cleanSignature = signature.replace(/^sha256=/, '');
-
-    return crypto.timingSafeEqual(
-      Buffer.from(expectedSignature, 'hex'),
-      Buffer.from(cleanSignature, 'hex'),
-    );
-  } catch (error) {
-    console.error('Erro ao validar assinatura do webhook:', error);
-    return false;
-  }
-}
 
 export async function POST(request: NextRequest): Promise<NextResponse> {
   try {
@@ -50,32 +27,29 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
       );
     }
 
-    // 2. Extrair assinatura e validar
-    const signature = request.headers.get('x-signature') || request.headers.get('x-hook-secret');
+    // 2. Extrair o corpo da requisição
     const bodyText = await request.text();
-
-    // Validar assinatura se configurada
-    const webhookSecret = process.env.MERCADOPAGO_WEBHOOK_SECRET;
-    if (webhookSecret) {
-      const isValidSignature = validateWebhookSignature(bodyText, signature, webhookSecret);
-      if (!isValidSignature) {
-        console.error('Assinatura do webhook inválida');
-        return NextResponse.json({ success: false, error: 'Assinatura inválida' }, { status: 401 });
-      }
-    } else {
-      console.warn('MERCADOPAGO_WEBHOOK_SECRET não configurado - webhook sem validação');
-    }
+    
+    // Validação de assinatura removida para simplificar o MVP
+    console.log('Webhook recebido - validação de assinatura desativada para MVP');
 
     const body = JSON.parse(bodyText);
 
-    // Log apenas em desenvolvimento (sem dados sensíveis)
-    if (process.env.NODE_ENV === 'development') {
-      console.log('Webhook Mercado Pago recebido:', {
-        action: body.action,
-        paymentId: body.data?.id,
-        timestamp: new Date().toISOString(),
-      });
-    }
+    // Log detalhado do webhook recebido
+    console.log('WEBHOOK MERCADO PAGO - DADOS COMPLETOS:', JSON.stringify(body, null, 2));
+    console.log('WEBHOOK MERCADO PAGO - HEADERS:', {
+      'user-agent': request.headers.get('user-agent'),
+      'content-type': request.headers.get('content-type'),
+      'x-signature': request.headers.get('x-signature'),
+      'x-hook-id': request.headers.get('x-hook-id'),
+    });
+    
+    // Log resumido
+    console.log('Webhook Mercado Pago recebido:', {
+      action: body.action,
+      paymentId: body.data?.id,
+      timestamp: new Date().toISOString(),
+    });
 
     // 2. Processa somente created/updated
     if (body.action === 'payment.created' || body.action === 'payment.updated') {
@@ -116,7 +90,6 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
         action: body.action,
         payload: JSON.stringify(body),
         headers: JSON.stringify({
-          'x-signature': signature,
           'user-agent': request.headers.get('user-agent'),
           'content-type': request.headers.get('content-type'),
         }),
