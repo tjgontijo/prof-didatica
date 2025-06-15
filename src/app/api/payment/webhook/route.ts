@@ -7,6 +7,8 @@ import { prisma } from '@/lib/prisma';
 import { broadcastSSE } from '@/lib/sse';
 
 import { webhookRateLimit } from '@/lib/rate-limit';
+import { getWebhookService } from '@/services/webhook';
+import { OrderPaidEventHandler } from '@/services/webhook/events/order-paid.event';
 
 
 export async function POST(request: NextRequest): Promise<NextResponse> {
@@ -177,6 +179,21 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
             },
           });
           console.log(`Pedido ${payment.orderId} marcado como PAGO`);
+          
+          // Disparar webhook para order.paid após a transação
+          setTimeout(async () => {
+            try {
+              const webhookService = getWebhookService(prisma);
+              const orderPaidEventHandler = new OrderPaidEventHandler(prisma);
+              const orderPaidEvent = await orderPaidEventHandler.createEvent(payment.orderId);
+              
+              console.log(`Disparando webhook para order.paid do pedido ${payment.orderId}`);
+              const sentWebhooks = await webhookService.dispatchEvent(orderPaidEvent);
+              console.log(`Webhooks disparados: ${sentWebhooks.length}`);
+            } catch (error) {
+              console.error(`Erro ao disparar webhook order.paid: ${error}`);
+            }
+          }, 100); // Pequeno delay para garantir que a transação foi concluída
         } else if (status === 'rejected') {
           await tx.order.update({
             where: { id: payment.orderId },
