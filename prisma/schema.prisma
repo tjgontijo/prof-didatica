@@ -10,13 +10,10 @@ generator client {
 
 enum OrderStatus {
   DRAFT
-  ABANDONED_CART 
-  PENDING_PAYMENT
-  PAYMENT_PROCESSING
+  PENDING
   PAID
+  COMPLETED
   CANCELLED
-  REFUNDED
-  DELIVERED
   }
 
 // ========================
