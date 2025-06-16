@@ -39,12 +39,12 @@ export default function TestePage() {
     if (!carregando && !prefetchRealizado) {
       // Esperar um pouco após o carregamento completo
       const timeoutId = setTimeout(() => {
-        console.log('Página carregada completamente, iniciando prefetch...');
+
 
         // Realizar o prefetch
         prefetchCheckoutData(CHECKOUT_ID)
           .then((resultado) => {
-            console.log('Prefetch concluído com sucesso!');
+
             if (resultado) {
               setPrefetchRealizado(true);
               setErro(null);

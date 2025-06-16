@@ -123,12 +123,12 @@ export default function CheckoutClientComponent({
   // Função para salvar o ID do pedido no estado e na sessão
   const saveOrderId = useCallback((id: string) => {
     try {
-      console.log(`Salvando order ID '${id}' no estado...`);
+
       setOrderId(id);
-      console.log(`Order ID '${id}' salvo com sucesso`);
+
       return true;
-    } catch (error) {
-      console.error('Erro ao salvar orderId:', error);
+    } catch {
+
       return false;
     }
   }, []);
@@ -152,56 +152,56 @@ export default function CheckoutClientComponent({
           })),
       };
       
-      console.log('Enviando payload para criar pedido:', payload);
+
       
       // Fazer a chamada API
-      const res = await fetch('/api/orders', {
+      const response = await fetch('/api/orders', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(payload),
       });
       
-      if (!res.ok) {
-        console.error(`Erro HTTP na criação do pedido: ${res.status} ${res.statusText}`);
-        throw new Error(`Erro ao criar pedido: ${res.status} ${res.statusText}`);
+      if (!response.ok) {
+
+        throw new Error(`Erro ao criar pedido: ${response.status} ${response.statusText}`);
       }
       
       // Processar a resposta
-      const orderData = await res.json();
-      console.log('Resposta completa da API:', orderData);
+      const orderData = await response.json();
+
       
       // Verificação detalhada da estrutura da resposta
       if (!orderData) {
-        console.error('Resposta da API é nula ou indefinida');
+
         throw new Error('Resposta inválida da API: sem dados');
       }
       
       if (!orderData.success) {
-        console.error('API reportou falha:', orderData);
+
         throw new Error(`Falha ao criar pedido: ${orderData.message || 'erro desconhecido'}`);
       }
       
       if (!orderData.order) {
-        console.error('Objeto order ausente na resposta:', orderData);
+
         throw new Error('Resposta inválida da API: objeto order ausente');
       }
       
       // Obter e validar o ID
       const newOrderId = orderData.order.id;
-      console.log('Order ID extraído com sucesso:', newOrderId);
+
       
       if (!newOrderId) {
-        console.error('ID do pedido é inválido ou inexistente:', orderData.order);
+
         throw new Error('ID do pedido inválido ou inexistente na resposta');
       }
       
       // Salvar o ID no estado React
       setOrderId(newOrderId); // Atualiza diretamente
-      console.log(`OrderId '${newOrderId}' salvo diretamente no estado`);
+
       
       return newOrderId;
     } catch (error) {
-      console.error('Erro detalhado na criação do pedido:', error);
+
       throw error; // Re-lança para tratamento no nível superior
     } finally {
       setIsCreatingOrder(false);
@@ -210,7 +210,7 @@ export default function CheckoutClientComponent({
 
   // Função para atualizar um pedido existente
   const updateOrder = useCallback(async (orderId: string, data: CustomerFormValues, phoneNormalized: string) => {
-    console.log('Atualizando pedido existente:', orderId);
+
     
     const payload: OrderUpdatePayload = {
       customerName: data.name,
@@ -230,7 +230,7 @@ export default function CheckoutClientComponent({
     
     // Garante que o ID do pedido está armazenado na sessão
     saveOrderId(orderId);
-    console.log('Order ID existente confirmado na sessão:', orderId);
+
     
     return orderId;
   }, [saveOrderId]);
@@ -238,8 +238,8 @@ export default function CheckoutClientComponent({
   const handleSaveCustomerDataAndProceed: SubmitHandler<CustomerFormValues> = useCallback(async (
     data,
   ) => {
-    console.log('Iniciando handleSaveCustomerDataAndProceed com dados:', data);
-    console.log('Estado atual do orderId:', orderId);
+
+
     
     setDadosCliente(data);
     const phoneNormalized = cleanPhone(data.phone);
@@ -248,30 +248,30 @@ export default function CheckoutClientComponent({
       let currentOrderId = orderId;
       
       if (!currentOrderId) {
-        console.log('Criando novo pedido...');
+
         try {
           currentOrderId = await createOrder(data, phoneNormalized);
-          console.log('Pedido criado com sucesso, ID:', currentOrderId);
+
           // Garante que o ID está no estado antes de prosseguir
           setOrderId(currentOrderId);
         } catch (createError) {
-          console.error('Erro específico ao criar pedido:', createError);
+
           throw createError; // Re-lança para ser capturado pelo catch externo
         }
       } else {
-        console.log('Atualizando pedido existente, ID:', currentOrderId);
+
         await updateOrder(currentOrderId, data, phoneNormalized);
-        console.log('Pedido atualizado com sucesso');
+
       }
       
       // Pequeno timeout para garantir que o estado foi atualizado
       setTimeout(() => {
-        console.log('Navegando para etapa de pagamento com orderId:', currentOrderId);
+
         setCurrentStep('payment');
-        console.log('Etapa alterada para payment');
+
       }, 100);
     } catch (error) {
-      console.error('Erro ao salvar dados do cliente:', error);
+
       setErro(error instanceof Error ? error.message : 'Erro ao processar seus dados. Por favor, tente novamente.');
     }
   }, [orderId, createOrder, updateOrder, setOrderId]);
@@ -346,12 +346,12 @@ export default function CheckoutClientComponent({
                     const currentOrderId = orderId;
                     
                     if (!currentOrderId) {
-                      console.error('Order ID não encontrado no estado');
+
                       setErro('ID do pedido não encontrado. Por favor, preencha seus dados novamente.');
                       return;
                     }
                     
-                    console.log('Usando Order ID para gerar PIX:', currentOrderId);
+
                     
                     const items = [
                       {
@@ -382,11 +382,7 @@ export default function CheckoutClientComponent({
                       orderId: currentOrderId,
                     };
                     
-                    console.log('Enviando dados para gerar PIX:', {
-                      ...dadosPedido,
-                      items: dadosPedido.items.length + ' itens',
-                      orderId: currentOrderId // Verificando se o orderId está sendo enviado
-                    });
+
 
                     const resposta = await fetch('/api/payment/pix', {
                       method: 'POST',
@@ -397,20 +393,20 @@ export default function CheckoutClientComponent({
                     });
 
                     if (!resposta.ok) {
-                      console.error('Erro na resposta da API de PIX:', resposta.status, resposta.statusText);
+
                       throw new Error(`Erro ao processar pagamento: ${resposta.status} ${resposta.statusText}`);
                     }
 
                     const dadosResposta = await resposta.json();
-                    console.log('Resposta da API de PIX:', dadosResposta);
+
                     
                     // A API retorna paymentId, não id
                     if (!dadosResposta.paymentId) {
-                      console.error('ID do pagamento não encontrado na resposta:', dadosResposta);
+
                       throw new Error('ID do pagamento não encontrado na resposta');
                     }
                     
-                    console.log('Redirecionando para página de pagamento:', `/payment/${dadosResposta.paymentId}`);
+
                     router.push(`/payment/${dadosResposta.paymentId}`);
                   } catch (error) {
                     if (error instanceof Error) {
@@ -418,7 +414,7 @@ export default function CheckoutClientComponent({
                     } else {
                       setErro('Erro ao processar pagamento');
                     }
-                    console.error(error);
+
                   } finally {
                     setCarregando(false);
                   }

@@ -16,13 +16,8 @@ declare global {
 
 export function ClarityScript() {
   useEffect(() => {
-    // Log para verificar se o script do Clarity está sendo inicializado
-    console.log('Tentando inicializar o Microsoft Clarity...');
-
-    // Verificamos periodicamente se o objeto clarity existe
     const clarityCheckInterval = setInterval(() => {
-      if (window.clarity) {
-        console.log('Microsoft Clarity inicializado com sucesso!');
+      if (window.clarity) {    
         clearInterval(clarityCheckInterval);
       }
     }, 2000);

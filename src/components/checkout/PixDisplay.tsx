@@ -14,17 +14,7 @@ export default function PixDisplay({ pixData }: PixDisplayProps) {
   const [copiado, setCopiado] = useState(false);
 
   // Log detalhado dos dados do PIX
-  console.log('[PixDisplay] Dados do PIX recebidos:', {
-    id: pixData?.id,
-    status: pixData?.status,
-    qr_code: pixData?.qr_code ? `${pixData.qr_code.substring(0, 20)}...` : 'Ausente',
-    qr_code_base64: pixData?.qr_code_base64 ? 'Presente (base64)' : 'Ausente',
-    ticket_url: pixData?.ticket_url || 'Ausente',
-    expiration_date: pixData?.expiration_date || 'Ausente',
-    amount: pixData?.amount,
-    orderInfo: pixData?.order ? `ID: ${pixData.order.id}, Status: ${pixData.order.status}` : 'Sem dados do pedido',
-    customerInfo: pixData?.order?.customer ? `Nome: ${pixData.order.customer.name}, Telefone: ${pixData.order.customer.phone}` : 'Sem dados do cliente'
-  });
+
 
   // Função para copiar código PIX
   const copiarCodigoPix = () => {

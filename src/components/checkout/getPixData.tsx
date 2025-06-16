@@ -68,7 +68,7 @@ export async function getPixData(rawId: unknown): Promise<PixData | null> {
   // 1. Validar e parsear o ID do pagamento
   const parsedId = PaymentIdSchema.safeParse(rawId);
   if (!parsedId.success) {
-    console.error('[getPixData] paymentId inválido:', rawId);
+
     return null;
   }
   const id = parsedId.data;
@@ -93,22 +93,29 @@ export async function getPixData(rawId: unknown): Promise<PixData | null> {
       try {
         if (typeof payment.rawData === 'object') {
           return payment.rawData;
-        } else if (typeof payment.rawData === 'string') {
-          return JSON.parse(payment.rawData);
         }
-        return null;
-      } catch (err) {
-        console.error('[getPixData] Falha ao processar rawData', err);
+        try {
+          // Converter para JSON se for string
+          if (typeof payment.rawData === 'string') {
+            return JSON.parse(payment.rawData);
+          }
+          // Se já for objeto, retornar como está
+          return payment.rawData;
+        } catch {
+          // Em caso de erro, retornar null
+          return null;
+        }
+      } catch {
         return null;
       }
     })();
     
     if (!raw) {
-      console.error('[getPixData] rawData nulo ou indefinido');
+
       return null;
     }
     
-    console.log('[getPixData] Dados brutos recebidos:', raw);
+
     
     // Abordagem direta: extrair campos independentemente do formato
     let qrCode = '';
@@ -162,16 +169,11 @@ export async function getPixData(rawId: unknown): Promise<PixData | null> {
     }
     
     // Log dos dados extraídos
-    console.log('[getPixData] Dados extraídos:', {
-      qrCode: qrCode ? `${qrCode.substring(0, 20)}...` : 'Não encontrado',
-      qrCodeBase64: qrCodeBase64 ? 'Presente' : 'Não encontrado',
-      ticketUrl: ticketUrl || 'Não encontrado',
-      expirationDate: expirationDate || 'Não encontrado'
-    });
+
     
     // Se não encontramos dados essenciais, temos um problema
     if (!qrCode && !qrCodeBase64) {
-      console.error('[getPixData] Dados essenciais do PIX não encontrados');
+
       return null;
     }
 
@@ -209,17 +211,10 @@ export async function getPixData(rawId: unknown): Promise<PixData | null> {
       orderNumber: payment.order?.id || payment.id
     };
     
-    console.log('[getPixData] Dados do PIX processados com sucesso:', {
-      id: pixData.id,
-      qrCode: pixData.qr_code ? 'Presente' : 'Ausente',
-      qrCodeBase64: pixData.qr_code_base64 ? 'Presente' : 'Ausente',
-      customerName: pixData.customerName,
-      orderNumber: pixData.orderNumber
-    });
+
 
     return pixData;
-  } catch (err) {
-    console.error('[getPixData] erro inesperado:', err);
+  } catch {
     return null;
   }
 }

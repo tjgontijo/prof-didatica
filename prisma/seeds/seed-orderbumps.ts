@@ -13,8 +13,7 @@ export async function seedOrderBumps(prisma: PrismaClient) {
   });
 
   // Se tiver menos de 2 produtos, não faz nada
-  if (produtos.length < 2) {
-    console.log('Menos de 2 produtos encontrados. Nenhum orderbump criado.');
+  if (produtos.length < 2) {    
     return;
   }
 
@@ -34,9 +33,7 @@ export async function seedOrderBumps(prisma: PrismaClient) {
     orderBumps.push(produtos[2]);
   }
   
-  //console.log(`Encontrados ${produtos.length} produtos. Criando ${orderBumps.length} orderbumps.`);
-
-  // Cria os orderbumps baseado nos produtos disponíveis
+    // Cria os orderbumps baseado nos produtos disponíveis
   await Promise.all(
     orderBumps.map(async (bump, index) => {
       const isFirstBump = index === 0;
@@ -54,11 +51,7 @@ export async function seedOrderBumps(prisma: PrismaClient) {
           displayOrder: displayOrder,
           isActive: true,
         }
-      });
-      
-      console.log(`✅ Order bump criado para o produto: ${bump.name} (${discount * 100}% de desconto)`);
+      });            
     })
-  );
-
-  console.log(`✅ ${orderBumps.length} order bump(s) criado(s) com sucesso!`);
+  );  
 }

@@ -18,7 +18,7 @@ const OrderBumpItem = memo(({ item, loadingId, onToggle }: OrderBumpItemProps) =
 
   // Validar dados obrigatórios
   if (item.initialPrice === undefined || item.specialPrice === undefined) {
-    console.warn(`OrderBump ${item.id} está com preços inválidos`, item);
+
     return null;
   }
   

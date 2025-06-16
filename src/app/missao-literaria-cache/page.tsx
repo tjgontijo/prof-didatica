@@ -98,12 +98,12 @@ export default function Page() {
       if (prefetchExecutado) return; // Evita execuções duplicadas
       prefetchExecutado = true;
 
-      console.log('Iniciando prefetch dos dados do checkout...');
+
       // Pré-carregar os dados do checkout
       prefetchCheckoutData(CHECKOUT_ID)
         .then((resultado) => {
           if (resultado) {
-            console.log('Prefetch concluído com sucesso!');
+
             setPrefetchRealizado(true);
             setPrefetchErro(null);
           } else {

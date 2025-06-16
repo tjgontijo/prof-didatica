@@ -31,12 +31,23 @@ type MercadoPagoResponse = {
   id: number;
   status: string;
   payment_method_id: string;
+  date_of_expiration?: string;
   point_of_interaction?: {
     transaction_data?: {
       qr_code?: string;
       qr_code_base64?: string;
+      ticket_url?: string;
     };
   };
+};
+
+// Tipo para dados do PIX que serão armazenados
+type PixData = {
+  mercadoPagoId: string;
+  pixCopyPaste: string;
+  qrCodeBase64: string;
+  ticket_url: string;
+  expiresAt: string;
 };
 
 export async function POST(request: NextRequest): Promise<NextResponse> {
@@ -66,7 +77,7 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
     const validationResult = paymentSchema.safeParse(dados);
 
     if (!validationResult.success) {
-      console.error('Erro de validação:', validationResult.error);
+
       return NextResponse.json(
         {
           success: false,
@@ -80,11 +91,11 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
     const payload = validationResult.data;
 
     if (process.env.NODE_ENV === 'development') {
-      console.log('Criação de pagamento PIX iniciada:', {
-        orderId: payload.orderId,
-        valorTotal: payload.valorTotal,
-        timestamp: new Date().toISOString(),
-      });
+
+
+
+
+
     }
 
     // 3. Verificar se o pedido existe e está no status correto
@@ -108,16 +119,14 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
     }
 
     // 4. Processar pagamento PIX
-    console.log('Iniciando transação para pedido:', payload.orderId);
+
 
     const result = await prisma.$transaction(async (tx: Prisma.TransactionClient) => {
       // 4.1 Atualizar status do pedido para PENDING
-      const updatedOrder = await tx.order.update({
+      await tx.order.update({
         where: { id: payload.orderId },
         data: { status: 'PENDING' },
       });
-
-      console.log('Status do pedido atualizado para PENDING:', updatedOrder.id);
 
       // 4.2 Criar pagamento PIX via Mercado Pago
       const client = new MercadoPagoConfig({
@@ -146,20 +155,55 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
         },
       };
 
-      console.log('Criando pagamento PIX no Mercado Pago...');
-
       const mpResponse = (await payment.create({ body: mpPaymentData })) as MercadoPagoResponse;
-
-      console.log('Resposta do Mercado Pago:', {
-        id: mpResponse.id,
-        status: mpResponse.status,
-        paymentMethodId: mpResponse.payment_method_id,
-      });
 
       // 4.3 Criar registro de pagamento no banco
       // Converter o valor para centavos antes de salvar no banco de dados
       const valorEmCentavos = Math.round(payload.valorTotal * 100);
-      
+
+      // Extrair dados do PIX da resposta do Mercado Pago
+      if (!mpResponse.point_of_interaction?.transaction_data) {
+        throw new Error('Dados de transação PIX não encontrados na resposta do Mercado Pago');
+      }
+
+      const transactionData = mpResponse.point_of_interaction.transaction_data;
+
+      // Verificar se os dados obrigatórios estão presentes
+      if (!transactionData.qr_code) {
+        throw new Error('QR Code do PIX não encontrado na resposta do Mercado Pago');
+      }
+
+      // Verificar se temos os dados necessários do PIX
+      if (!transactionData.qr_code) {
+        throw new Error('Dados do PIX incompletos: qr_code é obrigatório');
+      }
+
+      // Extrair apenas os dados essenciais do PIX
+      const pixCopyPaste = transactionData.qr_code;
+      const qrCodeBase64 = transactionData.qr_code_base64 || '';
+      const ticket_url = transactionData.ticket_url || '';
+
+      // Data de expiração (da resposta do Mercado Pago ou 30 minutos a partir de agora)
+      // Formatamos a data para garantir que seja compatível com o validador Zod datetime
+      let expiresAt: string;
+      if (mpResponse.date_of_expiration) {
+        // Converter a data do Mercado Pago para o formato ISO 8601 sem timezone
+        const expDate = new Date(mpResponse.date_of_expiration);
+        expiresAt = expDate.toISOString();
+      } else {
+        // Usar data atual + 30 minutos
+        expiresAt = new Date(Date.now() + 30 * 60 * 1000).toISOString();
+      }
+
+      // Preparar apenas os dados essenciais do PIX para salvar no banco
+      const pixData: PixData = {
+        mercadoPagoId: String(mpResponse.id),
+        pixCopyPaste,
+        qrCodeBase64,
+        ticket_url,
+        expiresAt,
+      };
+
       const paymentRecord = await tx.payment.create({
         data: {
           orderId: payload.orderId,
@@ -167,42 +211,42 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
           status: mpResponse.status,
           amount: valorEmCentavos, // Valor convertido para centavos (Int)
           mercadoPagoId: String(mpResponse.id), // Adicionando o ID do Mercado Pago
-          rawData: mpResponse,
+          rawData: pixData, // Salvando apenas os dados essenciais
         },
       });
-      
-      console.log('Pagamento registrado com mercadoPagoId:', String(mpResponse.id));
 
-      console.log('Pagamento registrado no banco:', paymentRecord.id);
-      
       // Disparar evento order.created
       setTimeout(async () => {
         try {
           const webhookService = getWebhookService(prisma);
           const orderCreatedEventHandler = new OrderCreatedEventHandler(prisma);
           const orderCreatedEvent = await orderCreatedEventHandler.createEvent(payload.orderId);
-          
-          console.log(`Disparando webhook para order.created do pedido ${payload.orderId}`);
-          const sentWebhooks = await webhookService.dispatchEvent(orderCreatedEvent);
-          console.log(`Webhooks disparados: ${sentWebhooks.length}`);
-        } catch (error) {
-          console.error(`Erro ao disparar webhook order.created: ${error}`);
-        }
+
+          await webhookService.dispatchEvent(orderCreatedEvent);
+        } catch {}
       }, 100); // Pequeno delay para garantir que a transação foi concluída
 
+      // Preparar resposta de sucesso com todos os dados necessários
       return {
         success: true,
+        message: 'Pagamento PIX criado com sucesso',
         paymentId: paymentRecord.id,
-        qrCode: mpResponse.point_of_interaction?.transaction_data?.qr_code,
-        qrCodeBase64: mpResponse.point_of_interaction?.transaction_data?.qr_code_base64,
-        pixCopyPaste: mpResponse.point_of_interaction?.transaction_data?.qr_code,
-        expiresAt: new Date(Date.now() + 30 * 60 * 1000), // 30 minutos
+        mercadoPagoId: String(mpResponse.id),
+        status: mpResponse.status,
+        pixData: {
+          mercadoPagoId: String(mpResponse.id),
+          pixCopyPaste: pixData.pixCopyPaste,
+          qrCodeBase64: pixData.qrCodeBase64,
+          ticket_url: pixData.ticket_url,
+          expiresAt: pixData.expiresAt,
+        },
       };
     });
 
-    return NextResponse.json(result);
-  } catch (error) {
-    console.error('Erro ao processar pagamento PIX:', error);
+    // Retornar o resultado da transação com status 201 (Created)
+    return NextResponse.json(result, { status: 201 });
+  } catch {
+
     return NextResponse.json(
       { success: false, error: 'Erro ao processar pagamento' },
       { status: 500 },

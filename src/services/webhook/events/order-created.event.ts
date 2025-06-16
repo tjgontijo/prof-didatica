@@ -35,7 +35,23 @@ export class OrderCreatedEventHandler {
   }
 
   private async getOrderWithRelations(orderId: string): Promise<OrderWithRelationsForEvent | null> {
-    return this.prisma.order.findUnique({
+    // Verificar quantos itens o pedido tem diretamente no banco
+    const itemCount = await this.prisma.orderItem.count({
+      where: { orderId }
+    });
+    
+
+    
+    // Buscar todos os itens do pedido separadamente para verificar
+    const allItems = await this.prisma.orderItem.findMany({
+      where: { orderId },
+      include: { product: true }
+    });
+    
+
+    
+    // Buscar o pedido com todas as relações
+    const order = await this.prisma.order.findUnique({
       where: { id: orderId },
       include: {
         customer: true,
@@ -55,7 +71,25 @@ export class OrderCreatedEventHandler {
           },
         },
       },
-    }) as Promise<OrderWithRelationsForEvent | null>;
+    }) as OrderWithRelationsForEvent | null;
+    
+    if (order) {
+
+      
+      // Verificar se os itens do pedido estão completos
+      if (order.orderItems.length !== itemCount) {
+        console.warn(`[OrderCreatedEvent] ALERTA: Discrepância no número de itens! Banco: ${itemCount}, Pedido: ${order.orderItems.length}`);
+        
+        // Se houver discrepância, substituir os itens do pedido pelos itens buscados separadamente
+        if (allItems.length === itemCount) {
+
+          // Conversão de tipo para evitar erro de tipagem
+          order.orderItems = allItems as unknown as typeof order.orderItems;
+        }
+      }
+    }
+    
+    return order;
   }
 
   private mapToOrderEventData(order: OrderWithRelationsForEvent): OrderEventData {
@@ -66,23 +100,46 @@ export class OrderCreatedEventHandler {
       phone: order.customer.phone || '',
     };
 
+
+    
+    // Removido loop que não fazia nada
+
+    // Garantir que todos os itens sejam mapeados corretamente, incluindo order bumps
     const items = order.orderItems.map((item) => {
-      // Garantir que todos os campos obrigatórios estejam presentes e com tipos corretos
+      // Verificar se o item tem todas as propriedades necessárias
+      if (!item.product) {
+        console.warn(`[OrderCreatedEvent] Item ${item.id} não tem produto associado`);
+      }
+      
       const orderItem = {
         id: item.id,
         productId: item.productId,
         name: item.product?.name ?? 'Produto não encontrado',
-        quantity: item.quantity,
+        quantity: item.quantity || 1,
         price: item.product?.price ?? 0,
         isOrderBump: Boolean(item.isOrderBump),
         isUpsell: Boolean(item.isUpsell),
         googleDriveUrl: item.product?.googleDriveUrl ?? null,
       } satisfies OrderItemData;
+      
       return orderItem;
     });
+    
+    // Verificar se há itens duplicados e removê-los
+    const uniqueItems = items.filter((item, index, self) => 
+      index === self.findIndex((t) => t.id === item.id)
+    );
+    
+    if (uniqueItems.length !== items.length) {
+      console.warn(`[OrderCreatedEvent] Removidos ${items.length - uniqueItems.length} itens duplicados`);
+    }
+    
 
-    const totalItems = items.reduce((sum, item) => sum + item.quantity, 0);
-    const totalValue = items.reduce((sum, item) => sum + item.price * item.quantity, 0);
+
+
+    // Usar os itens únicos para calcular os totais
+    const totalItems = uniqueItems.reduce((sum, item) => sum + item.quantity, 0);
+    const totalValue = uniqueItems.reduce((sum, item) => sum + item.price * item.quantity, 0);
 
     // Mapear dados do pagamento se existir
     const payment = order.payment
@@ -91,23 +148,52 @@ export class OrderCreatedEventHandler {
           method: order.payment.method,
           status: order.payment.status,
           amount: order.payment.amount,
-          pix:
-            order.payment.method === 'pix' && order.payment.rawData
-              ? {
-                  qrCode: (order.payment.rawData as PaymentRawData)?.qrCode || '',
-                  qrCodeBase64: (order.payment.rawData as PaymentRawData)?.qrCodeBase64 || '',
-                  pixCopyPaste: (order.payment.rawData as PaymentRawData)?.pixCopyPaste || '',
-                  expiresAt: (order.payment.rawData as PaymentRawData)?.expiresAt || new Date().toISOString(),
-                }
-              : undefined,
+          pix: order.payment.method === 'pix' && order.payment.rawData
+            ? (() => {
+                const rawData = order.payment.rawData as PaymentRawData;
+                return {
+                  mercadoPagoId: rawData?.mercadoPagoId || '',
+                  pixCopyPaste: rawData?.pixCopyPaste || '',
+                  qrCodeBase64: rawData?.qrCodeBase64 || '',
+                  ticket_url: rawData?.ticket_url || '',
+                  expiresAt: (() => {
+                    // Garantir que a data esteja em formato ISO 8601 válido para o Zod
+                    const rawExpiresAt = rawData?.expiresAt;
+                    if (rawExpiresAt) {
+                      try {
+                        // Converter para objeto Date e depois para ISO String
+                        return new Date(rawExpiresAt).toISOString();
+                      } catch (error) {
+                        console.error('[OrderCreatedEvent] Erro ao formatar data de expiração:', error);
+                        return new Date().toISOString();
+                      }
+                    }
+                    return new Date().toISOString();
+                  })()
+                };
+              })()
+            : undefined
         }
       : undefined;
+      
+    // Log detalhado do rawData para depuração
+    if (order.payment?.rawData) {
 
+    }
+      
+    // Log dos dados de pagamento PIX para depuração
+    if (payment?.pix) {
+
+    }
+
+    // Log final do payload completo que será enviado
+
+    
     return {
       id: order.id,
       checkoutId: order.checkoutId,
       customer,
-      items,
+      items: uniqueItems, // Usar os itens únicos no payload
       status: order.status,
       totalItems,
       totalValue,

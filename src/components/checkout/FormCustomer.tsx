@@ -115,8 +115,7 @@ const FormCustomer: React.FC<FormCustomerProps> = ({ register, errors, isSubmitt
       setLastValidationResult(isValid);
       
       return isValid;
-    } catch (error) {
-      console.error('Erro ao validar WhatsApp:', error);
+    } catch {
       return false;
     }
   };

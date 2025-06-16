@@ -20,15 +20,7 @@ export default function PaymentFlow({
   customerName,
   orderNumber,
 }: PaymentFlowProps) {
-  console.log('[PaymentFlow] Iniciando componente com dados:', {
-    transactionId,
-    customerName,
-    orderNumber,
-    pixDataId: pixData?.id,
-    pixDataStatus: pixData?.status,
-    pixDataQrCode: pixData?.qr_code ? 'Presente' : 'Ausente',
-    pixDataQrCodeBase64: pixData?.qr_code_base64 ? 'Presente' : 'Ausente',
-  });
+
   
   const { status, error } = usePaymentStatus(transactionId);
 

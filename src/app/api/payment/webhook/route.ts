@@ -33,25 +33,9 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
     const bodyText = await request.text();
     
     // Validação de assinatura removida para simplificar o MVP
-    console.log('Webhook recebido - validação de assinatura desativada para MVP');
+
 
     const body = JSON.parse(bodyText);
-
-    // Log detalhado do webhook recebido
-    console.log('WEBHOOK MERCADO PAGO - DADOS COMPLETOS:', JSON.stringify(body, null, 2));
-    console.log('WEBHOOK MERCADO PAGO - HEADERS:', {
-      'user-agent': request.headers.get('user-agent'),
-      'content-type': request.headers.get('content-type'),
-      'x-signature': request.headers.get('x-signature'),
-      'x-hook-id': request.headers.get('x-hook-id'),
-    });
-    
-    // Log resumido
-    console.log('Webhook Mercado Pago recebido:', {
-      action: body.action,
-      paymentId: body.data?.id,
-      timestamp: new Date().toISOString(),
-    });
 
     // 2. Processa somente created/updated
     if (body.action === 'payment.created' || body.action === 'payment.updated') {
@@ -66,7 +50,7 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
       const status = paymentInfo.status;
       const paymentMethodId = paymentInfo.payment_method_id;
 
-      console.log(`Pagamento ${paymentId} com status: ${status}`);
+
 
       // 3. Verificar idempotência - evitar reprocessamento
       const webhookId =
@@ -80,7 +64,7 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
         .catch(() => null);
 
       if (existingWebhook) {
-        console.log(`Webhook ${webhookId} já foi processado anteriormente`);
+
         return NextResponse.json({ success: true, message: 'Already processed' });
       }
 
@@ -119,9 +103,6 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
           },
         });
 
-        console.log(
-          `[WEBHOOK] Pagamento com ID ${paymentId} não encontrado no banco de dados. Webhook será ignorado, mas retornando 200 para Mercado Pago.`,
-        );
         return NextResponse.json({ success: true });
       }
 
@@ -137,7 +118,7 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
           },
         });
 
-        console.log(`Pagamento ${paymentId} já estava aprovado. Ignorando webhook duplicado.`);
+
         return NextResponse.json({ success: true, message: 'Payment already approved' });
       }
 
@@ -178,18 +159,15 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
               notes: `Pagamento confirmado via webhook do Mercado Pago (método: ${paymentMethodId})`,
             },
           });
-          console.log(`Pedido ${payment.orderId} marcado como PAGO`);
-          
+
           // Disparar webhook para order.paid após a transação
           setTimeout(async () => {
             try {
               const webhookService = getWebhookService(prisma);
               const orderPaidEventHandler = new OrderPaidEventHandler(prisma);
               const orderPaidEvent = await orderPaidEventHandler.createEvent(payment.orderId);
-              
-              console.log(`Disparando webhook para order.paid do pedido ${payment.orderId}`);
-              const sentWebhooks = await webhookService.dispatchEvent(orderPaidEvent);
-              console.log(`Webhooks disparados: ${sentWebhooks.length}`);
+              await webhookService.dispatchEvent(orderPaidEvent);
+
             } catch (error) {
               console.error(`Erro ao disparar webhook order.paid: ${error}`);
             }
@@ -210,7 +188,7 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
               notes: `Pagamento rejeitado pelo Mercado Pago (método: ${paymentMethodId})`,
             },
           });
-          console.log(`Pedido ${payment.orderId} cancelado devido a pagamento rejeitado`);
+
         }
 
         // Registrar webhook com sucesso
@@ -224,11 +202,11 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
       });
 
       // 8. Broadcast SSE para quem estiver conectado
-      console.log('[WEBHOOK] Disparando SSE para payment.id:', payment.id, 'status:', status);
+
       broadcastSSE(payment.id, status);
 
       // Pagamento processado com sucesso
-      console.log(`Pagamento ${paymentId} processado com sucesso. Status: ${status}`);
+
 
       return NextResponse.json({ success: true });
     }
@@ -236,7 +214,7 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
     // Ações não relacionadas continuam retornando OK
     return NextResponse.json({ success: true });
   } catch (error) {
-    console.error('Erro ao processar webhook do Mercado Pago:', error);
+
     return NextResponse.json({ success: false, error: String(error) }, { status: 500 });
   }
 }

@@ -2,11 +2,9 @@
 'use client';
 
 import { useState, useEffect, useRef } from 'react';
-import { z } from 'zod';
 
-// ————— Zod Schema & Type —————
-const PaymentStatusSchema = z.enum(['pending', 'approved', 'rejected', 'cancelled']);
-export type PaymentStatus = z.infer<typeof PaymentStatusSchema>;
+// ————— Zod Type —————
+export type PaymentStatus = 'pending' | 'approved' | 'rejected' | 'cancelled';
 
 // ————— Hook Implementation —————
 export function usePaymentStatus(transactionId: string) {
@@ -31,19 +29,16 @@ export function usePaymentStatus(transactionId: string) {
       // Listener para eventos de status
       es.addEventListener('status', (e) => {
         try {
-          const payload = JSON.parse(e.data);
-          console.log('[FRONTEND][SSE] Evento SSE recebido:', payload);
-          const newStatus = PaymentStatusSchema.parse(payload.status);
+          const data = JSON.parse(e.data);
+          const newStatus = data.status;
           setStatus(newStatus);
-          console.log('[FRONTEND][SSE] Novo status do pagamento:', newStatus);
 
           // Se for estado final, fecha conexão e marca conclusão
           if (newStatus !== 'pending') {
             es?.close();
             didFinish = true;
           }
-        } catch (err) {
-          console.error('Falha na validação do payload SSE:', err);
+        } catch {
           setError('Resposta inválida do servidor');
           es?.close();
           didFinish = true;

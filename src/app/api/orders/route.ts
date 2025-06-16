@@ -150,8 +150,14 @@ export async function POST(request: NextRequest) {
     // Usar transação para garantir consistência
     const result = await prisma.$transaction(async (tx: Prisma.TransactionClient) => {
       // Buscar ou criar customer (com tratamento de concorrência)
-      let customer = await tx.customer.findUnique({
-        where: { email: customerEmail },
+      // Primeiro verificamos se existe cliente com o mesmo email ou telefone
+      let customer = await tx.customer.findFirst({
+        where: {
+          OR: [
+            { email: customerEmail },
+            { phone: customerPhone }
+          ]
+        },
       });
 
       if (!customer) {
@@ -165,15 +171,22 @@ export async function POST(request: NextRequest) {
             },
           });
         } catch (error: unknown) {
-          // Se falhar por duplicata (race condition), buscar o existente
+          // Se falhar por duplicata (race condition), buscar o existente novamente
           if (
             error instanceof Error &&
             'code' in error &&
             (error as { code: string }).code === 'P2002'
           ) {
-            customer = await tx.customer.findUnique({
-              where: { email: customerEmail },
+            // Buscar por email ou telefone
+            customer = await tx.customer.findFirst({
+              where: {
+                OR: [
+                  { email: customerEmail },
+                  { phone: customerPhone }
+                ]
+              },
             });
+            
             if (!customer) {
               throw new Error('Erro ao criar/buscar customer');
             }
@@ -181,6 +194,15 @@ export async function POST(request: NextRequest) {
             throw error;
           }
         }
+      } else {
+        // Se encontramos um cliente existente, atualizamos os dados para garantir que estejam corretos
+        customer = await tx.customer.update({
+          where: { id: customer.id },
+          data: {
+            name: customerName,
+            // Não atualizamos email e telefone para evitar conflitos com outros registros
+          },
+        });
       }
 
       // Buscar preços dos produtos usando cache
@@ -247,11 +269,6 @@ export async function POST(request: NextRequest) {
 
       return order;
     });
-
-    console.log(`Pedido criado: ${result.id} com status ${result.status}`);
-
-    // Pedido criado com sucesso
-    console.log(`Pedido ${result.id} criado com status ${result.status}`);
 
     return NextResponse.json(
       {

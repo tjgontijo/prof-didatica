@@ -16,7 +16,7 @@ export class WebhookService {
     try {
       const webhooks = await this.getActiveWebhooksForEvent(eventData.event);
       if (webhooks.length === 0) {
-        console.log(`No active webhooks found for event: ${eventData.event}`);
+
         return [];
       }
 
@@ -59,10 +59,10 @@ export class WebhookService {
         sentIds.push(webhook.id);
       }
 
-      console.log(`Disparados ${webhooks.length} webhooks para o evento: ${eventData.event}`);
+
       return sentIds;
     } catch (error) {
-      console.error('Error dispatching webhook event:', error);
+
       throw error;
     }
   }

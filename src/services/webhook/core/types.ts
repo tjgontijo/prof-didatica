@@ -58,17 +58,19 @@ export interface OrderItemData {
 }
 
 export interface PaymentRawData {
-  qrCode: string;
-  qrCodeBase64: string;
+  mercadoPagoId: string;
   pixCopyPaste: string;
+  qrCodeBase64: string;
+  ticket_url: string;
   expiresAt: string;
-  mercadoPagoResponse: Record<string, unknown>;
+  mercadoPagoResponse?: Record<string, unknown>;
 }
 
 export interface PaymentPixData {
-  qrCode?: string;
-  qrCodeBase64?: string;
+  mercadoPagoId?: string;
   pixCopyPaste?: string;
+  qrCodeBase64?: string;
+  ticket_url?: string;
   expiresAt?: string;
 }
 
@@ -212,9 +214,10 @@ export const OrderEventDataSchema = z.object({
       amount: z.number().min(0),
       pix: z
         .object({
-          qrCode: z.string().optional(),
-          qrCodeBase64: z.string().optional(),
+          mercadoPagoId: z.string().optional(),
           pixCopyPaste: z.string().optional(),
+          qrCodeBase64: z.string().optional(),
+          ticket_url: z.string().optional(),
           expiresAt: z.string().datetime().optional(),
         })
         .optional(),
