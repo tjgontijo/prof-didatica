@@ -68,7 +68,6 @@ export async function getPixData(rawId: unknown): Promise<PixData | null> {
   // 1. Validar e parsear o ID do pagamento
   const parsedId = PaymentIdSchema.safeParse(rawId);
   if (!parsedId.success) {
-
     return null;
   }
   const id = parsedId.data;
@@ -109,20 +108,17 @@ export async function getPixData(rawId: unknown): Promise<PixData | null> {
         return null;
       }
     })();
-    
-    if (!raw) {
 
+    if (!raw) {
       return null;
     }
-    
 
-    
     // Abordagem direta: extrair campos independentemente do formato
     let qrCode = '';
     let qrCodeBase64 = '';
     let ticketUrl = '';
     let expirationDate = '';
-    
+
     // Dados API própria
     if (typeof raw.qrCode === 'string') {
       qrCode = raw.qrCode;
@@ -136,7 +132,7 @@ export async function getPixData(rawId: unknown): Promise<PixData | null> {
     if (typeof raw.expiresAt === 'string') {
       expirationDate = raw.expiresAt;
     }
-    
+
     // Dados formato antigo simples
     if (typeof raw.qr_code === 'string' && !qrCode) {
       qrCode = raw.qr_code;
@@ -150,7 +146,7 @@ export async function getPixData(rawId: unknown): Promise<PixData | null> {
     if (typeof raw.expiration_date === 'string' && !expirationDate) {
       expirationDate = raw.expiration_date;
     }
-    
+
     // Dados do Mercado Pago
     if (raw.point_of_interaction?.transaction_data?.qr_code && !qrCode) {
       qrCode = raw.point_of_interaction.transaction_data.qr_code;
@@ -167,31 +163,29 @@ export async function getPixData(rawId: unknown): Promise<PixData | null> {
     if (raw.date_of_expiration && !expirationDate) {
       expirationDate = raw.date_of_expiration;
     }
-    
+
     // Log dos dados extraídos
 
-    
     // Se não encontramos dados essenciais, temos um problema
     if (!qrCode && !qrCodeBase64) {
-
       return null;
     }
 
     // Extrair o valor do pagamento
     let amount = payment.amount;
-    
+
     // Se o valor estiver em centavos no banco (Int), converter para reais (Float)
     if (amount && Number.isInteger(amount) && amount > 100) {
       amount = amount / 100;
     }
-    
+
     // Também tentar extrair o valor dos dados brutos do Mercado Pago
     if (!amount && raw.transaction_amount) {
       amount = Number(raw.transaction_amount);
     } else if (!amount && raw.transaction_details?.total_paid_amount) {
       amount = Number(raw.transaction_details.total_paid_amount);
     }
-    
+
     // 4. Construir objeto PixData
     const pixData: PixData = {
       id: payment.id,
@@ -201,17 +195,17 @@ export async function getPixData(rawId: unknown): Promise<PixData | null> {
       ticket_url: ticketUrl,
       expiration_date: expirationDate,
       amount: amount,
-      order: payment.order ? {
-        id: payment.order.id,
-        status: payment.order.status,
-        customer: payment.order.customer,
-        orderItems: payment.order.orderItems
-      } : undefined,
+      order: payment.order
+        ? {
+            id: payment.order.id,
+            status: payment.order.status,
+            customer: payment.order.customer,
+            orderItems: payment.order.orderItems,
+          }
+        : undefined,
       customerName: payment.order?.customer?.name || 'Cliente',
-      orderNumber: payment.order?.id || payment.id
+      orderNumber: payment.order?.id || payment.id,
     };
-    
-
 
     return pixData;
   } catch {

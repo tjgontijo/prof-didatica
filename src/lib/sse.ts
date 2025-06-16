@@ -67,18 +67,14 @@ export function broadcastSSE(rawPaymentId: unknown, rawStatus: unknown) {
   const status = PaymentStatusSchema.parse(rawStatus);
   const conns = connections.get(paymentId);
   if (!conns) {
-
     return;
   }
-
-
 
   const encoder = new TextEncoder();
   const payload = JSON.stringify({ status });
   const message = encoder.encode(`event: status\n` + `data: ${payload}\n\n`);
 
   for (const conn of conns) {
-
     conn.writer.write(message).catch(() => {
       // falha ao escrever, remove a conexão
       clearInterval(conn.keepAliveTimer);

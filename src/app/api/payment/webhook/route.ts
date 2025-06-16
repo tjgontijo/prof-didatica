@@ -10,7 +10,6 @@ import { webhookRateLimit } from '@/lib/rate-limit';
 import { getWebhookService } from '@/services/webhook';
 import { OrderPaidEventHandler } from '@/services/webhook/events/order-paid.event';
 
-
 export async function POST(request: NextRequest): Promise<NextResponse> {
   try {
     // 1. Verificar rate limiting
@@ -31,9 +30,8 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
 
     // 2. Extrair o corpo da requisição
     const bodyText = await request.text();
-    
-    // Validação de assinatura removida para simplificar o MVP
 
+    // Validação de assinatura removida para simplificar o MVP
 
     const body = JSON.parse(bodyText);
 
@@ -50,8 +48,6 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
       const status = paymentInfo.status;
       const paymentMethodId = paymentInfo.payment_method_id;
 
-
-
       // 3. Verificar idempotência - evitar reprocessamento
       const webhookId =
         request.headers.get('x-request-id') || `mp-${paymentId}-${body.action}-${Date.now()}`;
@@ -64,7 +60,6 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
         .catch(() => null);
 
       if (existingWebhook) {
-
         return NextResponse.json({ success: true, message: 'Already processed' });
       }
 
@@ -118,7 +113,6 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
           },
         });
 
-
         return NextResponse.json({ success: true, message: 'Payment already approved' });
       }
 
@@ -167,7 +161,6 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
               const orderPaidEventHandler = new OrderPaidEventHandler(prisma);
               const orderPaidEvent = await orderPaidEventHandler.createEvent(payment.orderId);
               await webhookService.dispatchEvent(orderPaidEvent);
-
             } catch (error) {
               console.error(`Erro ao disparar webhook order.paid: ${error}`);
             }
@@ -188,7 +181,6 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
               notes: `Pagamento rejeitado pelo Mercado Pago (método: ${paymentMethodId})`,
             },
           });
-
         }
 
         // Registrar webhook com sucesso
@@ -207,14 +199,12 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
 
       // Pagamento processado com sucesso
 
-
       return NextResponse.json({ success: true });
     }
 
     // Ações não relacionadas continuam retornando OK
     return NextResponse.json({ success: true });
   } catch (error) {
-
     return NextResponse.json({ success: false, error: String(error) }, { status: 500 });
   }
 }

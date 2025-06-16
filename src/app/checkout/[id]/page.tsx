@@ -21,7 +21,7 @@ interface OrderBump {
   title: string | null;
   description: string;
   specialPrice: number;
-  displayOrder: number | null;  
+  displayOrder: number | null;
   bumpProduct: Product;
   isActive: boolean;
   createdAt: Date;
@@ -29,7 +29,6 @@ interface OrderBump {
   deletedAt: Date | null;
   mainProductId: string;
   bumpProductId: string;
-  
 }
 
 export type paramsType = Promise<{ id: string }>;
@@ -62,7 +61,7 @@ export default async function CheckoutPage(props: { params: paramsType }) {
   if (!checkoutData) {
     notFound();
   }
- 
+
   const product: ProdutoInfo = {
     id: checkoutData.product.id,
     name: checkoutData.product.name,
@@ -80,7 +79,7 @@ export default async function CheckoutPage(props: { params: paramsType }) {
       description: bump.description || '',
       initialPrice: bump.bumpProduct.price / 100,
       specialPrice: bump.specialPrice / 100,
-      imagemUrl: bump.bumpProduct.imageUrl || '/images/placeholder-product.png',      
+      imagemUrl: bump.bumpProduct.imageUrl || '/images/placeholder-product.png',
       selected: false,
       percentDesconto: Math.round(
         ((bump.bumpProduct.price - bump.specialPrice) / bump.bumpProduct.price) * 100,

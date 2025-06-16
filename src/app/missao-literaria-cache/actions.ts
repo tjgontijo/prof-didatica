@@ -68,8 +68,6 @@ if (process.env.NODE_ENV !== 'production') globalForPrisma.prisma = prisma;
 export const prefetchCheckoutData = cache(async (id: string) => {
   console.time(`prefetch-checkout-${id}`);
   try {
-
-
     // Buscar checkout pelo ID, incluindo produto e order bumps
     const checkout = await prisma.$queryRaw`
       SELECT c.id, c."productId", p.name as product_name, p.price as product_price, p.description as product_description
@@ -131,7 +129,6 @@ export const prefetchCheckoutData = cache(async (id: string) => {
       })),
       checkoutId: checkoutData.id,
     };
-
 
     console.timeEnd(`prefetch-checkout-${id}`);
     return responseData;

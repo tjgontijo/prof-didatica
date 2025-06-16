@@ -9,7 +9,10 @@ import { FaSpinner } from 'react-icons/fa';
 import { ProdutoInfo, OrderBump } from './types';
 
 import OrderBumps from '@/components/checkout/OrderBumps';
-import FormCustomer, { CustomerFormValues, customerFormSchema } from '@/components/checkout/FormCustomer';
+import FormCustomer, {
+  CustomerFormValues,
+  customerFormSchema,
+} from '@/components/checkout/FormCustomer';
 import OrderDetails from '@/components/checkout/OrderDetails';
 import PaymentSelector from '@/components/checkout/PaymentSelector';
 import FormPix from '@/components/checkout/FormPix';
@@ -59,12 +62,7 @@ export default function CheckoutClientComponent({
   const [, setIsCreatingOrder] = useState(false);
   const [currentStep, setCurrentStep] = useState<'personal-info' | 'payment'>('personal-info');
 
-  const {
-    register,
-    handleSubmit,
-    trigger,
-    formState,
-  } = useForm<CustomerFormValues>({
+  const { register, handleSubmit, trigger, formState } = useForm<CustomerFormValues>({
     resolver: zodResolver(customerFormSchema),
     mode: 'onBlur', // Usando onBlur para validar apenas quando o campo perde o foco
     reValidateMode: 'onBlur', // Revalidar apenas no evento onBlur, não durante a digitação
@@ -77,9 +75,9 @@ export default function CheckoutClientComponent({
 
   useEffect(() => {
     // Garante que todos os order bumps tenham a propriedade selected definida como false inicialmente
-    const bumpsInicial = orderBumps.map((bump) => ({ 
-      ...bump, 
-      selected: false 
+    const bumpsInicial = orderBumps.map((bump) => ({
+      ...bump,
+      selected: false,
     }));
     setOrderBumpsSelecionados(bumpsInicial);
   }, [orderBumps]);
@@ -88,14 +86,14 @@ export default function CheckoutClientComponent({
 
   // Função para lidar com a seleção/deseleção de order bumps
   const handleToggleOrderBump = useCallback((id: string) => {
-    setOrderBumpsSelecionados(prev => {
-      const updated = prev.map(bump => {
+    setOrderBumpsSelecionados((prev) => {
+      const updated = prev.map((bump) => {
         if (bump.id === id) {
           return { ...bump, selected: !bump.selected };
         }
         return bump;
       });
-      
+
       return updated;
     });
   }, []);
@@ -123,158 +121,143 @@ export default function CheckoutClientComponent({
   // Função para salvar o ID do pedido no estado e na sessão
   const saveOrderId = useCallback((id: string) => {
     try {
-
       setOrderId(id);
 
       return true;
     } catch {
-
       return false;
     }
   }, []);
 
   // Função para criar um novo pedido
-  const createOrder = useCallback(async (data: CustomerFormValues, phoneNormalized: string) => {
-    setIsCreatingOrder(true);
-    try {
-      // Preparar o payload
-      const payload: OrderDraftPayload = {
-        productId: product.id,
-        checkoutId,
+  const createOrder = useCallback(
+    async (data: CustomerFormValues, phoneNormalized: string) => {
+      setIsCreatingOrder(true);
+      try {
+        // Preparar o payload
+        const payload: OrderDraftPayload = {
+          productId: product.id,
+          checkoutId,
+          customerName: data.name,
+          customerEmail: data.email,
+          customerPhone: phoneNormalized,
+          orderBumps: orderBumpsSelecionados
+            .filter((bump) => bump.selected)
+            .map((bump) => ({
+              productId: bump.id,
+              quantity: 1,
+            })),
+        };
+
+        // Fazer a chamada API
+        const response = await fetch('/api/orders', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(payload),
+        });
+
+        if (!response.ok) {
+          throw new Error(`Erro ao criar pedido: ${response.status} ${response.statusText}`);
+        }
+
+        // Processar a resposta
+        const orderData = await response.json();
+
+        // Verificação detalhada da estrutura da resposta
+        if (!orderData) {
+          throw new Error('Resposta inválida da API: sem dados');
+        }
+
+        if (!orderData.success) {
+          throw new Error(`Falha ao criar pedido: ${orderData.message || 'erro desconhecido'}`);
+        }
+
+        if (!orderData.order) {
+          throw new Error('Resposta inválida da API: objeto order ausente');
+        }
+
+        // Obter e validar o ID
+        const newOrderId = orderData.order.id;
+
+        if (!newOrderId) {
+          throw new Error('ID do pedido inválido ou inexistente na resposta');
+        }
+
+        // Salvar o ID no estado React
+        setOrderId(newOrderId); // Atualiza diretamente
+
+        return newOrderId;
+      } catch (error) {
+        throw error; // Re-lança para tratamento no nível superior
+      } finally {
+        setIsCreatingOrder(false);
+      }
+    },
+    [checkoutId, orderBumpsSelecionados, product.id, setOrderId],
+  );
+
+  // Função para atualizar um pedido existente
+  const updateOrder = useCallback(
+    async (orderId: string, data: CustomerFormValues, phoneNormalized: string) => {
+      const payload: OrderUpdatePayload = {
         customerName: data.name,
         customerEmail: data.email,
         customerPhone: phoneNormalized,
-        orderBumps: orderBumpsSelecionados
-          .filter((bump) => bump.selected)
-          .map((bump) => ({
-            productId: bump.id,
-            quantity: 1
-          })),
       };
-      
 
-      
-      // Fazer a chamada API
-      const response = await fetch('/api/orders', {
-        method: 'POST',
+      const res = await fetch(`/api/orders?id=${orderId}`, {
+        method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(payload),
       });
-      
-      if (!response.ok) {
 
-        throw new Error(`Erro ao criar pedido: ${response.status} ${response.statusText}`);
+      if (!res.ok) {
+        throw new Error(`Erro ao atualizar pedido: ${res.status} ${res.statusText}`);
       }
-      
-      // Processar a resposta
-      const orderData = await response.json();
 
-      
-      // Verificação detalhada da estrutura da resposta
-      if (!orderData) {
+      // Garante que o ID do pedido está armazenado na sessão
+      saveOrderId(orderId);
 
-        throw new Error('Resposta inválida da API: sem dados');
-      }
-      
-      if (!orderData.success) {
+      return orderId;
+    },
+    [saveOrderId],
+  );
 
-        throw new Error(`Falha ao criar pedido: ${orderData.message || 'erro desconhecido'}`);
-      }
-      
-      if (!orderData.order) {
+  const handleSaveCustomerDataAndProceed: SubmitHandler<CustomerFormValues> = useCallback(
+    async (data) => {
+      setDadosCliente(data);
+      const phoneNormalized = cleanPhone(data.phone);
 
-        throw new Error('Resposta inválida da API: objeto order ausente');
-      }
-      
-      // Obter e validar o ID
-      const newOrderId = orderData.order.id;
+      try {
+        let currentOrderId = orderId;
 
-      
-      if (!newOrderId) {
+        if (!currentOrderId) {
+          try {
+            currentOrderId = await createOrder(data, phoneNormalized);
 
-        throw new Error('ID do pedido inválido ou inexistente na resposta');
-      }
-      
-      // Salvar o ID no estado React
-      setOrderId(newOrderId); // Atualiza diretamente
-
-      
-      return newOrderId;
-    } catch (error) {
-
-      throw error; // Re-lança para tratamento no nível superior
-    } finally {
-      setIsCreatingOrder(false);
-    }
-  }, [checkoutId, orderBumpsSelecionados, product.id, setOrderId]);
-
-  // Função para atualizar um pedido existente
-  const updateOrder = useCallback(async (orderId: string, data: CustomerFormValues, phoneNormalized: string) => {
-
-    
-    const payload: OrderUpdatePayload = {
-      customerName: data.name,
-      customerEmail: data.email,
-      customerPhone: phoneNormalized,
-    };
-    
-    const res = await fetch(`/api/orders?id=${orderId}`, {
-      method: 'PATCH',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(payload),
-    });
-    
-    if (!res.ok) {
-      throw new Error(`Erro ao atualizar pedido: ${res.status} ${res.statusText}`);
-    }
-    
-    // Garante que o ID do pedido está armazenado na sessão
-    saveOrderId(orderId);
-
-    
-    return orderId;
-  }, [saveOrderId]);
-
-  const handleSaveCustomerDataAndProceed: SubmitHandler<CustomerFormValues> = useCallback(async (
-    data,
-  ) => {
-
-
-    
-    setDadosCliente(data);
-    const phoneNormalized = cleanPhone(data.phone);
-
-    try {
-      let currentOrderId = orderId;
-      
-      if (!currentOrderId) {
-
-        try {
-          currentOrderId = await createOrder(data, phoneNormalized);
-
-          // Garante que o ID está no estado antes de prosseguir
-          setOrderId(currentOrderId);
-        } catch (createError) {
-
-          throw createError; // Re-lança para ser capturado pelo catch externo
+            // Garante que o ID está no estado antes de prosseguir
+            setOrderId(currentOrderId);
+          } catch (createError) {
+            throw createError; // Re-lança para ser capturado pelo catch externo
+          }
+        } else {
+          await updateOrder(currentOrderId, data, phoneNormalized);
         }
-      } else {
 
-        await updateOrder(currentOrderId, data, phoneNormalized);
-
+        // Pequeno timeout para garantir que o estado foi atualizado
+        setTimeout(() => {
+          setCurrentStep('payment');
+        }, 100);
+      } catch (error) {
+        setErro(
+          error instanceof Error
+            ? error.message
+            : 'Erro ao processar seus dados. Por favor, tente novamente.',
+        );
       }
-      
-      // Pequeno timeout para garantir que o estado foi atualizado
-      setTimeout(() => {
-
-        setCurrentStep('payment');
-
-      }, 100);
-    } catch (error) {
-
-      setErro(error instanceof Error ? error.message : 'Erro ao processar seus dados. Por favor, tente novamente.');
-    }
-  }, [orderId, createOrder, updateOrder, setOrderId]);
+    },
+    [orderId, createOrder, updateOrder, setOrderId],
+  );
 
   // Lista de order bumps selecionados usando useMemo para evitar recálculos desnecessários
   const selectedOrderBumps = useMemo(() => {
@@ -299,20 +282,18 @@ export default function CheckoutClientComponent({
         {/* Container Principal */}
         <div className="bg-white rounded-[8px] p-5 my-[16px] md:my-[24px] w-full flex flex-col gap-6 shadow-xl border border-gray-200">
           {/* Produto */}
-          <ProductHeader
-            produto={product}
-          />
+          <ProductHeader produto={product} />
           <div className="border-b"></div>
           {currentStep === 'personal-info' && (
             <form onSubmit={handleSubmit(handleSaveCustomerDataAndProceed)}>
               <FormCustomer
-                  register={register}
-                  errors={formState.errors}
-                  isSubmitting={formState.isSubmitting}
-                  trigger={trigger}
-                  formState={formState}
-                  onProceedToPayment={handleSubmit(handleSaveCustomerDataAndProceed)}
-                />              
+                register={register}
+                errors={formState.errors}
+                isSubmitting={formState.isSubmitting}
+                trigger={trigger}
+                formState={formState}
+                onProceedToPayment={handleSubmit(handleSaveCustomerDataAndProceed)}
+              />
             </form>
           )}
           {currentStep === 'payment' && (
@@ -329,10 +310,7 @@ export default function CheckoutClientComponent({
               </div>
               <div className="border-b"></div>
               {/* Detalhes do Pedido */}
-              <OrderDetails
-                produto={product}
-                orderBumpsSelecionados={selectedOrderBumps}
-              />
+              <OrderDetails produto={product} orderBumpsSelecionados={selectedOrderBumps} />
 
               {/* Botão de Finalização */}
               <button
@@ -344,15 +322,14 @@ export default function CheckoutClientComponent({
                   try {
                     // Obter o orderId atual do estado
                     const currentOrderId = orderId;
-                    
-                    if (!currentOrderId) {
 
-                      setErro('ID do pedido não encontrado. Por favor, preencha seus dados novamente.');
+                    if (!currentOrderId) {
+                      setErro(
+                        'ID do pedido não encontrado. Por favor, preencha seus dados novamente.',
+                      );
                       return;
                     }
-                    
 
-                    
                     const items = [
                       {
                         id: product.id,
@@ -361,7 +338,7 @@ export default function CheckoutClientComponent({
                         preco: product.price,
                       },
                       ...orderBumpsSelecionados
-                        .filter(bump => bump.selected)
+                        .filter((bump) => bump.selected)
                         .map((bump) => ({
                           id: bump.id,
                           nome: bump.name,
@@ -369,7 +346,7 @@ export default function CheckoutClientComponent({
                           preco: bump.specialPrice, // Usando specialPrice em vez de price
                         })),
                     ];
-                    
+
                     const dadosPedido = {
                       items,
                       cliente: {
@@ -381,8 +358,6 @@ export default function CheckoutClientComponent({
                       checkoutId,
                       orderId: currentOrderId,
                     };
-                    
-
 
                     const resposta = await fetch('/api/payment/pix', {
                       method: 'POST',
@@ -393,19 +368,17 @@ export default function CheckoutClientComponent({
                     });
 
                     if (!resposta.ok) {
-
-                      throw new Error(`Erro ao processar pagamento: ${resposta.status} ${resposta.statusText}`);
+                      throw new Error(
+                        `Erro ao processar pagamento: ${resposta.status} ${resposta.statusText}`,
+                      );
                     }
 
                     const dadosResposta = await resposta.json();
 
-                    
                     // A API retorna paymentId, não id
                     if (!dadosResposta.paymentId) {
-
                       throw new Error('ID do pagamento não encontrado na resposta');
                     }
-                    
 
                     router.push(`/payment/${dadosResposta.paymentId}`);
                   } catch (error) {
@@ -414,7 +387,6 @@ export default function CheckoutClientComponent({
                     } else {
                       setErro('Erro ao processar pagamento');
                     }
-
                   } finally {
                     setCarregando(false);
                   }

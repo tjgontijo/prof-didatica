@@ -1,7 +1,7 @@
 import { PrismaClient } from '@prisma/client';
 import type { Checkout, Product, OrderBump } from '@prisma/client';
 
-export type CheckoutData = Omit<Checkout, 'product'> & {  
+export type CheckoutData = Omit<Checkout, 'product'> & {
   product: Product & {
     mainProductBumps: (OrderBump & { bumpProduct: Product })[];
   };
@@ -36,9 +36,9 @@ export async function getCheckoutData(id: string): Promise<CheckoutData | null> 
           },
         },
       },
-    });   
+    });
 
-    if (!checkout) return null;       
+    if (!checkout) return null;
 
     return { ...checkout };
   } catch (error) {

@@ -23,7 +23,7 @@ export const customerFormSchema = z.object({
     .min(11, 'Telefone deve ter pelo menos 11 dígitos')
     .refine((val) => val.length === 0 || validateBrazilianPhone(val), {
       message: 'Telefone inválido',
-    })
+    }),
 });
 
 export type CustomerFormValues = z.infer<typeof customerFormSchema>;
@@ -37,25 +37,31 @@ interface FormCustomerProps {
   onProceedToPayment: () => void;
 }
 
-const FormCustomer: React.FC<FormCustomerProps> = ({ register, errors, isSubmitting, trigger, onProceedToPayment }) => {
+const FormCustomer: React.FC<FormCustomerProps> = ({
+  register,
+  errors,
+  isSubmitting,
+  trigger,
+  onProceedToPayment,
+}) => {
   const [isWhatsappValid, setIsWhatsappValid] = useState(false);
   const [isNameValid, setIsNameValid] = useState(false);
   const [isEmailValid, setIsEmailValid] = useState(false);
-  
+
   // Usamos o cache global e o estado local para evitar chamadas repetidas
   const [lastValidatedPhone, setLastValidatedPhone] = useState<string>('');
   const [lastValidationResult, setLastValidationResult] = useState<boolean>(false);
-  
+
   const { onChange: onPhoneChange, onBlur: onPhoneBlur, ...phoneRegister } = register('phone');
   const { onBlur: onNameBlur } = register('name');
   const { onBlur: onEmailBlur } = register('email');
-  
+
   // Não precisamos mais verificar a validade do formulário via useEffect
 
   const handlePhoneChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     e.target.value = formatBrazilianPhone(e.target.value);
     onPhoneChange(e);
-    
+
     // Quando o usuário altera o número, invalidamos o estado de WhatsApp válido
     // para forçar uma nova validação quando o campo perder o foco
     setIsWhatsappValid(false);
@@ -87,14 +93,14 @@ const FormCustomer: React.FC<FormCustomerProps> = ({ register, errors, isSubmitt
   // Função para validar o WhatsApp com cache
   const validateWhatsApp = async (phoneNumber: string): Promise<boolean> => {
     if (!phoneNumber || phoneNumber.trim().length === 0) return false;
-    
+
     const cleanedPhone = cleanPhone(phoneNumber);
-    
+
     // Verifica o cache local primeiro (mais rápido)
     if (cleanedPhone === lastValidatedPhone) {
       return lastValidationResult;
     }
-    
+
     // Verifica o cache global em seguida
     if (phoneValidationCache.hasOwnProperty(cleanedPhone)) {
       const isValid = phoneValidationCache[cleanedPhone];
@@ -103,44 +109,44 @@ const FormCustomer: React.FC<FormCustomerProps> = ({ register, errors, isSubmitt
       setLastValidationResult(isValid);
       return isValid;
     }
-    
+
     // Se não está em nenhum cache, faz a chamada ao serviço
     try {
       const response = await whatsappService.checkWhatsappNumber(cleanedPhone);
       const isValid = response.isWhatsapp === true;
-      
+
       // Atualiza ambos os caches
       phoneValidationCache[cleanedPhone] = isValid;
       setLastValidatedPhone(cleanedPhone);
       setLastValidationResult(isValid);
-      
+
       return isValid;
     } catch {
       return false;
     }
   };
-  
+
   // Estado para controlar a mensagem de erro do WhatsApp
   const [whatsappError, setWhatsappError] = useState<string | null>(null);
-  
+
   const handlePhoneBlur = async (e: React.FocusEvent<HTMLInputElement>) => {
     onPhoneBlur(e);
     const currentPhone = e.target.value.trim();
-    
+
     // Limpa o erro de WhatsApp
     setWhatsappError(null);
-    
+
     // Valida apenas se o campo não estiver vazio
     if (currentPhone.length > 0) {
       // Primeiro verifica se o formato do telefone é válido
       const result = await trigger('phone');
-      
+
       // Se o formato do telefone é válido, verifica se é um WhatsApp
       if (result === true && !errors.phone) {
         // Valida o WhatsApp usando nossa função com cache
         const isValid = await validateWhatsApp(currentPhone);
         setIsWhatsappValid(isValid);
-        
+
         // Se não for um WhatsApp válido, define um erro personalizado
         if (!isValid) {
           setWhatsappError('Informe um WhatsApp válido');
@@ -154,14 +160,11 @@ const FormCustomer: React.FC<FormCustomerProps> = ({ register, errors, isSubmitt
   };
 
   return (
-    <div id="formCustomer" >
+    <div id="formCustomer">
       <div className="space-y-4">
         <h2 className="text-xl font-bold">Informações Pessoais</h2>
         <div>
-          <label
-            htmlFor="name"
-            className="block text-sm font-medium text-gray-700"
-          >
+          <label htmlFor="name" className="block text-sm font-medium text-gray-700">
             Nome Completo
           </label>
           <div className="relative mt-1">
@@ -186,22 +189,21 @@ const FormCustomer: React.FC<FormCustomerProps> = ({ register, errors, isSubmitt
         </div>
 
         <div>
-          <label
-            htmlFor="phone"
-            className="block text-sm font-medium text-gray-700"
-          >
+          <label htmlFor="phone" className="block text-sm font-medium text-gray-700">
             WhatsApp
           </label>
           <div className="relative mt-1">
             <div className="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3">
-              <FaWhatsapp className={`h-4 w-4 ${isWhatsappValid ? 'text-green-500' : 'text-gray-400'}`} />
+              <FaWhatsapp
+                className={`h-4 w-4 ${isWhatsappValid ? 'text-green-500' : 'text-gray-400'}`}
+              />
             </div>
             <input
               type="tel"
               id="phone"
               {...phoneRegister}
               onChange={handlePhoneChange}
-              onBlur={handlePhoneBlur}              
+              onBlur={handlePhoneBlur}
               className={`block w-full px-3 py-2 pl-10 border ${errors.phone ? 'border-red-500' : 'border-gray-300'} rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm`}
               disabled={isSubmitting}
               aria-invalid={errors.phone ? 'true' : 'false'}
@@ -220,10 +222,7 @@ const FormCustomer: React.FC<FormCustomerProps> = ({ register, errors, isSubmitt
         </div>
 
         <div>
-          <label
-            htmlFor="email"
-            className="block text-sm font-medium text-gray-700"
-          >
+          <label htmlFor="email" className="block text-sm font-medium text-gray-700">
             Seu melhor e-mail
           </label>
           <div className="relative mt-1">
@@ -246,7 +245,7 @@ const FormCustomer: React.FC<FormCustomerProps> = ({ register, errors, isSubmitt
             </p>
           )}
         </div>
-        
+
         {/* Botão para prosseguir para pagamento */}
         <div className="mt-6">
           <button
@@ -256,7 +255,7 @@ const FormCustomer: React.FC<FormCustomerProps> = ({ register, errors, isSubmitt
               const nameValid = await trigger('name');
               const emailValid = await trigger('email');
               const phoneValid = await trigger('phone');
-              
+
               // Só prossegue se todos os campos forem válidos e o WhatsApp também
               if (nameValid && emailValid && phoneValid && isWhatsappValid) {
                 onProceedToPayment();
@@ -266,9 +265,25 @@ const FormCustomer: React.FC<FormCustomerProps> = ({ register, errors, isSubmitt
           >
             {isSubmitting ? (
               <>
-                <svg className="animate-spin -ml-1 mr-3 h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                  <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
-                  <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                <svg
+                  className="animate-spin -ml-1 mr-3 h-5 w-5 text-white"
+                  xmlns="http://www.w3.org/2000/svg"
+                  fill="none"
+                  viewBox="0 0 24 24"
+                >
+                  <circle
+                    className="opacity-25"
+                    cx="12"
+                    cy="12"
+                    r="10"
+                    stroke="currentColor"
+                    strokeWidth="4"
+                  ></circle>
+                  <path
+                    className="opacity-75"
+                    fill="currentColor"
+                    d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+                  ></path>
                 </svg>
                 Processando...
               </>

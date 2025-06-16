@@ -17,7 +17,7 @@ declare global {
 export function ClarityScript() {
   useEffect(() => {
     const clarityCheckInterval = setInterval(() => {
-      if (window.clarity) {    
+      if (window.clarity) {
         clearInterval(clarityCheckInterval);
       }
     }, 2000);

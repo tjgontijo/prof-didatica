@@ -6,7 +6,7 @@ export const UtmifyScripts = () => {
     const loadSha256Script = () => {
       return new Promise<string>((resolve, reject) => {
         if (typeof window.sha256 === 'function') {
-         // console.log('SHA-256 já estava carregado anteriormente');
+          // console.log('SHA-256 já estava carregado anteriormente');
           resolve('SHA-256 já carregado');
           return;
         }
@@ -17,7 +17,7 @@ export const UtmifyScripts = () => {
         script.crossOrigin = 'anonymous'; // Adiciona cross-origin para melhor rastreamento
 
         script.onload = () => {
-       //   console.log('SHA-256 script carregado com sucesso');
+          //   console.log('SHA-256 script carregado com sucesso');
           resolve('SHA-256 carregado');
         };
 
@@ -27,7 +27,7 @@ export const UtmifyScripts = () => {
         };
 
         // Log adicional para rastrear quando o script está sendo adicionado
-      //  console.log('Adicionando script SHA-256 ao documento');
+        //  console.log('Adicionando script SHA-256 ao documento');
         document.head.appendChild(script);
       });
     };

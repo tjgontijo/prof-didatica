@@ -23,7 +23,7 @@ const orderSchema = z.object({
     .refine(validateBrazilianPhone, 'Telefone deve ser um número brasileiro válido')
     .transform(cleanPhone)
     .optional(), // Limpa o telefone após validação
-  
+
   // Novos campos
   name: z.string().min(2).max(100).optional(),
   email: z.string().email().optional(),
@@ -136,15 +136,17 @@ export async function POST(request: NextRequest) {
 
     const body = await request.json();
     const data = orderSchema.parse(body);
-    
+
     // Normalizar os campos para compatibilidade com ambos os formatos
     const customerName = data.name || data.customerName;
     const customerEmail = data.email || data.customerEmail;
     const customerPhone = data.phone || data.customerPhone;
-    
+
     // Verificar se temos os dados necessários
     if (!customerName || !customerEmail || !customerPhone) {
-      throw new Error('Dados do cliente incompletos. Forneça name/customerName, email/customerEmail e phone/customerPhone.');
+      throw new Error(
+        'Dados do cliente incompletos. Forneça name/customerName, email/customerEmail e phone/customerPhone.',
+      );
     }
 
     // Usar transação para garantir consistência
@@ -153,10 +155,7 @@ export async function POST(request: NextRequest) {
       // Primeiro verificamos se existe cliente com o mesmo email ou telefone
       let customer = await tx.customer.findFirst({
         where: {
-          OR: [
-            { email: customerEmail },
-            { phone: customerPhone }
-          ]
+          OR: [{ email: customerEmail }, { phone: customerPhone }],
         },
       });
 
@@ -180,13 +179,10 @@ export async function POST(request: NextRequest) {
             // Buscar por email ou telefone
             customer = await tx.customer.findFirst({
               where: {
-                OR: [
-                  { email: customerEmail },
-                  { phone: customerPhone }
-                ]
+                OR: [{ email: customerEmail }, { phone: customerPhone }],
               },
             });
-            
+
             if (!customer) {
               throw new Error('Erro ao criar/buscar customer');
             }

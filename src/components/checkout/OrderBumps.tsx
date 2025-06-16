@@ -18,10 +18,9 @@ const OrderBumpItem = memo(({ item, loadingId, onToggle }: OrderBumpItemProps) =
 
   // Validar dados obrigatórios
   if (item.initialPrice === undefined || item.specialPrice === undefined) {
-
     return null;
   }
-  
+
   // Usar o preço especial do order bump
   const precoEspecial = item.specialPrice;
 
@@ -135,14 +134,17 @@ const OrderBumps: React.FC<OrderBumpsProps> = ({ orderBumps, onToggleOrderBump }
   const [loadingId, setLoadingId] = React.useState<string | null>(null);
 
   // Função para lidar com o toggle do order bump
-  const handleToggle = useCallback(async (id: string) => {
-    try {
-      setLoadingId(id);
-      await onToggleOrderBump(id);
-    } finally {
-      setLoadingId(null);
-    }
-  }, [onToggleOrderBump]);
+  const handleToggle = useCallback(
+    async (id: string) => {
+      try {
+        setLoadingId(id);
+        await onToggleOrderBump(id);
+      } finally {
+        setLoadingId(null);
+      }
+    },
+    [onToggleOrderBump],
+  );
 
   // Ordenar os order bumps pelo displayOrder (se existir)
   const sortedOrderBumps = useMemo(() => {
@@ -162,11 +164,11 @@ const OrderBumps: React.FC<OrderBumpsProps> = ({ orderBumps, onToggleOrderBump }
           </p>
         ) : (
           sortedOrderBumps.map((item) => (
-            <OrderBumpItem 
-              key={item.id} 
-              item={item} 
-              loadingId={loadingId} 
-              onToggle={handleToggle} 
+            <OrderBumpItem
+              key={item.id}
+              item={item}
+              loadingId={loadingId}
+              onToggle={handleToggle}
             />
           ))
         )}

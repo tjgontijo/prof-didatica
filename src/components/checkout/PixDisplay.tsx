@@ -15,7 +15,6 @@ export default function PixDisplay({ pixData }: PixDisplayProps) {
 
   // Log detalhado dos dados do PIX
 
-
   // Função para copiar código PIX
   const copiarCodigoPix = () => {
     if (pixData?.qr_code) {

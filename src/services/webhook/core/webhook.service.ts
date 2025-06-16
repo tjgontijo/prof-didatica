@@ -16,7 +16,6 @@ export class WebhookService {
     try {
       const webhooks = await this.getActiveWebhooksForEvent(eventData.event);
       if (webhooks.length === 0) {
-
         return [];
       }
 
@@ -59,10 +58,8 @@ export class WebhookService {
         sentIds.push(webhook.id);
       }
 
-
       return sentIds;
     } catch (error) {
-
       throw error;
     }
   }

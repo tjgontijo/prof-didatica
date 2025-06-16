@@ -13,7 +13,7 @@ export type OrderBump = {
   description: string;
   initialPrice: number;
   specialPrice: number;
-  imagemUrl: string;  
+  imagemUrl: string;
   selected: boolean; // Não é mais opcional e padronizado como 'selected'
   percentDiscont?: number;
   displayOrder?: number | null;

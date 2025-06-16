@@ -11,7 +11,7 @@ type OrderDetailsProps = {
 // Componente interno para renderizar um item de order bump
 const OrderBumpItem = React.memo(({ bump }: { bump: OrderBump }) => {
   const precoEspecial = bump.specialPrice;
-  
+
   return (
     <div key={bump.id} className="flex justify-between items-center py-1">
       <div className="flex flex-col">

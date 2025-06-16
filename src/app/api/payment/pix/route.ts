@@ -77,7 +77,6 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
     const validationResult = paymentSchema.safeParse(dados);
 
     if (!validationResult.success) {
-
       return NextResponse.json(
         {
           success: false,
@@ -91,11 +90,6 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
     const payload = validationResult.data;
 
     if (process.env.NODE_ENV === 'development') {
-
-
-
-
-
     }
 
     // 3. Verificar se o pedido existe e está no status correto
@@ -119,7 +113,6 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
     }
 
     // 4. Processar pagamento PIX
-
 
     const result = await prisma.$transaction(async (tx: Prisma.TransactionClient) => {
       // 4.1 Atualizar status do pedido para PENDING
@@ -246,7 +239,6 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
     // Retornar o resultado da transação com status 201 (Created)
     return NextResponse.json(result, { status: 201 });
   } catch {
-
     return NextResponse.json(
       { success: false, error: 'Erro ao processar pagamento' },
       { status: 500 },
