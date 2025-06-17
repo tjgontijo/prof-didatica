@@ -3,12 +3,10 @@
 import Script from 'next/script';
 import { useEffect } from 'react';
 
-// Estendendo a interface Window para incluir o Clarity
 declare global {
   interface Window {
     clarity?: {
       q?: unknown[];
-      // Funções comuns do Clarity
       (method: string, ...args: unknown[]): void;
     };
   }
@@ -22,13 +20,11 @@ export function ClarityScript() {
       }
     }, 2000);
 
-    // Limpar o intervalo quando o componente for desmontado
     return () => clearInterval(clarityCheckInterval);
   }, []);
 
   return (
     <>
-      {/* Microsoft Clarity - Implementação otimizada com alta prioridade */}
       <Script
         id="clarity-script"
         strategy="afterInteractive"

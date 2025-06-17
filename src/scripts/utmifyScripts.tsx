@@ -76,10 +76,7 @@ export const UtmifyScripts = () => {
 
     loadScripts();
 
-    // Limpeza do observer
-    return () => {
-      // observer.disconnect();
-    };
+    return () => {};
   }, []);
 
   return null;
