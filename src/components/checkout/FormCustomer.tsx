@@ -4,26 +4,17 @@ import React, { useState } from 'react';
 import { UseFormRegister, FieldErrors, UseFormTrigger, FormState } from 'react-hook-form';
 import { FaArrowRight, FaWhatsapp } from 'react-icons/fa';
 import { FiUser, FiMail } from 'react-icons/fi';
-import { formatBrazilianPhone, cleanPhone, validateBrazilianPhone } from '@/lib/phone';
+import { formatBrazilianPhone, cleanPhone } from '@/lib/phone';
 import { z } from 'zod';
-import { WhatsappService } from '@/services/whatsapp/whatsapp.service';
 
-const whatsappService = new WhatsappService();
-
-// Cache para evitar chamadas repetidas ao serviço de WhatsApp
 const phoneValidationCache: Record<string, boolean> = {};
 
-// Schema para validação dos dados do cliente sem a validação de WhatsApp
-// A validação de WhatsApp será feita apenas no evento onBlur para evitar chamadas duplicadas
 export const customerFormSchema = z.object({
   name: z.string().min(3, 'Nome deve ter pelo menos 3 caracteres'),
   email: z.string().email('Email inválido'),
   phone: z
     .string()
-    .min(11, 'Telefone deve ter pelo menos 11 dígitos')
-    .refine((val) => val.length === 0 || validateBrazilianPhone(val), {
-      message: 'Telefone inválido',
-    }),
+    .min(11, 'Telefone deve ter pelo menos 11 dígitos'),
 });
 
 export type CustomerFormValues = z.infer<typeof customerFormSchema>;
@@ -44,249 +35,229 @@ const FormCustomer: React.FC<FormCustomerProps> = ({
   trigger,
   onProceedToPayment,
 }) => {
-  const [isWhatsappValid, setIsWhatsappValid] = useState(false);
   const [isNameValid, setIsNameValid] = useState(false);
   const [isEmailValid, setIsEmailValid] = useState(false);
-
-  // Usamos o cache global e o estado local para evitar chamadas repetidas
-  const [lastValidatedPhone, setLastValidatedPhone] = useState<string>('');
-  const [lastValidationResult, setLastValidationResult] = useState<boolean>(false);
-
-  const { onChange: onPhoneChange, onBlur: onPhoneBlur, ...phoneRegister } = register('phone');
-  const { onBlur: onNameBlur } = register('name');
-  const { onBlur: onEmailBlur } = register('email');
-
-  // Não precisamos mais verificar a validade do formulário via useEffect
-
-  const handlePhoneChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    e.target.value = formatBrazilianPhone(e.target.value);
-    onPhoneChange(e);
-
-    // Quando o usuário altera o número, invalidamos o estado de WhatsApp válido
-    // para forçar uma nova validação quando o campo perder o foco
-    setIsWhatsappValid(false);
-  };
-
-  // Função para validar apenas no evento onBlur e não durante a digitação
-  const handleNameBlur = async (e: React.FocusEvent<HTMLInputElement>) => {
-    onNameBlur(e);
-    // Valida apenas se o campo não estiver vazio
-    if (e.target.value.trim().length > 0) {
-      const isValid = await trigger('name');
-      setIsNameValid(isValid && !errors.name);
-    } else {
-      setIsNameValid(false);
-    }
-  };
-
-  const handleEmailBlur = async (e: React.FocusEvent<HTMLInputElement>) => {
-    onEmailBlur(e);
-    // Valida apenas se o campo não estiver vazio
-    if (e.target.value.trim().length > 0) {
-      const isValid = await trigger('email');
-      setIsEmailValid(isValid && !errors.email);
-    } else {
-      setIsEmailValid(false);
-    }
-  };
-
-  // Função para validar o WhatsApp com cache
-  const validateWhatsApp = async (phoneNumber: string): Promise<boolean> => {
-    if (!phoneNumber || phoneNumber.trim().length === 0) return false;
-
-    const cleanedPhone = cleanPhone(phoneNumber);
-
-    // Verifica o cache local primeiro (mais rápido)
-    if (cleanedPhone === lastValidatedPhone) {
-      return lastValidationResult;
-    }
-
-    // Verifica o cache global em seguida
-    if (phoneValidationCache.hasOwnProperty(cleanedPhone)) {
-      const isValid = phoneValidationCache[cleanedPhone];
-      // Atualiza o cache local
-      setLastValidatedPhone(cleanedPhone);
-      setLastValidationResult(isValid);
-      return isValid;
-    }
-
-    // Se não está em nenhum cache, faz a chamada ao serviço
-    try {
-      const response = await whatsappService.checkWhatsappNumber(cleanedPhone);
-      const isValid = response.isWhatsapp === true;
-
-      // Atualiza ambos os caches
-      phoneValidationCache[cleanedPhone] = isValid;
-      setLastValidatedPhone(cleanedPhone);
-      setLastValidationResult(isValid);
-
-      return isValid;
-    } catch {
-      return false;
-    }
-  };
-
-  // Estado para controlar a mensagem de erro do WhatsApp
+  const [isWhatsappValid, setIsWhatsappValid] = useState(false);
+  const [lastValidatedPhone, setLastValidatedPhone] = useState('');
+  const [lastValidationResult, setLastValidationResult] = useState(false);
   const [whatsappError, setWhatsappError] = useState<string | null>(null);
 
-  const handlePhoneBlur = async (e: React.FocusEvent<HTMLInputElement>) => {
-    onPhoneBlur(e);
-    const currentPhone = e.target.value.trim();
+  const { onChange: onNameChange } = register('name');
+  const { onChange: onEmailChange } = register('email');
+  const { onChange: onPhoneChange, ...phoneRegister } = register('phone');
 
-    // Limpa o erro de WhatsApp
+  const handleNameChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    onNameChange(e);
+    const valid = await trigger('name');
+    setIsNameValid(valid && !errors.name);
+  };
+
+  const handleEmailChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    onEmailChange(e);
+    const valid = await trigger('email');
+    setIsEmailValid(valid && !errors.email);
+  };
+
+  const handlePhoneChange = React.useCallback(async (e: React.ChangeEvent<HTMLInputElement>) => {
+    // Remove DDI 55 se vier no autofill ou colagem
+    let rawValue = e.target.value.replace(/\D/g, '');
+    if (rawValue.startsWith('55') && rawValue.length > 11) {
+      rawValue = rawValue.slice(2);
+    }
+    const value = formatBrazilianPhone(rawValue);
+    e.target.value = value;
+    onPhoneChange(e);
+
+    setIsWhatsappValid(false);
     setWhatsappError(null);
 
-    // Valida apenas se o campo não estiver vazio
-    if (currentPhone.length > 0) {
-      // Primeiro verifica se o formato do telefone é válido
-      const result = await trigger('phone');
+    const cleaned = cleanPhone(value);
+    const validFormat = await trigger('phone');
 
-      // Se o formato do telefone é válido, verifica se é um WhatsApp
-      if (result === true && !errors.phone) {
-        // Valida o WhatsApp usando nossa função com cache
-        const isValid = await validateWhatsApp(currentPhone);
+    if (cleaned.length === 11 && validFormat) {
+      // Verificar cache local primeiro
+      if (cleaned === lastValidatedPhone) {
+        setIsWhatsappValid(lastValidationResult);
+        if (!lastValidationResult) setWhatsappError('Informe um WhatsApp válido');
+        return;
+      }
+
+      if (phoneValidationCache.hasOwnProperty(cleaned)) {
+        const isValid = phoneValidationCache[cleaned];
         setIsWhatsappValid(isValid);
+        setLastValidatedPhone(cleaned);
+        setLastValidationResult(isValid);
+        if (!isValid) setWhatsappError('Informe um WhatsApp válido');
+        return;
+      }
 
-        // Se não for um WhatsApp válido, define um erro personalizado
+      try {
+        // Chamar a API do servidor para validar o número
+        const response = await fetch('/api/whatsapp/validate', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({ phone: cleaned }),
+        });
+
+        if (!response.ok) {
+          throw new Error('Falha ao validar número');
+        }
+
+        const data = await response.json();
+        const isValid = data.isWhatsapp === true;
+        
+        // Atualizar cache local
+        phoneValidationCache[cleaned] = isValid;
+        setLastValidatedPhone(cleaned);
+        setLastValidationResult(isValid);
+        setIsWhatsappValid(isValid);
+        
         if (!isValid) {
           setWhatsappError('Informe um WhatsApp válido');
         }
-      } else {
+      } catch (error) {
+        console.error('Erro ao validar WhatsApp:', error);
         setIsWhatsappValid(false);
+        setWhatsappError('Erro ao validar número');
       }
-    } else {
-      setIsWhatsappValid(false);
     }
-  };
+  }, [
+    onPhoneChange,
+    trigger,
+    lastValidatedPhone,
+    lastValidationResult,
+    setIsWhatsappValid,
+    setWhatsappError,
+    setLastValidatedPhone,
+    setLastValidationResult
+  ]);
 
+  // Prever autofill: validar campos preenchidos automaticamente ao montar
+  React.useEffect(() => {
+    const phoneInput = document.getElementById('phone') as HTMLInputElement | null;
+    if (phoneInput && phoneInput.value) {
+      // Simula um evento tipado de input
+      const event = {
+        target: phoneInput,
+      } as React.ChangeEvent<HTMLInputElement>;
+      handlePhoneChange(event);
+    }
+    // Poderia fazer o mesmo para nome/email se desejar
+  }, [handlePhoneChange]);
+
+
+  
   return (
     <div id="formCustomer">
       <div className="space-y-4">
         <h2 className="text-xl font-bold">Informações Pessoais</h2>
+
+        {/* Nome */}
         <div>
-          <label htmlFor="name" className="block text-sm font-medium text-gray-700">
-            Nome Completo
-          </label>
+          <label className="block text-sm font-medium text-gray-700">Nome Completo</label>
           <div className="relative mt-1">
-            <div className="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3">
-              <FiUser className={`h-4 w-4 ${isNameValid ? 'text-green-500' : 'text-gray-400'}`} />
-            </div>
+            <FiUser
+              className={`absolute left-3 top-2.5 ${isNameValid ? 'text-green-500' : 'text-gray-400'}`}
+            />
             <input
               type="text"
-              id="name"
               {...register('name')}
-              onBlur={handleNameBlur}
-              className={`block w-full px-3 py-2 pl-10 border ${errors.name ? 'border-red-500' : 'border-gray-300'} rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm`}
+              onChange={handleNameChange}
+              id="name"
               disabled={isSubmitting}
+              className={`block w-full pl-10 pr-3 py-2 border ${
+                errors.name ? 'border-red-500' : 'border-gray-300'
+              } rounded-md shadow-sm sm:text-sm`}
               aria-invalid={errors.name ? 'true' : 'false'}
             />
           </div>
           {errors.name && (
-            <p role="alert" className="mt-2 text-sm text-red-600">
-              {errors.name.message}
-            </p>
+            <p className="mt-2 text-sm text-red-600">{errors.name.message}</p>
           )}
         </div>
 
-        <div>
-          <label htmlFor="phone" className="block text-sm font-medium text-gray-700">
-            WhatsApp
-          </label>
+         {/* WhatsApp */}
+         <div>
+          <label className="block text-sm font-medium text-gray-700">WhatsApp</label>
           <div className="relative mt-1">
-            <div className="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3">
-              <FaWhatsapp
-                className={`h-4 w-4 ${isWhatsappValid ? 'text-green-500' : 'text-gray-400'}`}
-              />
-            </div>
+            <FaWhatsapp
+              className={`absolute left-3 top-2.5 ${isWhatsappValid ? 'text-green-500' : 'text-gray-400'}`}
+            />
             <input
               type="tel"
-              id="phone"
               {...phoneRegister}
               onChange={handlePhoneChange}
-              onBlur={handlePhoneBlur}
-              className={`block w-full px-3 py-2 pl-10 border ${errors.phone ? 'border-red-500' : 'border-gray-300'} rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm`}
+              id="phone"
               disabled={isSubmitting}
+              className={`block w-full pl-10 pr-3 py-2 border ${
+                errors.phone || whatsappError ? 'border-red-500' : 'border-gray-300'
+              } rounded-md shadow-sm sm:text-sm`}
               aria-invalid={errors.phone ? 'true' : 'false'}
             />
           </div>
           {errors.phone && (
-            <p role="alert" className="mt-2 text-sm text-red-600">
-              {errors.phone.message}
-            </p>
+            <p className="mt-2 text-sm text-red-600">{errors.phone.message}</p>
           )}
           {!errors.phone && whatsappError && (
-            <p role="alert" className="mt-2 text-sm text-red-600">
-              {whatsappError}
-            </p>
+            <p className="mt-2 text-sm text-red-600">{whatsappError}</p>
           )}
         </div>
 
+        {/* E‑mail */}
         <div>
-          <label htmlFor="email" className="block text-sm font-medium text-gray-700">
-            Seu melhor e-mail
-          </label>
+          <label className="block text-sm font-medium text-gray-700">Seu melhor e-mail</label>
           <div className="relative mt-1">
-            <div className="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3">
-              <FiMail className={`h-4 w-4 ${isEmailValid ? 'text-green-500' : 'text-gray-400'}`} />
-            </div>
+            <FiMail
+              className={`absolute left-3 top-2.5 ${isEmailValid ? 'text-green-500' : 'text-gray-400'}`}
+            />
             <input
               type="email"
-              id="email"
               {...register('email')}
-              onBlur={handleEmailBlur}
-              className={`block w-full px-3 py-2 pl-10 border ${errors.email ? 'border-red-500' : 'border-gray-300'} rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm`}
+              onChange={handleEmailChange}
+              id="email"
               disabled={isSubmitting}
+              className={`block w-full pl-10 pr-3 py-2 border ${
+                errors.email ? 'border-red-500' : 'border-gray-300'
+              } rounded-md shadow-sm sm:text-sm`}
               aria-invalid={errors.email ? 'true' : 'false'}
             />
           </div>
           {errors.email && (
-            <p role="alert" className="mt-2 text-sm text-red-600">
-              {errors.email.message}
-            </p>
+            <p className="mt-2 text-sm text-red-600">{errors.email.message}</p>
           )}
         </div>
 
-        {/* Botão para prosseguir para pagamento */}
+       
+
+        {/* Botão */}
         <div className="mt-6">
           <button
             type="button"
             onClick={async () => {
-              // Validar todos os campos antes de prosseguir
               const nameValid = await trigger('name');
               const emailValid = await trigger('email');
               const phoneValid = await trigger('phone');
-
-              // Só prossegue se todos os campos forem válidos e o WhatsApp também
               if (nameValid && emailValid && phoneValid && isWhatsappValid) {
                 onProceedToPayment();
               }
             }}
-            className={`w-full flex justify-center items-center py-3 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-green-600 hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500 transition-colors duration-200`}
+            disabled={isSubmitting}
+            className="w-full flex justify-center items-center py-3 px-4 bg-green-600 text-white font-medium rounded-md hover:bg-green-700 transition-colors"
           >
             {isSubmitting ? (
-              <>
-                <svg
-                  className="animate-spin -ml-1 mr-3 h-5 w-5 text-white"
-                  xmlns="http://www.w3.org/2000/svg"
-                  fill="none"
-                  viewBox="0 0 24 24"
-                >
-                  <circle
-                    className="opacity-25"
-                    cx="12"
-                    cy="12"
-                    r="10"
-                    stroke="currentColor"
-                    strokeWidth="4"
-                  ></circle>
-                  <path
-                    className="opacity-75"
-                    fill="currentColor"
-                    d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
-                  ></path>
-                </svg>
-                Processando...
-              </>
+              <svg
+                className="animate-spin h-5 w-5 text-white"
+                viewBox="0 0 24 24"
+                fill="none"
+              >
+                <circle cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" opacity="0.25"/>
+                <path
+                  fill="currentColor"
+                  d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+                />
+              </svg>
             ) : (
               <>
                 Continuar para pagamento <FaArrowRight className="ml-2" />

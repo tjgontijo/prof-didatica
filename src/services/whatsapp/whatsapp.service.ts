@@ -39,16 +39,30 @@ export class WhatsappService {
   private instance: string;
 
   constructor() {
-    this.apiKey = process.env.APIKEY_EVOLUTION || 'F72EA683DEED-48A3-B403-48AA8BB67032';
-    this.baseUrl = process.env.EVOLUTION_BASE_URL || 'https://evolution.elev8.com.br/';
-    this.instance = process.env.INSTANCE_EVOLUTION || 'profdidatica';
+    this.apiKey = process.env.APIKEY_EVOLUTION as string;
+    this.baseUrl = process.env.EVOLUTION_BASE_URL as string;
+    this.instance = process.env.INSTANCE_EVOLUTION as string;
+    
+    // Verificar se as variáveis de ambiente estão definidas
+    if (!this.apiKey) {
+      logger.error('[WhatsApp] APIKEY_EVOLUTION não está definida no .env');
+    }
+    
+    if (!this.baseUrl) {
+      logger.error('[WhatsApp] EVOLUTION_BASE_URL não está definida no .env');
+    }
+    
+    if (!this.instance) {
+      logger.error('[WhatsApp] INSTANCE_EVOLUTION não está definida no .env');
+    }
   }
 
   private normalizeBaseUrl(url: string): string {
     return url.replace(/\/+$/, '') + '/';
   }
 
-  private normalizePhoneNumber(phone: string): string {
+  // Método público para normalizar números de telefone
+  normalizePhoneNumber(phone: string): string {
     const cleanedPhone = phone.replace(/\D/g, '');
 
     if (/^55\d{10,11}$/.test(cleanedPhone)) {
@@ -95,6 +109,16 @@ export class WhatsappService {
 
     try {
       const url = `${this.normalizeBaseUrl(this.baseUrl)}chat/whatsappNumbers/${this.instance}`;
+      
+      // Log das credenciais (parcialmente ocultas para segurança)
+      const maskedApiKey = this.apiKey ? 
+        `${this.apiKey.substring(0, 4)}...${this.apiKey.substring(this.apiKey.length - 4)}` : 
+        'não definida';
+      
+      logger.info(`[WhatsApp] Verificando número: ${normalizedPhone}`);
+      logger.info(`[WhatsApp] URL: ${url}`);
+      logger.info(`[WhatsApp] Instance: ${this.instance}`);
+      logger.info(`[WhatsApp] API Key: ${maskedApiKey}`);
 
       const options = {
         method: 'POST',
@@ -106,9 +130,14 @@ export class WhatsappService {
       };
 
       const response = await this.fetchWithTimeout(url, options);
-
+      
+      // Log da resposta HTTP
+      logger.info(`[WhatsApp] Status da resposta: ${response.status} ${response.statusText}`);
+      
       if (!response.ok) {
-        throw new Error('Erro ao verificar número de WhatsApp');
+        const errorText = await response.text().catch(() => 'Não foi possível ler o corpo da resposta');
+        logger.error(`[WhatsApp] Erro na resposta: ${errorText}`);
+        throw new Error(`Erro ao verificar número de WhatsApp: ${response.status} ${response.statusText}`);
       }
 
       const data: Array<{
@@ -117,23 +146,47 @@ export class WhatsappService {
         name?: string;
         number: string;
       }> = await response.json();
+      
+      logger.info(`[WhatsApp] Resposta recebida para ${normalizedPhone}: ${JSON.stringify(data)}`);
 
       const result = data.find((item) => item.number === normalizedPhone);
 
       if (!result) {
+        logger.warn(`[WhatsApp] Número não encontrado na resposta: ${normalizedPhone}`);
         return {
           number: normalizedPhone,
           isWhatsapp: false,
         };
       }
 
+      logger.info(`[WhatsApp] Número ${normalizedPhone} é WhatsApp: ${result.exists}`);
       return {
         number: result.number,
         isWhatsapp: result.exists,
         name: result.name,
       };
     } catch (error) {
-      logger.error('Erro na verificação de WhatsApp:', error);
+      // Log detalhado do erro
+      if (error instanceof Error) {
+        logger.error(`[WhatsApp] Erro na verificação: ${error.message}`);
+        logger.error(`[WhatsApp] Stack: ${error.stack}`);
+      } else {
+        logger.error(`[WhatsApp] Erro desconhecido na verificação: ${String(error)}`);
+      }
+      
+      // Verifica problemas comuns de configuração
+      if (!this.apiKey) {
+        logger.error('[WhatsApp] API Key não está definida');
+      }
+      
+      if (!this.baseUrl) {
+        logger.error('[WhatsApp] URL base não está definida');
+      }
+      
+      if (!this.instance) {
+        logger.error('[WhatsApp] Instância não está definida');
+      }
+      
       return {
         number: normalizedPhone,
         isWhatsapp: false,

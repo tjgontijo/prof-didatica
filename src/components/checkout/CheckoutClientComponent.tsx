@@ -356,7 +356,11 @@ export default function CheckoutClientComponent({
           <ProductHeader produto={product} />
           <div className="border-b"></div>
           {currentStep === 'personal-info' && (
-            <form onSubmit={handleSubmit(handleSaveCustomerDataAndProceed)}>
+            <form 
+              onSubmit={handleSubmit(handleSaveCustomerDataAndProceed)}   
+              className="no-utmify"
+              data-utmify-ignore-classes="no-utmify"
+            >
               <FormCustomer
                 register={register}
                 errors={formState.errors}
@@ -371,12 +375,17 @@ export default function CheckoutClientComponent({
             <>
               <PaymentSelector />
               <FormPix />
+              <div className="border-b"></div>
               <OrderBumps
                 orderBumps={orderBumpsSelecionados}
                 onToggleOrderBump={handleToggleOrderBump}
               />
               <div className="border-b"></div>
-              <OrderDetails produto={product} orderBumpsSelecionados={selectedOrderBumps} />
+              <OrderDetails 
+                produto={product} 
+                orderBumpsSelecionados={selectedOrderBumps} 
+              />
+              <div className="border-b"></div>
               <button
                 className="w-full h-12 bg-[#00A859] text-white font-bold rounded-[6px] flex items-center justify-center"
                 onClick={handlePixPayment}
