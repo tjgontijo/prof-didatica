@@ -25,8 +25,7 @@ export default function PixDisplay({ pixData }: PixDisplayProps) {
   };
 
   return (
-    <div className="bg-white rounded-[12px] p-6 shadow-sm border border-gray-200">
-      {/* Cabeçalho com ícone e título */}
+          <>
       <div className="flex items-center gap-3 mb-4 p-4 rounded-lg bg-blue-50">
         <div className="flex-shrink-0">
           <div className="w-8 h-8 flex items-center justify-center rounded-full bg-blue-100">
@@ -128,7 +127,7 @@ export default function PixDisplay({ pixData }: PixDisplayProps) {
         <div className="text-xs text-gray-700 mt-2 flex items-center justify-between">
           <span>Código da transação: {pixData.id}</span>
         </div>
-      </div>
-    </div>
+      </div>      
+      </>
   );
 }

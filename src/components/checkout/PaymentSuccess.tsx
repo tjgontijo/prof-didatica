@@ -30,72 +30,65 @@ const PaymentSuccess: React.FC<PaymentSuccessProps> = ({ orderNumber, customerNa
 
       {/* Main Content */}
       <main className="container mx-auto py-6 px-4 max-w-[480px]">
-        {/* Container Principal */}
         <div className="bg-white rounded-[8px] p-5 my-[16px] md:my-[24px] w-full flex flex-col gap-6 shadow-xl border border-gray-200">
-          {/* Cabeçalho com ícone e título */}
-          <div className="flex items-center gap-3 mb-4 p-4 rounded-lg bg-blue-50">
-            <div className="flex-shrink-0">
-              <div className="w-8 h-8 flex items-center justify-center rounded-full bg-blue-100">
-                <FaCheckCircle className="text-blue-700 text-xl" />
-              </div>
+          {/* Alerta de sucesso */}
+          <div className="flex items-center gap-3 p-4 rounded-lg bg-green-50 border border-green-100">
+            <div className="w-8 h-8 flex items-center justify-center rounded-full bg-green-100">
+              <FaCheckCircle className="text-green-700 text-xl" />
             </div>
-            <h2 className="text-lg font-bold text-blue-800">Pagamento confirmado!</h2>
+            <h2 className="text-lg font-bold text-green-800">Pagamento confirmado!</h2>
           </div>
 
-          {/* Mensagem de confirmação */}
-          <div className="mb-6">
-            <p className="text-[15px] font-semibold mb-1 text-blue-800">
+          {/* Mensagem de boas-vindas */}
+          <div>
+            <p className="text-[15px] font-semibold mb-1 text-green-800">
               Pedido processado com sucesso!
             </p>
-            <p className="text-sm text-gray-600">
-              Olá, <span className="font-medium">{firstName}</span>! Seu pagamento foi confirmado com
-              sucesso.
+            <p className="text-sm text-gray-700">
+              Olá, <span className="font-medium">{firstName}</span>! Seu pagamento foi confirmado.
             </p>
           </div>
 
-          <div className="flex flex-col items-center space-y-6">
-            {/* Informações do pedido */}
-            <div className="w-full bg-gray-50 p-4 rounded-lg border border-gray-200">
-              <div className="flex items-start gap-3">
-                <div className="mt-1 text-blue-500">
-                  <FaCheckCircle size={18} />
-                </div>
-                <div>
-                  <h3 className="font-bold text-blue-800">Detalhes do pedido</h3>
-                  <p className="text-sm text-gray-600 mt-1">
-                    Número do pedido: <span className="font-medium">{orderNumber}</span>
-                  </p>
-                </div>
+          {/* Detalhes do pedido */}
+          <div className="w-full bg-gray-50 p-4 rounded-lg border border-gray-200">
+            <div className="flex items-start gap-3">
+              <div className="mt-1 text-green-600">
+                <FaCheckCircle size={18} />
+              </div>
+              <div>
+                <h3 className="font-bold text-green-800">Detalhes do pedido</h3>
+                <p className="text-sm text-gray-700 mt-1">
+                  Número do pedido: <span className="font-medium">{orderNumber}</span>
+                </p>
               </div>
             </div>
-
-            {/* Instruções de suporte */}
-            <div className="w-full bg-blue-50 p-4 rounded-lg border border-blue-100">
-              <div className="flex items-start gap-3">
-                <div className="mt-1 text-blue-500">
-                  <FaCheckCircle size={18} />
-                </div>
-                <div>
-                  <h3 className="font-bold text-blue-800">Suporte</h3>
-                  <p className="text-sm text-gray-600 mt-1">
-                    Caso precise de alguma ajuda para ter acesso ao material, basta nos chamar no
-                    suporte do WhatsApp pelo botão abaixo.
-                  </p>
-                </div>
-              </div>
-            </div>
-
-            {/* Botão de WhatsApp */}
-            <Link
-              href="https://wa.me/551148635262"
-              target="_blank"
-              rel="noopener noreferrer"
-              className="w-full py-3 bg-[#2c4f71] text-white font-medium rounded-lg hover:bg-[#1d3557] transition-colors flex items-center justify-center gap-2"
-            >
-              <FaWhatsapp size={20} />
-              Falar com o suporte
-            </Link>
           </div>
+
+          {/* Suporte */}
+          <div className="w-full bg-green-50 p-4 rounded-lg border border-green-100">
+            <div className="flex items-start gap-3">
+              <div className="mt-1 text-green-600">
+                <FaCheckCircle size={18} />
+              </div>
+              <div>
+                <h3 className="font-bold text-green-800">Suporte</h3>
+                <p className="text-sm text-gray-700 mt-1">
+                  Caso precise de alguma ajuda para acessar o material, chame no WhatsApp abaixo.
+                </p>
+              </div>
+            </div>
+          </div>
+
+          {/* Botão de WhatsApp */}
+          <Link
+            href="https://wa.me/551148635262"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="w-full py-3 bg-[#2c4f71] text-white font-medium rounded-lg hover:bg-[#1d3557] transition-colors flex items-center justify-center gap-2"
+          >
+            <FaWhatsapp size={20} />
+            Falar com o suporte
+          </Link>
         </div>
       </main>
     </div>

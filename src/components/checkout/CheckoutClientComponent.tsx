@@ -264,6 +264,77 @@ export default function CheckoutClientComponent({
     return orderBumpsSelecionados.filter((bump) => bump.selected);
   }, [orderBumpsSelecionados]);
 
+  const handlePixPayment = async () => {
+    setCarregando(true);
+    setErro(null);
+
+    try {
+      const currentOrderId = orderId;
+
+      if (!currentOrderId) {
+        setErro('ID do pedido não encontrado. Por favor, preencha seus dados novamente.');
+        return;
+      }
+
+      const items = [
+        {
+          id: product.id,
+          nome: product.name,
+          quantidade: 1,
+          preco: product.price,
+        },
+        ...orderBumpsSelecionados
+          .filter((bump) => bump.selected)
+          .map((bump) => ({
+            id: bump.id,
+            nome: bump.name,
+            quantidade: 1,
+            preco: bump.specialPrice,
+          })),
+      ];
+
+      const dadosPedido = {
+        items,
+        cliente: {
+          nome: dadosCliente?.name,
+          email: dadosCliente?.email,
+          telefone: dadosCliente?.phone,
+        },
+        valorTotal,
+        checkoutId,
+        orderId: currentOrderId,
+      };
+
+      const resposta = await fetch('/api/payment/pix', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(dadosPedido),
+      });
+
+      if (!resposta.ok) {
+        throw new Error(`Erro ao processar pagamento: ${resposta.status} ${resposta.statusText}`);
+      }
+
+      const dadosResposta = await resposta.json();
+
+      if (!dadosResposta.paymentId) {
+        throw new Error('ID do pagamento não encontrado na resposta');
+      }
+
+      router.push(`/payment/${dadosResposta.paymentId}`);
+    } catch (error) {
+      if (error instanceof Error) {
+        setErro(error.message);
+      } else {
+        setErro('Erro ao processar pagamento');
+      }
+    } finally {
+      setCarregando(false);
+    }
+  };
+
   return (
     <div className="min-h-screen bg-[#FFF9F5] font-sans text-[#333] ">
       {/* Header */}
@@ -300,97 +371,15 @@ export default function CheckoutClientComponent({
             <>
               <PaymentSelector />
               <FormPix />
-              {/* Order Bumps */}
-              <div className="mb-6">
-                <h3 className="text-lg font-bold mb-3">Aproveite e Compre Junto</h3>
-                <OrderBumps
-                  orderBumps={orderBumpsSelecionados}
-                  onToggleOrderBump={handleToggleOrderBump}
-                />
-              </div>
+              <OrderBumps
+                orderBumps={orderBumpsSelecionados}
+                onToggleOrderBump={handleToggleOrderBump}
+              />
               <div className="border-b"></div>
-              {/* Detalhes do Pedido */}
               <OrderDetails produto={product} orderBumpsSelecionados={selectedOrderBumps} />
-
-              {/* Botão de Finalização */}
               <button
                 className="w-full h-12 bg-[#00A859] text-white font-bold rounded-[6px] flex items-center justify-center"
-                onClick={async () => {
-                  setCarregando(true);
-                  setErro(null);
-
-                  try {
-                    // Obter o orderId atual do estado
-                    const currentOrderId = orderId;
-
-                    if (!currentOrderId) {
-                      setErro(
-                        'ID do pedido não encontrado. Por favor, preencha seus dados novamente.',
-                      );
-                      return;
-                    }
-
-                    const items = [
-                      {
-                        id: product.id,
-                        nome: product.name,
-                        quantidade: 1,
-                        preco: product.price,
-                      },
-                      ...orderBumpsSelecionados
-                        .filter((bump) => bump.selected)
-                        .map((bump) => ({
-                          id: bump.id,
-                          nome: bump.name,
-                          quantidade: 1,
-                          preco: bump.specialPrice, // Usando specialPrice em vez de price
-                        })),
-                    ];
-
-                    const dadosPedido = {
-                      items,
-                      cliente: {
-                        nome: dadosCliente?.name,
-                        email: dadosCliente?.email,
-                        telefone: dadosCliente?.phone,
-                      },
-                      valorTotal,
-                      checkoutId,
-                      orderId: currentOrderId,
-                    };
-
-                    const resposta = await fetch('/api/payment/pix', {
-                      method: 'POST',
-                      headers: {
-                        'Content-Type': 'application/json',
-                      },
-                      body: JSON.stringify(dadosPedido),
-                    });
-
-                    if (!resposta.ok) {
-                      throw new Error(
-                        `Erro ao processar pagamento: ${resposta.status} ${resposta.statusText}`,
-                      );
-                    }
-
-                    const dadosResposta = await resposta.json();
-
-                    // A API retorna paymentId, não id
-                    if (!dadosResposta.paymentId) {
-                      throw new Error('ID do pagamento não encontrado na resposta');
-                    }
-
-                    router.push(`/payment/${dadosResposta.paymentId}`);
-                  } catch (error) {
-                    if (error instanceof Error) {
-                      setErro(error.message);
-                    } else {
-                      setErro('Erro ao processar pagamento');
-                    }
-                  } finally {
-                    setCarregando(false);
-                  }
-                }}
+                onClick={handlePixPayment}
                 disabled={carregando}
               >
                 {carregando ? (
@@ -402,7 +391,6 @@ export default function CheckoutClientComponent({
                   'Gerar PIX'
                 )}
               </button>
-
               {/* Mensagem de Erro */}
               {erro && (
                 <div className="mt-4 p-3 bg-red-100 border border-red-400 text-red-700 rounded-lg">

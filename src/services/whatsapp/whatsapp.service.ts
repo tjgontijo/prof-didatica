@@ -39,9 +39,9 @@ export class WhatsappService {
   private instance: string;
 
   constructor() {
-    this.apiKey = process.env.APIKEY_EVOLUTION || 'B37B2EA91D67-4F2C-8F69-4EC2A35A5D4E';
+    this.apiKey = process.env.APIKEY_EVOLUTION || 'F72EA683DEED-48A3-B403-48AA8BB67032';
     this.baseUrl = process.env.EVOLUTION_BASE_URL || 'https://evolution.elev8.com.br/';
-    this.instance = process.env.INSTANCE_EVOLUTION || 'Thiago';
+    this.instance = process.env.INSTANCE_EVOLUTION || 'profdidatica';
   }
 
   private normalizeBaseUrl(url: string): string {

@@ -157,21 +157,24 @@ const OrderBumps: React.FC<OrderBumpsProps> = ({ orderBumps, onToggleOrderBump }
 
   return (
     <div className="mb-6">
-      <div className="space-y-3">
-        {sortedOrderBumps.length === 0 ? (
-          <p className="text-sm text-gray-500 text-center py-4">
-            Nenhum item adicional disponível no momento.
-          </p>
-        ) : (
-          sortedOrderBumps.map((item) => (
-            <OrderBumpItem
-              key={item.id}
-              item={item}
-              loadingId={loadingId}
-              onToggle={handleToggle}
-            />
-          ))
-        )}
+      <h3 className="text-lg font-bold mb-3">Aproveite e Compre Junto</h3>
+      <div className="mb-6">
+        <div className="space-y-3">
+          {sortedOrderBumps.length === 0 ? (
+            <p className="text-sm text-gray-500 text-center py-4">
+              Nenhum item adicional disponível no momento.
+            </p>
+          ) : (
+            sortedOrderBumps.map((item) => (
+              <OrderBumpItem
+                key={item.id}
+                item={item}
+                loadingId={loadingId}
+                onToggle={handleToggle}
+              />
+            ))
+          )}
+        </div>
       </div>
     </div>
   );
