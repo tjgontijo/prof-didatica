@@ -4,7 +4,7 @@ import React, { useState } from 'react';
 import { UseFormRegister, FieldErrors, UseFormTrigger, FormState } from 'react-hook-form';
 import { FaArrowRight, FaWhatsapp } from 'react-icons/fa';
 import { FiUser, FiMail } from 'react-icons/fi';
-import { formatBrazilianPhone, cleanPhone } from '@/lib/phone';
+import { formatBrazilianPhone, cleanPhone, validateBrazilianPhone } from '@/lib/phone';
 import { z } from 'zod';
 
 const phoneValidationCache: Record<string, boolean> = {};
@@ -14,7 +14,10 @@ export const customerFormSchema = z.object({
   email: z.string().email('Email inválido'),
   phone: z
     .string()
-    .min(11, 'Telefone deve ter pelo menos 11 dígitos'),
+    .min(11, 'Telefone deve ter pelo menos 11 dígitos')
+    .refine((val) => validateBrazilianPhone(cleanPhone(val)), {
+      message: 'Telefone inválido',
+    }),
 });
 
 export type CustomerFormValues = z.infer<typeof customerFormSchema>;
@@ -58,13 +61,8 @@ const FormCustomer: React.FC<FormCustomerProps> = ({
     setIsEmailValid(valid && !errors.email);
   };
 
-  const handlePhoneChange = React.useCallback(async (e: React.ChangeEvent<HTMLInputElement>) => {
-    // Remove DDI 55 se vier no autofill ou colagem
-    let rawValue = e.target.value.replace(/\D/g, '');
-    if (rawValue.startsWith('55') && rawValue.length > 11) {
-      rawValue = rawValue.slice(2);
-    }
-    const value = formatBrazilianPhone(rawValue);
+  const handlePhoneChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const value = formatBrazilianPhone(e.target.value);
     e.target.value = value;
     onPhoneChange(e);
 
@@ -123,29 +121,7 @@ const FormCustomer: React.FC<FormCustomerProps> = ({
         setWhatsappError('Erro ao validar número');
       }
     }
-  }, [
-    onPhoneChange,
-    trigger,
-    lastValidatedPhone,
-    lastValidationResult,
-    setIsWhatsappValid,
-    setWhatsappError,
-    setLastValidatedPhone,
-    setLastValidationResult
-  ]);
-
-  // Prever autofill: validar campos preenchidos automaticamente ao montar
-  React.useEffect(() => {
-    const phoneInput = document.getElementById('phone') as HTMLInputElement | null;
-    if (phoneInput && phoneInput.value) {
-      // Simula um evento tipado de input
-      const event = {
-        target: phoneInput,
-      } as React.ChangeEvent<HTMLInputElement>;
-      handlePhoneChange(event);
-    }
-    // Poderia fazer o mesmo para nome/email se desejar
-  }, [handlePhoneChange]);
+  };
 
 
   
@@ -178,33 +154,6 @@ const FormCustomer: React.FC<FormCustomerProps> = ({
           )}
         </div>
 
-         {/* WhatsApp */}
-         <div>
-          <label className="block text-sm font-medium text-gray-700">WhatsApp</label>
-          <div className="relative mt-1">
-            <FaWhatsapp
-              className={`absolute left-3 top-2.5 ${isWhatsappValid ? 'text-green-500' : 'text-gray-400'}`}
-            />
-            <input
-              type="tel"
-              {...phoneRegister}
-              onChange={handlePhoneChange}
-              id="phone"
-              disabled={isSubmitting}
-              className={`block w-full pl-10 pr-3 py-2 border ${
-                errors.phone || whatsappError ? 'border-red-500' : 'border-gray-300'
-              } rounded-md shadow-sm sm:text-sm`}
-              aria-invalid={errors.phone ? 'true' : 'false'}
-            />
-          </div>
-          {errors.phone && (
-            <p className="mt-2 text-sm text-red-600">{errors.phone.message}</p>
-          )}
-          {!errors.phone && whatsappError && (
-            <p className="mt-2 text-sm text-red-600">{whatsappError}</p>
-          )}
-        </div>
-
         {/* E‑mail */}
         <div>
           <label className="block text-sm font-medium text-gray-700">Seu melhor e-mail</label>
@@ -229,7 +178,32 @@ const FormCustomer: React.FC<FormCustomerProps> = ({
           )}
         </div>
 
-       
+        {/* WhatsApp */}
+        <div>
+          <label className="block text-sm font-medium text-gray-700">WhatsApp</label>
+          <div className="relative mt-1">
+            <FaWhatsapp
+              className={`absolute left-3 top-2.5 ${isWhatsappValid ? 'text-green-500' : 'text-gray-400'}`}
+            />
+            <input
+              type="tel"
+              {...phoneRegister}
+              onChange={handlePhoneChange}
+              id="phone"
+              disabled={isSubmitting}
+              className={`block w-full pl-10 pr-3 py-2 border ${
+                errors.phone || whatsappError ? 'border-red-500' : 'border-gray-300'
+              } rounded-md shadow-sm sm:text-sm`}
+              aria-invalid={errors.phone ? 'true' : 'false'}
+            />
+          </div>
+          {errors.phone && (
+            <p className="mt-2 text-sm text-red-600">{errors.phone.message}</p>
+          )}
+          {!errors.phone && whatsappError && (
+            <p className="mt-2 text-sm text-red-600">{whatsappError}</p>
+          )}
+        </div>
 
         {/* Botão */}
         <div className="mt-6">
