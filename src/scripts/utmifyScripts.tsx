@@ -1,85 +1,67 @@
 'use client';
+
+import Script from 'next/script';
 import { useEffect } from 'react';
 
-export const UtmifyScripts = () => {
+// Declaração de tipos para as propriedades globais
+declare global {
+  interface Window {
+    pixelId: string;
+    sha256: (input: string) => string;
+    utmify?: {
+      track: (eventName: string, eventData?: Record<string, unknown>) => void;
+      init?: (config?: Record<string, unknown>) => void;
+    };
+  }
+}
+
+export function UtmifyScripts() {
   useEffect(() => {
-    const loadSha256Script = () => {
-      return new Promise<string>((resolve, reject) => {
-        if (typeof window.sha256 === 'function') {
-          // console.log('SHA-256 já estava carregado anteriormente');
-          resolve('SHA-256 já carregado');
-          return;
-        }
-
-        const script = document.createElement('script');
-        script.src = 'https://cdn.jsdelivr.net/npm/js-sha256/src/sha256.min.js';
-        script.async = true;
-        script.crossOrigin = 'anonymous'; // Adiciona cross-origin para melhor rastreamento
-
-        script.onload = () => {
-          //   console.log('SHA-256 script carregado com sucesso');
-          resolve('SHA-256 carregado');
-        };
-
-        script.onerror = (error) => {
-          console.error('Erro detalhado no carregamento do SHA-256:', error);
-          reject('Erro ao carregar SHA-256');
-        };
-
-        // Log adicional para rastrear quando o script está sendo adicionado
-        //  console.log('Adicionando script SHA-256 ao documento');
-        document.head.appendChild(script);
-      });
-    };
-
-    const loadUtmifyScripts = () => {
-      if (!document.getElementById('utmify-pixel-script')) {
-        const pixelScript = document.createElement('script');
-        pixelScript.id = 'utmify-pixel-script';
-        pixelScript.async = true;
-        pixelScript.defer = true;
-        pixelScript.src = 'https://cdn.utmify.com.br/scripts/pixel/pixel.js';
-
-        // Adiciona log para rastrear carregamento do pixel script
-        pixelScript.onload = () => console.log('UTMify Pixel Script carregado');
-        pixelScript.onerror = (error) => console.error('Erro no UTMify Pixel Script:', error);
-
-        document.head.appendChild(pixelScript);
+    // Define o pixel ID globalmente quando o componente montar
+    window.pixelId = '67c070919d1ed74e56ee2eda';
+    
+    // Verificar se os scripts foram carregados corretamente
+    const checkInterval = setInterval(() => {
+      if (document.getElementById('utmify-pixel-script') && 
+          document.getElementById('utmify-utms-script')) {
+        clearInterval(checkInterval);
       }
+    }, 2000);
 
-      if (!document.getElementById('utmify-utms-script')) {
-        const utmsScript = document.createElement('script');
-        utmsScript.id = 'utmify-utms-script';
-        utmsScript.async = true;
-        utmsScript.defer = true;
-        utmsScript.src = 'https://cdn.utmify.com.br/scripts/utms/latest.js';
-        utmsScript.setAttribute('data-utmify-prevent-subids', 'true');
-
-        // Adiciona log para rastrear carregamento do UTMS script
-        utmsScript.onload = () => console.log('UTMify UTMS Script carregado');
-        utmsScript.onerror = (error) => console.error('Erro no UTMify UTMS Script:', error);
-
-        document.head.appendChild(utmsScript);
-      }
-
-      // Define o pixel ID globalmente
-      window.pixelId = '67c070919d1ed74e56ee2eda';
-    };
-
-    const loadScripts = async () => {
-      try {
-        await Promise.all([loadSha256Script(), loadUtmifyScripts()]);
-      } catch (error) {
-        console.error('Erro ao carregar scripts:', error);
-      }
-    };
-
-    loadScripts();
-
-    return () => {};
+    return () => clearInterval(checkInterval);
   }, []);
 
-  return null;
-};
+  return (
+    <>
+      {/* Script SHA-256 */}
+      <Script
+        id="sha256-script"
+        src="https://cdn.jsdelivr.net/npm/js-sha256/src/sha256.min.js"
+        strategy="afterInteractive"
+        onLoad={() => console.log('SHA-256 script carregado')}
+        onError={(e) => console.error('Erro ao carregar o script SHA-256:', e)}
+      />
+      
+      {/* Script UTMify UTMs */}
+      <Script
+        id="utmify-utms-script"
+        src="https://cdn.utmify.com.br/scripts/utms/latest.js"
+        strategy="afterInteractive"
+        data-utmify-prevent-subids="true"
+        onLoad={() => console.log('UTMify UTMS Script carregado')}
+        onError={(e) => console.error('Erro ao carregar o script UTMify UTMs:', e)}
+      />
+      
+      {/* Script UTMify Pixel */}
+      <Script
+        id="utmify-pixel-script"
+        src="https://cdn.utmify.com.br/scripts/pixel/pixel.js"
+        strategy="afterInteractive"
+        onLoad={() => console.log('UTMify Pixel Script carregado')}
+        onError={(e) => console.error('Erro ao carregar o script UTMify Pixel:', e)}
+      />
+    </>
+  );
+}
 
 export default UtmifyScripts;
