@@ -1,23 +1,26 @@
 export const initialProducts = [
   {
-    name: 'Missão Literária',
-    description: 'Recurso para estimular a leitura em sala de aula',
-    imageUrl: 'https://images.yampi.me/assets/stores/prof-didatica/uploads/images/missao-literaria-6816b39652f7c-large.jpg',
+    name: 'Desafio Literário',
+    description: 'Fichas prontas, leitura gamificada, leitômetro, controle de leitura e mais. Um kit completo pra engajar sua turma de forma prática e divertida.',
+    imageUrl: '/images/products/desafio_literario_cover.webp',
     googleDriveUrl: 'https://drive.google.com/drive/folders/1dKXQPGdYNhDTl-W4_yS8kJ-wHRdN3y9E?usp=drive_link',
-    price: 100    
+    slug: 'desafio-literario',
+    price: 1200
   },
   {
-    name: '40 textos para o recurso Missão Literária',
-    description: 'Coletânia de textos exclusivos para serem utilizados com o recurso Missão Literária',
-    imageUrl: 'https://images.yampi.me/assets/stores/prof-didatica/uploads/images/textos-para-missoes-literarias-682a6a97af294-large.png',
+    name: '40 textos para o recurso Desafio Literário',
+    description: 'Coletânea com 40 textos feitos sob medida para usar com as fichas do Desafio Literário e enriquecer ainda mais as atividades.',
+    imageUrl: '/images/products/textos_missao_literaria_cover.webp',
     googleDriveUrl: 'https://drive.google.com/drive/folders/164nlnziZpknRlr0Rvi5XUTI39n6aFZ_X?usp=drive_link',
-    price: 100    
+    slug: 'textos-para-desafio-literario',
+    price: 1200    
   },  
   {
     name: 'Apostila de Interpretação de Textos',
-    description: 'Coletânia de textos e atividades exclusivas para aprimorar a interpretação de texto dos seus alunos',
-    imageUrl: 'https://images.yampi.me/assets/stores/prof-didatica/uploads/images/aventuras-na-leitura-textos-e-atividades-de-interpretacao-para-criancas-665f619c31726-large.jpg',
+    description: 'Apostila com textos e atividades de interpretação para trabalhar leitura crítica e compreensão de forma leve e prática.',
+    imageUrl: '/images/products/apostila_interpretacao_cover.webp',
     googleDriveUrl: 'https://drive.google.com/drive/folders/1jsBZU2MzHwB4_PBWeAVB8NeG73Llky75?usp=drive_link',
-    price: 100    
+    slug: 'apostila-de-interpretacao-de-textos',
+    price: 1200    
   },
 ];
