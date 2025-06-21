@@ -25,6 +25,7 @@ model Product {
   name            String
   description     String
   imageUrl        String?  // URL da imagem do produto
+  slug            String   // URL amigável  @unique
   price           Int  
   salesPageUrl    String?  
   googleDriveUrl  String?  // URL do Google Drive com o material digital
