@@ -35,16 +35,20 @@ export class OrderCreatedEventHandler {
   }
 
   private async getOrderWithRelations(orderId: string): Promise<OrderWithRelationsForEvent | null> {
-    // Verificar quantos itens o pedido tem diretamente no banco
-    const itemCount = await this.prisma.orderItem.count({
-      where: { orderId },
-    });
-
-    // Buscar todos os itens do pedido separadamente para verificar
+    // Buscar todos os itens do pedido diretamente, incluindo order bumps
     const allItems = await this.prisma.orderItem.findMany({
-      where: { orderId },
+      where: { orderId, deletedAt: null },
       include: { product: true },
     });
+
+    console.log(`[OrderCreatedEvent] Encontrados ${allItems.length} itens para o pedido ${orderId}`);
+    
+    // Verificar se há order bumps
+    const mainItems = allItems.filter(item => !item.isOrderBump && !item.isUpsell);
+    const orderBumps = allItems.filter(item => item.isOrderBump);
+    const upsells = allItems.filter(item => item.isUpsell);
+    
+    console.log(`[OrderCreatedEvent] Detalhamento: ${mainItems.length} produtos principais, ${orderBumps.length} order bumps, ${upsells.length} upsells`);
 
     // Buscar o pedido com todas as relações
     const order = (await this.prisma.order.findUnique({
@@ -52,6 +56,7 @@ export class OrderCreatedEventHandler {
       include: {
         customer: true,
         orderItems: {
+          where: { deletedAt: null },
           include: {
             product: true,
           },
@@ -71,13 +76,14 @@ export class OrderCreatedEventHandler {
 
     if (order) {
       // Verificar se os itens do pedido estão completos
-      if (order.orderItems.length !== itemCount) {
+      if (order.orderItems.length !== allItems.length) {
         console.warn(
-          `[OrderCreatedEvent] ALERTA: Discrepância no número de itens! Banco: ${itemCount}, Pedido: ${order.orderItems.length}`,
+          `[OrderCreatedEvent] ALERTA: Discrepância no número de itens! Encontrados diretamente: ${allItems.length}, No pedido: ${order.orderItems.length}`,
         );
 
         // Se houver discrepância, substituir os itens do pedido pelos itens buscados separadamente
-        if (allItems.length === itemCount) {
+        if (allItems.length > order.orderItems.length) {
+          console.log('[OrderCreatedEvent] Substituindo itens do pedido pelos encontrados diretamente');
           // Conversão de tipo para evitar erro de tipagem
           order.orderItems = allItems as unknown as typeof order.orderItems;
         }
@@ -103,6 +109,8 @@ export class OrderCreatedEventHandler {
       if (!item.product) {
         console.warn(`[OrderCreatedEvent] Item ${item.id} não tem produto associado`);
       }
+
+      console.log(`[OrderCreatedEvent] Mapeando item ${item.id} (${item.product?.name}), isOrderBump: ${item.isOrderBump}, isUpsell: ${item.isUpsell}`);
 
       const orderItem = {
         id: item.id,
