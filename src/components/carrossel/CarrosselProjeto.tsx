@@ -265,25 +265,7 @@ export default function CarrosselProjeto() {
         </div>
       ),
     },
-    {
-      id: 7,
-      content: (
-        <div className="relative aspect-[7/10] w-full rounded-md">
-          <LazyImage
-            src="/images/carrossel/7.webp"
-            alt="Missão Literária - Imagem 7"
-            fill
-            sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 700px"
-            loading="lazy"
-            className="object-contain"
-            placeholder="blur"
-            blurDataURL="/images/carrossel/placeholder.webp"
-            quality={80}
-            placeholderColor="#f0f0f0"
-          />
-        </div>
-      ),
-    },
+
   ];
 
   // Se não estiver no cliente, mostra um placeholder
