@@ -41,7 +41,7 @@ const orderSchema = z.object({
         quantity: z.number().min(1).max(10),
       }),
     )
-    .optional(),
+    .default([]), // Mudamos de .optional() para .default([]) para garantir que sempre seja um array
   quantity: z.number().min(1).max(10).default(1),
 });
 
@@ -135,7 +135,12 @@ export async function POST(request: NextRequest) {
     }
 
     const body = await request.json();
+    console.log('[POST /api/orders] Payload recebido:', JSON.stringify(body));
     const data = orderSchema.parse(body);
+    
+    // Log dos order bumps recebidos
+    console.log(`[POST /api/orders] Order bumps recebidos: ${data.orderBumps?.length || 0}`, 
+      data.orderBumps?.length ? JSON.stringify(data.orderBumps) : 'Nenhum');
 
     // Normalizar os campos para compatibilidade com ambos os formatos
     const customerName = data.name || data.customerName;
@@ -208,19 +213,66 @@ export async function POST(request: NextRequest) {
         throw new Error('Produto principal não encontrado ou inativo');
       }
 
+      // Garantir que orderBumps é sempre um array (mesmo vazio)
+      const orderBumps = data.orderBumps || [];
+      console.log(`[POST /api/orders] Processando ${orderBumps.length} order bumps`);
+      
       let orderBumpProducts: Array<{ id: string; price: number; name: string }> = [];
-      if (data.orderBumps?.length) {
+      if (orderBumps.length > 0) {
         // Buscar order bumps com cache
-        orderBumpProducts = await Promise.all(
-          data.orderBumps.map(async (bump) => {
-            const product = await getCachedProduct(bump.productId);
-            if (!product || !product.isActive) {
-              throw new Error(`Order bump ${bump.productId} não encontrado ou inativo`);
-            }
-            return product;
-          }),
-        );
+        try {
+          orderBumpProducts = await Promise.all(
+            orderBumps.map(async (bump) => {
+              console.log(`[POST /api/orders] Buscando produto para order bump: ${bump.productId}`);
+              const product = await getCachedProduct(bump.productId);
+              if (!product || !product.isActive) {
+                throw new Error(`Order bump ${bump.productId} não encontrado ou inativo`);
+              }
+              console.log(`[POST /api/orders] Produto para order bump encontrado: ${product.name}`);
+              return product;
+            }),
+          );
+          console.log(`[POST /api/orders] Total de produtos para order bumps encontrados: ${orderBumpProducts.length}`);
+        } catch (error) {
+          console.error('[POST /api/orders] Erro ao processar order bumps:', error);
+          throw error;
+        }
       }
+
+      // Preparar os itens do pedido
+      const orderItemsToCreate = [
+        // Item principal
+        {
+          productId: data.productId,
+          quantity: data.quantity,
+          priceAtTime: mainProduct.price,
+          isOrderBump: false,
+        },
+      ];
+
+      // Adicionar order bumps (se existirem)
+      if (orderBumps.length > 0) {
+        const orderBumpItems = orderBumps.map((bump) => {
+          const product = orderBumpProducts.find((p) => p.id === bump.productId);
+          if (!product) {
+            console.error(`[POST /api/orders] Produto não encontrado para order bump: ${bump.productId}`);
+            throw new Error(`Produto não encontrado para order bump: ${bump.productId}`);
+          }
+          
+          console.log(`[POST /api/orders] Adicionando order bump: ${product.name} (${bump.productId}) - Quantidade: ${bump.quantity}`);
+          return {
+            productId: bump.productId,
+            quantity: bump.quantity,
+            priceAtTime: product.price,
+            isOrderBump: true,
+          };
+        });
+        
+        // Adicionar os order bumps à lista de items
+        orderItemsToCreate.push(...orderBumpItems);
+      }
+
+      console.log(`[POST /api/orders] Total de itens a serem criados: ${orderItemsToCreate.length}`);
 
       // Criação do pedido principal
       const order = await tx.order.create({
@@ -230,23 +282,7 @@ export async function POST(request: NextRequest) {
           customerId: customer.id,
           paidAmount: 0, // Inicialmente 0, só será preenchido após pagamento
           orderItems: {
-            create: [
-              {
-                productId: data.productId,
-                quantity: data.quantity,
-                priceAtTime: mainProduct.price,
-                isOrderBump: false,
-              },
-              ...(data.orderBumps?.map((bump) => {
-                const product = orderBumpProducts.find((p) => p.id === bump.productId)!;
-                return {
-                  productId: bump.productId,
-                  quantity: bump.quantity,
-                  priceAtTime: product.price,
-                  isOrderBump: true,
-                };
-              }) || []),
-            ],
+            create: orderItemsToCreate,
           },
           statusHistory: {
             create: {
@@ -262,10 +298,26 @@ export async function POST(request: NextRequest) {
           customer: true,
         },
       });
+      
+      // Verificar se todos os itens foram criados
+      console.log(`[POST /api/orders] Pedido criado com ${order.orderItems.length} itens`);
 
       return order;
     });
 
+    // Log de sucesso e detalhar os itens criados
+    const orderItems = result.orderItems || [];
+    const mainItems = orderItems.filter(item => !item.isOrderBump);
+    const orderBumpItems = orderItems.filter(item => item.isOrderBump);
+    
+    console.log(`[POST /api/orders] Pedido ${result.id} criado com sucesso!`);
+    console.log(`[POST /api/orders] - Produto principal: ${mainItems.length}`);
+    console.log(`[POST /api/orders] - Order bumps: ${orderBumpItems.length}`);
+    
+    if (orderBumpItems.length === 0 && data.orderBumps?.length > 0) {
+      console.warn(`[POST /api/orders] ALERTA: Nenhum order bump foi criado, apesar de ${data.orderBumps.length} terem sido enviados!`);
+    }
+    
     return NextResponse.json(
       {
         success: true,
