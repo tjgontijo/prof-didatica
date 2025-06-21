@@ -4,32 +4,7 @@ import { getCheckoutData, type CheckoutData } from '@/components/checkout/getChe
 import CheckoutClientComponent from '@/components/checkout/CheckoutClientComponent';
 import { ProdutoInfo, OrderBump as OrderBumpType } from '@/components/checkout/types';
 
-interface Product {
-  id: string;
-  name: string;
-  price: number;
-  imageUrl: string | null;
-  description: string | null;
-  isActive: boolean;
-  createdAt: Date;
-  updatedAt: Date;
-  deletedAt: Date | null;
-}
-
-interface OrderBump {
-  id: string;
-  title: string | null;
-  description: string;
-  specialPrice: number;
-  displayOrder: number | null;
-  bumpProduct: Product;
-  isActive: boolean;
-  createdAt: Date;
-  updatedAt: Date;
-  deletedAt: Date | null;
-  mainProductId: string;
-  bumpProductId: string;
-}
+// Usando os tipos importados do arquivo types.ts
 
 export type paramsType = Promise<{ id: string }>;
 
@@ -70,18 +45,19 @@ export default async function CheckoutPage(props: { params: paramsType }) {
     imagemUrl: checkoutData.product.imageUrl || '/images/placeholder-product.png',
   };
 
+  // Converter os order bumps do modelo Prisma para o formato usado no frontend
   const orderBumps: OrderBumpType[] = checkoutData.product.mainProductBumps
-    .filter((bump: OrderBump) => bump.isActive && bump.bumpProduct.isActive)
-    .sort((a: OrderBump, b: OrderBump) => (a.displayOrder || 0) - (b.displayOrder || 0))
-    .map((bump: OrderBump) => ({
+    .filter((bump) => bump.isActive && bump.bumpProduct.isActive)
+    .sort((a, b) => (a.displayOrder || 0) - (b.displayOrder || 0))
+    .map((bump) => ({
       id: bump.id,
-      name: bump.title ?? bump.bumpProduct.name,
-      description: bump.description || '',
+      name: bump.bumpProduct.name,
+      description: bump.bumpProduct.description || '',
       initialPrice: bump.bumpProduct.price / 100,
       specialPrice: bump.specialPrice / 100,
       imagemUrl: bump.bumpProduct.imageUrl || '/images/placeholder-product.png',
       selected: false,
-      percentDesconto: Math.round(
+      percentDiscont: Math.round(
         ((bump.bumpProduct.price - bump.specialPrice) / bump.bumpProduct.price) * 100,
       ),
       displayOrder: bump.displayOrder,
