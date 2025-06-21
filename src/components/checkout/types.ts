@@ -9,6 +9,7 @@ export type ProdutoInfo = {
 
 export type OrderBump = {
   id: string;
+  productId: string; // ID do produto associado ao order bump
   name: string;
   description: string;
   initialPrice: number;
