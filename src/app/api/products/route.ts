@@ -10,6 +10,7 @@ const productSchema = z.object({
   description: z.string().min(2, 'Descrição deve ter pelo menos 2 caracteres'),
   price: z.number().int().min(0, 'Preço deve ser maior ou igual a zero'),
   salesPageUrl: z.string().url('URL da página de vendas inválida'),
+  slug: z.string().min(2, 'Slug deve ter pelo menos 2 caracteres'),
   isActive: z.boolean().optional(),
 });
 
@@ -19,6 +20,7 @@ const updateProductSchema = z.object({
   description: z.string().min(2, 'Descrição deve ter pelo menos 2 caracteres').optional(),
   price: z.number().int().min(0, 'Preço deve ser maior ou igual a zero').optional(),
   salesPageUrl: z.string().url('URL da página de vendas inválida').optional(),
+  slug: z.string().min(2, 'Slug deve ter pelo menos 2 caracteres').optional(),
   isActive: z.boolean().optional(),
 });
 
