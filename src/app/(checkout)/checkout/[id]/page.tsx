@@ -51,6 +51,7 @@ export default async function CheckoutPage(props: { params: paramsType }) {
     .sort((a, b) => (a.displayOrder || 0) - (b.displayOrder || 0))
     .map((bump) => ({
       id: bump.id,
+      productId: bump.bumpProductId, // Adicionando o ID do produto associado ao order bump
       name: bump.bumpProduct.name,
       description: bump.bumpProduct.description || '',
       initialPrice: bump.bumpProduct.price / 100,
