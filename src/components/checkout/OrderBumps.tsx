@@ -2,12 +2,23 @@
 
 import React, { useCallback, useMemo, memo } from 'react';
 import Image from 'next/image';
-import { OrderBump } from './types';
 
 type OrderBumpItemProps = {
   item: OrderBump;
   loadingId: string | null;
   onToggle: (id: string) => void;
+};
+
+type OrderBump = {
+  id: string;
+  specialPrice: number;
+  initialPrice: number; // Preço original do produto
+  imagemUrl: string;    // URL da imagem do produto
+  selected: boolean;    // Estado de seleção no frontend
+  percentDiscont?: number;
+  displayOrder?: number | null;  
+  name: string;         // Nome do produto associado
+  description: string;  // Descrição do produto associado
 };
 
 // Componente de item individual memoizado para evitar re-renderizações desnecessárias
@@ -38,22 +49,25 @@ const OrderBumpItem = memo(({ item, loadingId, onToggle }: OrderBumpItemProps) =
         item.selected ? 'border-[#00A859] bg-[#F8FCF8]' : 'border-[#DDD] bg-white'
       }`}
     >
-      <div className="p-4">
+      <div className="p-5">
         <div className="flex gap-3">
-          <div className="w-[60px] h-[60px] relative flex-shrink-0">
+          <div className="w-[90px] h-[90px] relative flex-shrink-0 flex items-center justify-center">
             <Image
               src={item.imagemUrl}
               alt={item.name}
               fill
-              sizes="60px"
-              className="object-cover rounded-[4px]"
+              sizes="90px"
+              className="object-contain rounded-[4px]"
             />
           </div>
 
-          <div className="flex-1 text-left">
+          
+          <div className="flex-1 text-left">  
             <h4 className="text-[14px] font-bold text-[#333] mb-1">{item.name}</h4>
+            <span className="text-[10px] text-[#00A859] mt-1 text-right">
+                  Economia de R$ {economia.toFixed(2)}
+            </span>
             <p className="text-[12px] text-[#666] mb-2">{item.description}</p>
-
             <div className="flex justify-between items-center">
               <div className="flex flex-col">
                 <div className="flex items-center gap-2">
@@ -64,9 +78,7 @@ const OrderBumpItem = memo(({ item, loadingId, onToggle }: OrderBumpItemProps) =
                     R$ {precoEspecial.toFixed(2)}
                   </span>
                 </div>
-                <span className="text-[10px] text-[#00A859] mt-1">
-                  Economia de R$ {economia.toFixed(2)}
-                </span>
+
               </div>
               <div className="bg-emerald-400 text-white text-[10px] font-bold px-2 py-1 rounded-[4px]">
                 {desconto}% OFF
