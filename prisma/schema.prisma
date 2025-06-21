@@ -69,9 +69,7 @@ model OrderBump {
 
   mainProduct       Product  @relation("MainProductOrderBumps", fields: [mainProductId], references: [id])
   bumpProduct       Product  @relation("BumpProducts", fields: [bumpProductId], references: [id])
-  
-  title             String
-  description       String
+
   specialPrice      Int
   displayOrder      Int?
   isActive          Boolean  @default(true)
