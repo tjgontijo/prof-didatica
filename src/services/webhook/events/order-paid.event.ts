@@ -4,6 +4,8 @@ import {
   OrderPaidEvent,
   CustomerData,
   OrderItemData,
+  PaymentData,
+  PaymentRawData,
   validateWebhookPayload,
   OrderEventDataSchema,
   OrderWithRelationsForEvent,
@@ -44,34 +46,83 @@ export class OrderPaidEventHandler {
   }
 
   private async getOrderWithRelations(orderId: string): Promise<OrderWithRelationsForEvent | null> {
-    return this.prisma.order.findUnique({
-      where: { id: orderId },
-      include: {
-        customer: true,
-        orderItems: {
-          include: {
-            product: {
-              select: {
-                id: true,
-                name: true,
-                price: true,
-                googleDriveUrl: true,
-              },
+    try {
+      // Buscar todos os itens do pedido diretamente, incluindo order bumps
+      const allItems = await this.prisma.orderItem.findMany({
+        where: { orderId, deletedAt: null },
+        include: { product: true },
+      });
+      
+      console.log(`[OrderPaidEvent] Encontrados ${allItems.length} itens para o pedido ${orderId}`);
+      
+      // Buscar o pedido com suas relações
+      const order = await this.prisma.order.findUnique({
+        where: { id: orderId },
+        include: {
+          customer: true,
+          payment: {
+            select: {
+              id: true,
+              method: true,
+              status: true,
+              amount: true,
+              paidAt: true,
+              rawData: true
             },
           },
+          // Não incluímos orderItems aqui pois já buscamos separadamente
         },
-        payment: {
-          select: {
-            id: true,
-            method: true,
-            paidAt: true,
-          },
+      });
+      
+      if (!order) {
+        console.log(`[OrderPaidEvent] Pedido ${orderId} não encontrado`);
+        return null;
+      }
+      
+      // Adicionar os itens ao pedido para corresponder à interface esperada
+      const completeOrder: OrderWithRelationsForEvent = {
+        id: order.id,
+        checkoutId: order.checkoutId,
+        status: order.status,
+        createdAt: order.createdAt,
+        updatedAt: order.updatedAt,
+        customer: {
+          id: order.customer.id,
+          name: order.customer.name,
+          email: order.customer.email,
+          phone: order.customer.phone,
         },
-      },
-    }) as Promise<OrderWithRelationsForEvent | null>;
+        orderItems: allItems.map(item => ({
+          id: item.id,
+          productId: item.productId,
+          quantity: item.quantity,
+          isOrderBump: item.isOrderBump,
+          isUpsell: item.isUpsell,
+          product: item.product
+        })),
+        // Converter o objeto payment para garantir compatibilidade de tipos
+        payment: order.payment ? {
+          id: order.payment.id,
+          method: order.payment.method,
+          status: order.payment.status,
+          amount: order.payment.amount,
+          paidAt: order.payment.paidAt,
+          rawData: order.payment.rawData as PaymentRawData | null
+        } : null
+      };
+      
+      return completeOrder;
+      
+    } catch (error) {
+      console.error(`[OrderPaidEvent] Erro ao buscar pedido ${orderId}:`, error);
+      return null;
+    }
   }
 
   private mapToOrderPaidEventData(order: OrderWithRelationsForEvent): OrderPaidEvent['data'] {
+    console.log(`[OrderPaidEvent] Mapeando ${order.orderItems.length} itens para o pedido ${order.id}`);
+    
+    // Mapear os dados do cliente (igual ao order.created)
     const customer: CustomerData = {
       id: order.customer.id,
       name: order.customer.name,
@@ -79,23 +130,41 @@ export class OrderPaidEventHandler {
       phone: order.customer.phone || '',
     };
 
+    // Mapear os itens do pedido (igual ao order.created)
     const items = order.orderItems.map((item) => {
-      const orderItem = {
+      // Converter o preço de centavos para reais se necessário
+      const price = item.product?.price ? item.product.price / 100 : 0;
+      
+      const orderItem: OrderItemData = {
         id: item.id,
         productId: item.productId,
         name: item.product?.name ?? 'Produto não encontrado',
         quantity: item.quantity,
-        price: item.product?.price ?? 0,
+        price: price,  // Price em formato decimal
         isOrderBump: Boolean(item.isOrderBump),
         isUpsell: Boolean(item.isUpsell),
+        // Crucial enviar o googleDriveUrl para o cliente acessar os materiais
         googleDriveUrl: item.product?.googleDriveUrl ?? null,
-      } satisfies OrderItemData;
+      };
       return orderItem;
     });
 
+    // Calcular totais
     const totalItems = items.reduce((sum, item) => sum + item.quantity, 0);
-    const totalValue = items.reduce((sum, item) => sum + item.price * item.quantity, 0);
+    const totalValue = items.reduce((sum, item) => sum + (item.price * item.quantity), 0);
+    
+    // Verificar se todos os itens foram incluídos no payload
+    console.log(`[OrderPaidEvent] Total de ${totalItems} itens mapeados com valor total ${totalValue}`);
 
+    // Preparar as informações de pagamento para o formato esperado
+    const payment: PaymentData | undefined = order.payment ? {
+      id: order.payment.id,
+      method: order.payment.method,
+      status: order.payment.status,
+      amount: order.payment.amount / 100, // Converter de centavos para reais
+    } : undefined;
+
+    // Estrutura padronizada que segue o mesmo formato do order.created
     return {
       id: order.id,
       checkoutId: order.checkoutId,
@@ -106,9 +175,11 @@ export class OrderPaidEventHandler {
       totalValue,
       createdAt: order.createdAt.toISOString(),
       updatedAt: order.updatedAt.toISOString(),
-      paymentId: order.payment!.id,
-      paidAt: order.payment!.paidAt?.toISOString() || new Date().toISOString(),
-      paymentMethod: order.payment!.method,
+      // Dados específicos do evento order.paid
+      paymentId: order.payment?.id || '',
+      paidAt: order.payment?.paidAt?.toISOString() || new Date().toISOString(),
+      paymentMethod: order.payment?.method || '',
+      payment, // Inclusão do objeto payment no formato da interface PaymentData
     };
   }
 }
