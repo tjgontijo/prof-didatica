@@ -1,7 +1,9 @@
 import type { Metadata } from 'next';
 import './globals.css';
 import { Inter } from 'next/font/google';
-// import { ClarityScript } from '@/scripts/clarityScripts';
+//import UtmTracker from '@/scripts/utmTracker';
+//import { Suspense } from 'react';
+//import MetaPixel from '@/scripts/MetaPixel';
 
 const inter = Inter({
   subsets: ['latin'],
@@ -21,10 +23,16 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="pt-BR">
-      <head>
-        {/* A tag head é necessária para a estrutura HTML básica */}
-      </head>
-      <body className={`${inter.variable} font-sans antialiased`}>{children}</body>
+      <head>      
+        {/* O Next.js automaticamente move os componentes Script para o lugar correto */}
+      </head>     
+      <body className={`${inter.variable} font-sans antialiased`}>
+        {/* <MetaPixel />        
+        <Suspense fallback={<div />}>
+          <UtmTracker />
+        </Suspense> */}
+        {children}
+      </body>
     </html>
   );
 }
