@@ -144,10 +144,15 @@ export default function CheckoutClientComponent({
           orderBumps: orderBumpsSelecionados
             .filter((bump) => bump.selected)
             .map((bump) => ({
-              productId: bump.id,
+              productId: bump.productId, // Usando o productId ao invés do id do order bump
               quantity: 1,
             })),
         };
+        
+        // Log para depuração
+        console.log('Enviando order bumps:', orderBumpsSelecionados
+            .filter((bump) => bump.selected)
+            .map(bump => ({ id: bump.id, productId: bump.productId, name: bump.name })));
 
         // Fazer a chamada API
         const response = await fetch('/api/orders', {
@@ -286,7 +291,7 @@ export default function CheckoutClientComponent({
         ...orderBumpsSelecionados
           .filter((bump) => bump.selected)
           .map((bump) => ({
-            id: bump.id,
+            id: bump.productId, // Usando o productId que é o ID do produto correto
             nome: bump.name,
             quantidade: 1,
             preco: bump.specialPrice,
