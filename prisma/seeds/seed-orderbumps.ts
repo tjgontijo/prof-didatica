@@ -38,7 +38,7 @@ export async function seedOrderBumps(prisma: PrismaClient) {
     orderBumps.map(async (bump, index) => {
       const isFirstBump = index === 0;
       const displayOrder = index + 1;
-      const discount = isFirstBump ? 0.5 : 0.4; // 50% para o primeiro, 40% para o segundo
+      const discount = isFirstBump ? 0.5 : 0.6; // 50% para o primeiro, 40% para o segundo
       const specialPrice = Math.floor(bump.price * (1 - discount));
       
       await prisma.orderBump.create({
