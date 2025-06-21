@@ -4,7 +4,7 @@ export async function seedCheckouts(prisma: PrismaClient) {
   // Busca especificamente o produto 'Missão Literária'
   const principal = await prisma.product.findFirst({
     where: { 
-      name: 'Missão Literária',
+      name: 'Desafio Literário',
       isActive: true, 
       deletedAt: null 
     }
