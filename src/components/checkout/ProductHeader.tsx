@@ -11,13 +11,13 @@ type ProductHeaderProps = {
 const ProductHeader: React.FC<ProductHeaderProps> = ({ produto }) => {
   return (
     <div className="flex items-center gap-3">
-      <div className="w-[60px] h-[60px] relative flex-shrink-0">
+      <div className="w-[100px] h-[100px] relative flex-shrink-0 flex items-center justify-center">
         <Image
           src={produto.imagemUrl}
           alt={produto.name}
           fill
-          sizes="60px"
-          className="object-cover rounded-[4px]"
+          sizes="100px"
+          className="object-contain rounded-[4px]"
         />
       </div>
       <div className="flex flex-col justify-center flex-1 gap-1">
