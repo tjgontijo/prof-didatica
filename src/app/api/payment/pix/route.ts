@@ -115,6 +115,63 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
     // 4. Processar pagamento PIX
 
     const result = await prisma.$transaction(async (tx: Prisma.TransactionClient) => {
+      // 4.0 Log para depuração dos itens recebidos
+      console.log(`[PIX] Processando pedido ${payload.orderId} com ${payload.items.length} itens`);
+      console.log('[PIX] Items recebidos:', JSON.stringify(payload.items));
+      
+      // Identificar quais itens são order bumps (todos exceto o primeiro item, que é o produto principal)
+      const orderBumpItems = payload.items.slice(1);
+      console.log(`[PIX] Detectados ${orderBumpItems.length} order bumps`);
+
+      if (orderBumpItems.length > 0) {
+        // Verificar quais order bumps já estão associados ao pedido
+        const existingOrderItems = await tx.orderItem.findMany({
+          where: { 
+            orderId: payload.orderId,
+            isOrderBump: true,
+            deletedAt: null
+          },
+        });
+        console.log(`[PIX] O pedido já tem ${existingOrderItems.length} order bumps`);        
+
+        // Obter os produtos existentes para os order bumps para obter os preços
+        const productIds = orderBumpItems.map(item => item.id);
+        const products = await tx.product.findMany({
+          where: { id: { in: productIds } },
+          select: { id: true, price: true },
+        });
+        
+        // Criar um mapa de preços por ID de produto
+        const productPriceMap = products.reduce((map, product) => {
+          map[product.id] = product.price;
+          return map;
+        }, {} as Record<string, number>);
+
+        // Se há novos order bumps, adicionar ao pedido
+        const existingProductIds = existingOrderItems.map(item => item.productId);
+        const newOrderBumps = orderBumpItems.filter(item => !existingProductIds.includes(item.id));
+        
+        if (newOrderBumps.length > 0) {
+          console.log(`[PIX] Adicionando ${newOrderBumps.length} novos order bumps ao pedido`);                
+          
+          // Criar os novos order items para os order bumps
+          await Promise.all(newOrderBumps.map(async (item) => {
+            const priceInCents = productPriceMap[item.id] || Math.round(item.preco * 100);
+            console.log(`[PIX] Adicionando order bump: ${item.nome} (${item.id}) com preço ${priceInCents} centavos`);
+
+            return tx.orderItem.create({
+              data: {
+                orderId: payload.orderId,
+                productId: item.id,
+                quantity: item.quantidade,
+                priceAtTime: priceInCents / 100, // Converter para o formato decimal do prisma
+                isOrderBump: true,
+              },
+            });
+          }));
+        }
+      }
+      
       // 4.1 Atualizar status do pedido para PENDING
       await tx.order.update({
         where: { id: payload.orderId },
