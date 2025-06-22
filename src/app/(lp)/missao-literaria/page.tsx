@@ -4,8 +4,6 @@ import React, { useState, useEffect, useCallback, Suspense, lazy, memo } from 'r
 import EstoqueECountdown from '@/components/EstoqueECountdown';
 import { FaChevronDown, FaCheck } from 'react-icons/fa';
 import Image from 'next/image';
-import { useRouter } from 'next/navigation';
-import { getCheckoutIdBySlug } from './actions';
 
 // Lazy load do CarrosselProjeto
 const CarrosselProjeto = lazy(() => import('@/components/carrossel/CarrosselProjeto'));
@@ -50,29 +48,22 @@ CityDisplay.displayName = 'CityDisplay';
 type Offer = {
   originalPrice: number;
   promotionalPrice: number;
-  discount: string;  
-  checkoutId?: string; // ID do checkout para prefetch
-  fallbackLink: string; // Link de fallback para checkout
+  discount: string;
+  paymentLink: string;
 };
-
-// Slug do produto para esta landing page
-const PRODUCT_SLUG = 'desafio-literario';
 
 const offerData: Offer = {
   originalPrice: 17,
   promotionalPrice: 12,
   discount: '30% OFF',
-  fallbackLink: 'https://seguro.profdidatica.com.br/r/HDJYH7SZJ6?promocode=ML30OFF'
+  paymentLink: 'https://seguro.profdidatica.com.br/r/HDJYH7SZJ6?promocode=ML30OFF',
+  //paymentLink: 'https://pay.hotmart.com/T99839125R?checkoutMode=10',
 };
 
 export default function Page() {
-  const router = useRouter();
   const [isVisible, setIsVisible] = useState<boolean>(false);
   const [hasReachedThreshold, setHasReachedThreshold] = useState<boolean>(false);
-  const [prefetchRealizado, setPrefetchRealizado] = useState<boolean>(false);
-  const [prefetchErro, setPrefetchErro] = useState<string | null>(null);
 
-  // Efeito para monitorar o scroll e mostrar o botão de compra
   useEffect(() => {
     const handleScroll = () => {
       if (window.scrollY > 7500 && !hasReachedThreshold) {
@@ -85,66 +76,6 @@ export default function Page() {
     window.addEventListener('scroll', handleScroll);
     return () => window.removeEventListener('scroll', handleScroll);
   }, [hasReachedThreshold]);
-
-  // Estado para armazenar o ID do checkout obtido dinamicamente
-  const [checkoutId, setCheckoutId] = useState<string | null>(null);
-
-  // Efeito para pré-carregar os dados do checkout
-  useEffect(() => {
-    // Variável para controlar se o prefetch já foi feito
-    let prefetchExecutado = false;
-
-    // Função para executar o prefetch
-    const executarPrefetch = () => {
-      if (prefetchExecutado) return; // Evita execuções duplicadas
-      prefetchExecutado = true;
-
-      // Buscar o ID do checkout usando a slug do produto
-      getCheckoutIdBySlug(PRODUCT_SLUG)
-        .then((checkoutIdResult: string | null) => {
-          if (checkoutIdResult) {
-            setPrefetchRealizado(true);
-            setPrefetchErro(null);
-            setCheckoutId(checkoutIdResult); // Salva o ID do checkout obtido
-            
-            // Também prefetch da página de checkout
-            router.prefetch(`/checkout/${checkoutIdResult}`);
-          } else {
-            console.warn(`Não foi possível carregar o checkout para o produto ${PRODUCT_SLUG}`);
-            setPrefetchErro(`Não foi possível carregar o checkout para o produto ${PRODUCT_SLUG}`);
-            setPrefetchRealizado(true); // Ainda permitimos tentar navegar para o checkout
-          }
-        })
-        .catch((erro: Error) => {
-          console.error('Erro ao buscar checkout:', erro);
-          setPrefetchErro('Erro ao carregar dados: ' + (erro?.message || 'Erro desconhecido'));
-          setPrefetchRealizado(true); // Ainda permitimos tentar navegar para o checkout
-        });
-    };
-
-    // Verificar se a página já está carregada
-    if (document.readyState === 'complete') {
-      // Se a página já estiver carregada, executar após um pequeno delay
-      setTimeout(executarPrefetch, 3000);
-    } else {
-      // Caso contrário, aguardar o evento load
-      window.addEventListener('load', () => {
-        // Adicionar um delay para garantir que a LP esteja totalmente renderizada
-        setTimeout(executarPrefetch, 3000);
-      });
-    }
-
-    // Usar um timeout como fallback
-    const timeoutId = setTimeout(() => {
-      executarPrefetch();
-    }, 5000); // 5 segundos após a montagem do componente
-
-    return () => {
-      // Limpeza
-      window.removeEventListener('load', executarPrefetch);
-      clearTimeout(timeoutId);
-    };
-  }, [router]);
 
   return (
     <div className="flex flex-col min-h-screen bg-[#f8f9fa] relative">
@@ -183,9 +114,9 @@ export default function Page() {
               </span>
             </h1>
             <h2 className="text-lg md:text-xl text-[#1D3557] mb-6 max-w-3xl mx-auto font-normal leading-relaxed text-left">
-              Você recebe no WhatsApp 20 fichas literárias, três modelos de leitômetro pra
+              Você recebe no WhatsApp 20 fichas literárias, dois modelos de leitômetro pra
               transformar a leitura em jogo e dois modelos de tabela pra acompanhar tudo. <br />É só
-              imprima e use com a sua turma, sem precisar criar mais nada. Simples assim...
+              imprimir e usar com a sua turma, sem precisar criar mais nada.
             </h2>
             {/* Carrossel de imagens */}
             <div className="w-full max-w-2xl mx-auto mb-0">
@@ -358,7 +289,7 @@ export default function Page() {
                 <div className="flex gap-3 items-center">
                   <div className="text-xl min-w-[30px]">✅</div>
                   <p className="text-xl text-gray-800 mb-4">
-                    <strong>93%</strong> das professoras que aplicaram o Projeto Desafio Literário
+                    <strong>93%</strong> das professoras que aplicaram o Projeto Missão Literária
                     relatam que seus alunos passaram a ler mais, inclusive aqueles que diziam não
                     gostar de ler.
                   </p>
@@ -367,9 +298,9 @@ export default function Page() {
                   <div className="text-xl min-w-[30px]">📈</div>
                   <p className="text-xl text-gray-800 mb-4">
                     O número médio de livros lidos por turma <strong>mais do que triplicou</strong>{' '}
-                    em apenas um mês após a aplicação do Projeto Desafio Literário.
+                    em apenas um mês após a aplicação do Projeto Missão Literária.
                   </p>
-                </div>  
+                </div>
                 <div className="flex gap-3 items-center">
                   <div className="text-xl min-w-[30px]">🏆</div>
                   <p className="text-xl text-gray-800 mb-4">
@@ -404,7 +335,7 @@ export default function Page() {
               </div>
               <div className="bg-white text-gray-800 p-5 rounded-lg shadow-md">
                 <p className="italic mb-3">
-                  &ldquo;Tentava de tudo e ninguém ligava. Mas com os desafios, eles começaram a
+                  &ldquo;Tentava de tudo e ninguém ligava. Mas com as missões, eles começaram a
                   comentar os livros e até competir. Foi como tirar um peso das costas.&rdquo;
                 </p>
                 <p className="text-right font-medium text-[#1D3557]">– Prof. Renata M.</p>
@@ -421,7 +352,7 @@ export default function Page() {
               </h2>
               <div className="text-center mb-6 pt-4">
                 <h3 className="text-2xl font-bold text-[#457B9D] uppercase tracking-wider">
-                  Desafio Literário
+                  Missão Literária
                 </h3>
               </div>
 
@@ -429,13 +360,13 @@ export default function Page() {
                 <li className="flex items-start gap-3 p-3 rounded-lg bg-[#f8f9fa]">
                   <FaCheck className="w-5 h-5 text-[#457B9D] mt-0.5 flex-shrink-0" />
                   <span className="font-medium text-[#1D3557]">
-                    20 fichas literárias envolventes
+                    20 missões literárias envolventes
                   </span>
                 </li>
                 <li className="flex items-start gap-3 p-3 rounded-lg bg-[#f8f9fa]">
                   <FaCheck className="w-5 h-5 text-[#457B9D] mt-0.5 flex-shrink-0" />
                   <span className="font-medium text-[#1D3557]">
-                    3 modelos de Leitômetro para gamificação
+                    2 modelos de Leitômetro para gamificação
                   </span>
                 </li>
                 <li className="flex items-start gap-3 p-3 rounded-lg bg-[#f8f9fa]">
@@ -508,23 +439,14 @@ export default function Page() {
                 </p>
               </div>
 
-              <button
-                onClick={() => {
-                  // Se o prefetch foi realizado, navegar diretamente para o checkout
-                  if (prefetchRealizado && checkoutId) {
-                    // Redirecionar para a URL correta do checkout
-                    router.push(`/checkout/${checkoutId}`);
-                  } else {
-                    // Caso não tenha encontrado o ID do checkout ou ainda esteja aguardando, usar link de fallback
-                    console.warn('Usando link de fallback para checkout');
-                    window.location.href = offerData.fallbackLink;
-                  }
-                }}
-                className="btn-purchase block w-full bg-gradient-to-r from-[#457B9D] to-[#1D3557] hover:from-[#1D3557] hover:to-[#457B9D] text-white text-base sm:text-lg font-bold py-3 sm:py-4 px-6 sm:px-8 rounded-xl shadow-lg transform transition-all duration-300 hover:scale-[1.02] hover:shadow-xl relative overflow-hidden group text-center uppercase"
+              <a
+                href={offerData.paymentLink}
+                rel="noopener noreferrer"
+                className="block w-full bg-gradient-to-r from-[#457B9D] to-[#1D3557] hover:from-[#1D3557] hover:to-[#457B9D] text-white text-base sm:text-lg font-bold py-3 sm:py-4 px-6 sm:px-8 rounded-xl shadow-lg transform transition-all duration-300 hover:scale-[1.02] hover:shadow-xl relative overflow-hidden group text-center uppercase"
               >
                 <div className="absolute inset-0 bg-white/20 rounded-xl opacity-0 group-hover:opacity-100 transition-opacity"></div>
                 <span className="relative">Quero meus alunos apaixonados pela leitura</span>
-              </button>
+              </a>
               <EstoqueECountdown estoqueInicial={11} estoqueTotal={30} />
             </div>
           </section>
@@ -548,7 +470,7 @@ export default function Page() {
                   </summary>
                   <div className="p-4 bg-white">
                     <p className="text-gray-800">
-                      O recurso Desafio Literário foi criado especialmente para alunos do Ensino
+                      O recurso Missão Literária foi criado especialmente para alunos do Ensino
                       Fundamental I para alunos do 2º ao 5º ano, porém tivemos relatos de
                       professores do fundamental 2 que utilizaram com suceso em suas aulas.
                     </p>
@@ -692,36 +614,18 @@ export default function Page() {
       {/* Botão Fixo */}
       {isVisible && (
         <div className="fixed bottom-0 left-0 right-0 z-50 py-8 bg-white/90 shadow-2xl backdrop-blur-sm">
-          {/* Botão de checkout otimizado com prefetch */}
-          <button
-            onClick={() => {
-              // Se o prefetch foi realizado, navegar diretamente para o checkout
-              if (prefetchRealizado && checkoutId) {
-                // Redirecionar para a URL correta do checkout
-                router.push(`/checkout/${checkoutId}`);
-              } else {
-                // Caso não tenha encontrado o ID do checkout ou ainda esteja aguardando, usar link de fallback
-                console.warn('Usando link de fallback para checkout');
-                window.location.href = offerData.fallbackLink;
-              }
-            }}
-            className="btn-purchase block w-full max-w-xs mx-auto text-white px-4 py-2 rounded-xl shadow-xl hover:scale-105 transition-all duration-300 text-center text-sm font-semibold uppercase
+          <a
+            href={offerData.paymentLink}
+            rel="noopener noreferrer"
+            className="block w-full max-w-xs mx-auto text-white px-4 py-2 rounded-xl shadow-xl hover:scale-105 transition-all duration-300 text-center text-sm font-semibold uppercase
             bg-gradient-to-r from-[#457B9D] to-[#1D3557] 
             animate-gradient-x 
             bg-[length:200%_auto] 
-            hover:bg-[position:right_center]
-            group"
+            hover:bg-[position:right_center]"
           >
             <div className="absolute inset-0 bg-white/20 rounded-xl opacity-0 group-hover:opacity-100 transition-opacity"></div>
             <span className="relative">Quero meus alunos apaixonados pela leitura</span>
-          </button>
-
-          {/* Indicador de prefetch (invisível para o usuário) */}
-          {prefetchRealizado && (
-            <div className="hidden">
-              Prefetch realizado: {prefetchErro ? 'Com erro' : 'Sucesso'}
-            </div>
-          )}
+          </a>
         </div>
       )}
     </div>
