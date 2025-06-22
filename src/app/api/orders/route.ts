@@ -43,6 +43,9 @@ const orderSchema = z.object({
     )
     .default([]), // Mudamos de .optional() para .default([]) para garantir que sempre seja um array
   quantity: z.number().min(1).max(10).default(1),
+  
+  // Dados de rastreamento
+  trackingData: z.record(z.any()).optional(),
 });
 
 // Schema para validação parcial (PATCH)
@@ -281,6 +284,7 @@ export async function POST(request: NextRequest) {
           checkoutId: data.checkoutId,
           customerId: customer.id,
           paidAmount: 0, // Inicialmente 0, só será preenchido após pagamento
+          trackingData: data.trackingData || undefined, // Salvando os dados de rastreamento
           orderItems: {
             create: orderItemsToCreate,
           },
