@@ -24,6 +24,16 @@ const paymentSchema = z.object({
       preco: z.number().positive(),
     }),
   ),
+  // Dados de rastreamento opcionais
+  trackingData: z.object({
+    utm_source: z.string().optional(),
+    utm_medium: z.string().optional(),
+    utm_campaign: z.string().optional(),
+    utm_content: z.string().optional(),
+    utm_term: z.string().optional(),
+    multiFbc: z.string().optional(),
+    lead: z.record(z.any()).optional(),
+  }).optional(),
 });
 
 // Tipo para resposta do Mercado Pago
@@ -268,12 +278,17 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
       // Disparar evento order.created
       setTimeout(async () => {
         try {
+          // Disparar evento webhook order.created
           const webhookService = getWebhookService(prisma);
           const orderCreatedEventHandler = new OrderCreatedEventHandler(prisma);
-          const orderCreatedEvent = await orderCreatedEventHandler.createEvent(payload.orderId);
-
+          
+          // Criar evento - os dados de rastreamento serão lidos do banco
+          const orderCreatedEvent = await orderCreatedEventHandler.createEvent(paymentRecord.orderId);
+          
           await webhookService.dispatchEvent(orderCreatedEvent);
-        } catch {}
+        } catch (error) {
+          console.error(`Erro ao disparar webhook order.created: ${error}`);
+        }
       }, 100); // Pequeno delay para garantir que a transação foi concluída
 
       // Preparar resposta de sucesso com todos os dados necessários
