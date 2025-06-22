@@ -7,6 +7,7 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { FaSpinner } from 'react-icons/fa';
 
 import { ProdutoInfo, OrderBump } from './types';
+import { collectTrackingData, TrackingData } from '@/lib/tracking';
 
 import OrderBumps from '@/components/checkout/OrderBumps';
 import FormCustomer, {
@@ -31,6 +32,7 @@ type OrderDraftPayload = {
     productId: string;
     quantity: number;
   }>;
+  trackingData?: TrackingData;
 };
 
 type OrderUpdatePayload = {
@@ -134,6 +136,9 @@ export default function CheckoutClientComponent({
     async (data: CustomerFormValues, phoneNormalized: string) => {
       setIsCreatingOrder(true);
       try {
+        // Coletar dados de rastreamento do localStorage
+        const trackingData = collectTrackingData();
+
         // Preparar o payload
         const payload: OrderDraftPayload = {
           productId: product.id,
@@ -147,6 +152,7 @@ export default function CheckoutClientComponent({
               productId: bump.productId, // Usando o productId ao invés do id do order bump
               quantity: 1,
             })),
+          trackingData, // Incluindo os dados de rastreamento
         };
         
         // Log para depuração
@@ -298,6 +304,9 @@ export default function CheckoutClientComponent({
           })),
       ];
 
+      // Coletar dados de rastreamento do localStorage
+      const trackingData = collectTrackingData();
+      
       const dadosPedido = {
         items,
         cliente: {
@@ -308,6 +317,7 @@ export default function CheckoutClientComponent({
         valorTotal,
         checkoutId,
         orderId: currentOrderId,
+        trackingData, // Incluir os dados de rastreamento no payload
       };
 
       const resposta = await fetch('/api/payment/pix', {
