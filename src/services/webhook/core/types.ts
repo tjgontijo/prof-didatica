@@ -82,6 +82,17 @@ export interface PaymentData {
   pix?: PaymentPixData;
 }
 
+// Interface para dados de rastreamento
+export interface TrackingData {
+  utm_source?: string;
+  utm_medium?: string;
+  utm_campaign?: string;
+  utm_content?: string;
+  utm_term?: string;
+  multiFbc?: string;
+  lead?: Record<string, unknown>;
+}
+
 export interface OrderEventData {
   id: string;
   checkoutId: string;
@@ -93,6 +104,7 @@ export interface OrderEventData {
   createdAt: string;
   updatedAt: string;
   payment?: PaymentData;
+  tracking?: TrackingData; // Dados de rastreamento opcionais
 }
 
 // ========================
@@ -163,6 +175,7 @@ export interface OrderWithRelationsForEvent {
     paidAt: Date | null;
     rawData: PaymentRawData | null;
   } | null;
+  trackingData?: Record<string, unknown> | null;
 }
 
 export interface WebhookLogCreateInput {
@@ -196,6 +209,17 @@ export const OrderItemDataSchema = z.object({
   googleDriveUrl: z.string().nullable(),
 });
 
+// Schema para validação dos dados de rastreamento
+export const TrackingDataSchema = z.object({
+  utm_source: z.string().optional(),
+  utm_medium: z.string().optional(),
+  utm_campaign: z.string().optional(),
+  utm_content: z.string().optional(),
+  utm_term: z.string().optional(),
+  multiFbc: z.string().optional(),
+  lead: z.record(z.any()).optional(),
+}).optional();
+
 export const OrderEventDataSchema = z.object({
   id: z.string().cuid(),
   checkoutId: z.string().cuid(),
@@ -223,6 +247,7 @@ export const OrderEventDataSchema = z.object({
         .optional(),
     })
     .optional(),
+  tracking: TrackingDataSchema,
 });
 
 // ========================
