@@ -91,6 +91,7 @@ model Order {
   status          OrderStatus   @default(DRAFT)
   statusUpdatedAt DateTime      @default(now())
   paidAt          DateTime?     // Data do pagamento
+  trackingData    Json?         // Dados de rastreamento (UTMs, lead, etc)
 
   createdAt       DateTime      @default(now())
   updatedAt       DateTime      @updatedAt
