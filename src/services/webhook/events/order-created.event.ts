@@ -24,6 +24,11 @@ export class OrderCreatedEventHandler {
     }
 
     const eventData = this.mapToOrderEventData(order);
+    
+    // Adicionar dados de rastreamento do banco de dados, se existirem
+    if (order.trackingData) {
+      eventData.tracking = order.trackingData;
+    }
 
     // Valida os dados antes de criar o evento
     const validatedData = validateWebhookPayload(eventData, OrderEventDataSchema);
