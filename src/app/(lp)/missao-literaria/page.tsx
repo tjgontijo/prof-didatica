@@ -5,7 +5,7 @@ import EstoqueECountdown from '@/components/EstoqueECountdown';
 import { FaChevronDown, FaCheck } from 'react-icons/fa';
 import Image from 'next/image';
 
-const CarrosselProjeto = lazy(() => import('@/components/carrossel/CarrosselProjeto'));
+const CarrosselProjeto = lazy(() => import('@/components/carrossel/Carrossel-Missao-Literaria'));
 
 type CityDisplayProps = Record<string, never>;
 
