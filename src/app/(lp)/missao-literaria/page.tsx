@@ -5,7 +5,7 @@ import EstoqueECountdown from '@/components/EstoqueECountdown';
 import { FaChevronDown, FaCheck } from 'react-icons/fa';
 import Image from 'next/image';
 
-const CarrosselProjeto = lazy(() => import('@/components/carrossel/Carrossel-Missao-Literaria'));
+const CarrosselMissaoLiteraria = lazy(() => import('@/components/carrossel/Carrossel-Missao-Literaria'));
 
 type CityDisplayProps = Record<string, never>;
 
@@ -119,7 +119,7 @@ export default function Page() {
             {/* Carrossel de imagens */}
             <div className="w-full max-w-2xl mx-auto mb-0">
               <Suspense fallback={<div>Carregando carrossel...</div>}>
-                <CarrosselProjeto />
+                <CarrosselMissaoLiteraria />
               </Suspense>
             </div>
           </section>
