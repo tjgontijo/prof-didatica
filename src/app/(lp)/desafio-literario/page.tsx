@@ -8,7 +8,7 @@ import { useRouter } from 'next/navigation';
 import { getCheckoutIdBySlug } from './actions';
 
 // Lazy load do CarrosselProjeto
-const CarrosselProjeto = lazy(() => import('@/components/carrossel/CarrosselProjeto'));
+const CarrosselProjeto = lazy(() => import('@/components/carrossel/Carrossel-Missao-Literaria'));
 
 type CityDisplayProps = Record<string, never>;
 
