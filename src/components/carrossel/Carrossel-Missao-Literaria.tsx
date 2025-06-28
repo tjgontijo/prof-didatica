@@ -68,8 +68,8 @@ function LazyImage({ placeholderColor = '#f3f4f6', alt, ...props }: LazyImagePro
   );
 }
 
-// Importação dinâmica do componente Carousel para reduzir o JavaScript inicial
-const Carousel = dynamic(() => import('./Carrossel'), {
+// Importação dinâmica do componente Carrossel para reduzir o JavaScript inicial
+const Carrossel = dynamic(() => import('./Carrossel'), {
   loading: () => (
     <div
       className="carrossel-placeholder relative aspect-[7/10] w-full bg-gray-200 animate-pulse rounded-md"
@@ -198,7 +198,7 @@ export default function CarrosselMissaoLiteraria() {
 
   return (
     <div className="carrossel-projeto space-y-2">
-      <Carousel
+      <Carrossel
         items={imagens}
         slidesPerView={1}
         navigation={false}

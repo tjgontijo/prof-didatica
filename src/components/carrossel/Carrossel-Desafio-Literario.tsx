@@ -69,7 +69,7 @@ function LazyImage({ placeholderColor = '#f3f4f6', alt, ...props }: LazyImagePro
 }
 
 // Importação dinâmica do componente Carousel para reduzir o JavaScript inicial
-const Carousel = dynamic(() => import('./Carrossel'), {
+const Carrossel = dynamic(() => import('./Carrossel'), {
   loading: () => (
     <div
       className="carrossel-placeholder relative aspect-[7/10] w-full bg-gray-200 animate-pulse rounded-md"
@@ -83,7 +83,7 @@ const Carousel = dynamic(() => import('./Carrossel'), {
   ssr: false,
 });
 
-export default function CarrosselProjeto() {
+export default function CarrosselDesafioLiterario() {
   // Estado para controlar a paginação externa
   const [activeIndex, setActiveIndex] = useState(0);
   const [isClient, setIsClient] = useState(false);
@@ -94,25 +94,25 @@ export default function CarrosselProjeto() {
   }, []);
 
   const imagens = [
-    // {
-    //   id: 1,
-    //   content: (
-    //     <div className="relative aspect-[7/10] w-full rounded-md">
-    //       <LazyImage
-    //         src="/images/carrossel/1.webp"
-    //         alt="Missão Literária - Imagem 1"
-    //         fill
-    //         sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 700px"
-    //         priority={true}
-    //         className="object-contain"
-    //         placeholder="blur"
-    //         blurDataURL="/images/carrossel/placeholder.webp"
-    //         quality={80}
-    //         placeholderColor="#f0f0f0"
-    //       />
-    //     </div>
-    //   ),
-    // },
+    {
+      id: 1,
+      content: (
+        <div className="relative aspect-[7/10] w-full rounded-md">
+          <LazyImage
+            src="/images/carrossel/1.webp"
+            alt="Missão Literária - Imagem 1"
+            fill
+            sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 700px"
+            priority={true}
+            className="object-contain"
+            placeholder="blur"
+            blurDataURL="/images/carrossel/placeholder.webp"
+            quality={80}
+            placeholderColor="#f0f0f0"
+          />
+        </div>
+      ),
+    },
     {
       id: 2,
       content: (
@@ -275,7 +275,7 @@ export default function CarrosselProjeto() {
 
   return (
     <div className="carrossel-projeto space-y-2">
-      <Carousel
+      <Carrossel
         items={imagens}
         slidesPerView={1}
         navigation={false}
