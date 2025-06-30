@@ -142,7 +142,7 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
           const orderWithItems = await tx.order.findUnique({
             where: { id: payment.orderId },
             include: {
-              items: {
+              orderItems: {
                 include: {
                   product: true,
                 },
@@ -171,7 +171,7 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
           
           // Disparar evento de compra para o Meta CAPI
           if (orderWithItems && orderWithItems.trackingSession) {
-            const eventId = `${orderWithItems.trackingSession.trackingId}_PURCHASE`;
+            const eventId = `${orderWithItems.trackingSession.id}_PURCHASE`;
             
             // Preparar dados do evento de compra
             const purchaseEvent = {
@@ -184,20 +184,20 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
                 client_user_agent: orderWithItems.trackingSession.userAgent || undefined,
                 fbp: orderWithItems.trackingSession.fbp || undefined,
                 fbc: orderWithItems.trackingSession.fbc || undefined,
-                external_id: orderWithItems.trackingSession.trackingId,
+                external_id: orderWithItems.trackingSession.id,
                 // Dados do cliente para advanced matching
                 em: orderWithItems.customer?.email,
                 ph: orderWithItems.customer?.phone,
                 fn: orderWithItems.customer?.name,
-                country: orderWithItems.trackingSession.country,
-                ct: orderWithItems.trackingSession.city,
-                st: orderWithItems.trackingSession.region,
+                country: orderWithItems.trackingSession.country || undefined,
+                ct: orderWithItems.trackingSession.city || undefined,
+                st: orderWithItems.trackingSession.region || undefined,
               },
               custom_data: {
                 currency: 'BRL',
                 value: Number(paymentInfo.transaction_amount),
-                content_ids: orderWithItems.items.map(item => item.productId),
-                content_name: orderWithItems.items.map(item => item.product?.name).join(', '),
+                content_ids: orderWithItems.orderItems.map((item: { productId: string }) => item.productId),
+                content_name: orderWithItems.orderItems.map((item: { product?: { name?: string } }) => item.product?.name || '').join(', '),
                 content_type: 'product',
                 order_id: orderWithItems.id,
                 status: 'completed',
@@ -206,7 +206,7 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
             
             // Enviar evento para o Meta CAPI
             try {
-              await trackServerEvent(purchaseEvent, orderWithItems.trackingSession.trackingId);
+              await trackServerEvent({...purchaseEvent, action_source: 'website'}, orderWithItems.trackingSession.id);
               console.log(`Evento Purchase enviado para o Meta CAPI: ${eventId}`);
             } catch (error) {
               console.error('Erro ao enviar evento Purchase para o Meta CAPI:', error);
