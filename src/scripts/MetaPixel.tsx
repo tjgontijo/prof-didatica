@@ -107,9 +107,88 @@ export default function MetaPixel() {
         `}
       </Script>
       
-      {/* Script para enviar o PageView com os parâmetros adicionais */}
+      {/* Script para enviar o PageView com os parâmetros adicionais e advanced matching */}
       <Script id="facebook-pixel-pageview" strategy="afterInteractive">
         {`
+          // Função para obter dados do cliente do localStorage
+          function getCustomerDataFromStorage() {
+            try {
+              // Verificar se temos dados do cliente armazenados
+              const customerDataStr = localStorage.getItem('customerData');
+              if (customerDataStr) {
+                return JSON.parse(customerDataStr);
+              }
+              
+              // Verificar se temos dados de usuário armazenados em outro formato
+              const userData = localStorage.getItem('userData');
+              if (userData) {
+                const parsedUserData = JSON.parse(userData);
+                return {
+                  email: parsedUserData.email,
+                  phone: parsedUserData.phone || parsedUserData.telefone,
+                  firstName: parsedUserData.firstName || parsedUserData.nome,
+                  lastName: parsedUserData.lastName || parsedUserData.sobrenome,
+                  city: parsedUserData.city || parsedUserData.cidade,
+                  state: parsedUserData.state || parsedUserData.estado,
+                  zipCode: parsedUserData.zipCode || parsedUserData.cep,
+                  country: parsedUserData.country || parsedUserData.pais || 'Brasil',
+                  externalId: parsedUserData.externalId || parsedUserData.id
+                };
+              }
+            } catch (e) {
+              console.error('Erro ao recuperar dados do cliente:', e);
+            }
+            return null;
+          }
+          
+          // Função para aplicar hash SHA-256 aos dados do cliente
+          async function hashCustomerData(customerData) {
+            if (!customerData) return {};
+            
+            const hashValue = async (value) => {
+              if (!value) return undefined;
+              
+              // Normalizar o valor (remover espaços, converter para minúsculas)
+              const normalized = value.trim().toLowerCase();
+              
+              // Verificar se o navegador suporta SubtleCrypto
+              if (window.crypto && window.crypto.subtle && window.crypto.subtle.digest) {
+                try {
+                  // Converter string para bytes
+                  const encoder = new TextEncoder();
+                  const data = encoder.encode(normalized);
+                  
+                  // Gerar hash SHA-256
+                  const hashBuffer = await window.crypto.subtle.digest('SHA-256', data);
+                  
+                  // Converter buffer para string hexadecimal
+                  const hashArray = Array.from(new Uint8Array(hashBuffer));
+                  const hashHex = hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
+                  
+                  return hashHex;
+                } catch (e) {
+                  console.error('Erro ao gerar hash:', e);
+                }
+              }
+              
+              return undefined;
+            };
+            
+            // Aplicar hash em todos os campos
+            const hashedData = {};
+            if (customerData.email) hashedData.em = await hashValue(customerData.email);
+            if (customerData.phone) hashedData.ph = await hashValue(customerData.phone);
+            if (customerData.firstName) hashedData.fn = await hashValue(customerData.firstName);
+            if (customerData.lastName) hashedData.ln = await hashValue(customerData.lastName);
+            if (customerData.city) hashedData.ct = await hashValue(customerData.city);
+            if (customerData.state) hashedData.st = await hashValue(customerData.state);
+            if (customerData.zipCode) hashedData.zp = await hashValue(customerData.zipCode);
+            if (customerData.country) hashedData.country = await hashValue(customerData.country);
+            if (customerData.externalId) hashedData.external_id = await hashValue(customerData.externalId);
+            
+            return hashedData;
+          }
+          
           // Coletar informações adicionais para o PageView
           const pageViewData = {
             page_title: document.title,
@@ -135,11 +214,39 @@ export default function MetaPixel() {
             }
           }
           
-          // Enviar evento PageView com dados adicionais
-          if (typeof fbq !== 'undefined') {
-            fbq('track', 'PageView', pageViewData);
+          // Processar e enviar o evento com advanced matching
+          async function sendPageViewWithAdvancedMatching() {
+            try {
+              // Obter dados do cliente do localStorage
+              const customerData = getCustomerDataFromStorage();
+              
+              // Se temos dados do cliente, aplicar hash e incluir no advanced matching
+              if (customerData) {
+                const hashedData = await hashCustomerData(customerData);
+                
+                // Inicializar o pixel com advanced matching
+                if (typeof fbq !== 'undefined' && Object.keys(hashedData).length > 0) {
+                  fbq('init', '${META_PIXEL_ID}', hashedData);
+                }
+              }
+              
+              // Enviar evento PageView com dados adicionais
+              if (typeof fbq !== 'undefined') {
+                fbq('track', 'PageView', pageViewData);
+              }
+            } catch (e) {
+              console.error('Erro ao processar advanced matching:', e);
+              
+              // Garantir que o evento seja enviado mesmo se houver erro
+              if (typeof fbq !== 'undefined') {
+                fbq('track', 'PageView', pageViewData);
+              }
+            }
           }
-        `}
+          
+          // Executar o envio do evento
+          sendPageViewWithAdvancedMatching();
+        `.replace(/\$\{META_PIXEL_ID\}/g, META_PIXEL_ID || '')}
       </Script>
       
       <noscript>
