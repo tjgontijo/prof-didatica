@@ -1,6 +1,5 @@
 'use client';
 
-import { UtmifyScripts } from '@/scripts/utmifyScripts';
 import { ClarityScript } from '@/scripts/clarityScripts';
 
 /**
@@ -24,7 +23,6 @@ export default function LandingPageLayout({
       {process.env.NODE_ENV === 'production' && (
         <>
           <ClarityScript />
-          <UtmifyScripts />
         </>
       )}
       {children}
