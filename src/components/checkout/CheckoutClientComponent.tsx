@@ -8,6 +8,7 @@ import { FaSpinner } from 'react-icons/fa';
 
 import { ProdutoInfo, OrderBump } from './types';
 import { collectTrackingData, TrackingData } from '@/lib/tracking';
+import { useTrackingSession } from '@/hooks/useTrackingSession';
 
 import OrderBumps from '@/components/checkout/OrderBumps';
 import FormCustomer, {
@@ -53,6 +54,7 @@ export default function CheckoutClientComponent({
   checkoutId,
 }: CheckoutClientComponentProps) {
   const router = useRouter();
+  const { ready, trackEventBoth } = useTrackingSession();
   // Estado para armazenar o ID do pedido
   const [orderId, setOrderId] = useState<string | null>(null);
   const [orderBumpsSelecionados, setOrderBumpsSelecionados] = useState<OrderBump[]>([]);
@@ -83,6 +85,20 @@ export default function CheckoutClientComponent({
     }));
     setOrderBumpsSelecionados(bumpsInicial);
   }, [orderBumps]);
+
+  // Dispara o evento InitiateCheckout quando o componente é montado
+  useEffect(() => {
+    if (ready) {
+      // Dispara o evento InitiateCheckout tanto no Pixel quanto no CAPI
+      trackEventBoth('InitiateCheckout', {
+        content_type: 'product',
+        content_ids: [product.id],
+        content_name: product.name,
+        value: product.price,
+        currency: 'BRL'
+      });
+    }
+  }, [ready, trackEventBoth, product.id, product.name, product.price]);
 
   // Não precisamos mais recuperar o orderId da sessão
 
