@@ -30,37 +30,53 @@ interface MetaApiResponse {
  * @param trackingId ID da sessão de rastreamento
  */
 export async function trackServerEvent(payload: MetaEventPayload, trackingId: string): Promise<MetaApiResponse> {
+  console.log('[SERVER] trackServerEvent iniciado:', { 
+    evento: payload.event_name, 
+    eventId: payload.event_id, 
+    trackingId 
+  });
   try {
-    // Registrar o evento no banco de dados usando SQL direto para evitar problemas de tipagem
-    const result = await prisma.$queryRaw<Array<{id: string}>>`
-      INSERT INTO "TrackingEvent" ("id", "trackingSessionId", "eventName", "eventId", "payload", "status")
-      VALUES (gen_random_uuid(), ${trackingId}, ${payload.event_name}, ${payload.event_id}, ${JSON.stringify(payload.custom_data || {})}::jsonb, 'queued')
-      RETURNING "id"
-    `;
+    console.log('[SERVER] Registrando evento no banco:', payload.event_name);
+    // Registrar o evento no banco de dados
+    const event = await prisma.trackingEvent.create({
+      data: {
+        trackingSessionId: trackingId,
+        eventName: payload.event_name,
+        eventId: payload.event_id,
+        payload: payload.custom_data ? JSON.parse(JSON.stringify(payload.custom_data)) : {},
+        status: 'queued'
+      }
+    });
     
-    const eventId = result[0]?.id;
+    console.log('[SERVER] Evento registrado com sucesso:', event.id);
     
     // Enviar para o Meta CAPI
     try {
+      console.log('[SERVER] Enviando para Meta CAPI:', payload.event_name);
       const response = await sendToMetaCAPI(payload);
       
       // Atualizar o evento com o resultado
-      await prisma.$executeRaw`
-        UPDATE "TrackingEvent"
-        SET "status" = 'success', "response" = ${JSON.stringify(response || {})}::jsonb
-        WHERE "id" = ${eventId}
-      `;
+      await prisma.trackingEvent.update({
+        where: { id: event.id },
+        data: {
+          status: 'success',
+          response: response ? JSON.parse(JSON.stringify(response)) : {}
+        }
+      });
       
+      console.log('[SERVER] Resposta do Meta CAPI:', response);
       return response;
     } catch (error) {
       console.error('Erro ao enviar para Meta CAPI:', error);
       
       // Atualizar o evento com o erro
-      await prisma.$executeRaw`
-        UPDATE "TrackingEvent"
-        SET "status" = 'error', "error" = ${error instanceof Error ? error.message : String(error)}
-        WHERE "id" = ${eventId}
-      `;
+      await prisma.trackingEvent.update({
+        where: { id: event.id },
+        data: {
+          status: 'error',
+          error: error instanceof Error ? error.message : String(error)
+        }
+      });
       
       throw error;
     }
@@ -76,6 +92,7 @@ export async function trackServerEvent(payload: MetaEventPayload, trackingId: st
  * @returns Resposta da API
  */
 async function sendToMetaCAPI(payload: MetaEventPayload): Promise<MetaApiResponse> {
+  console.log('[META CAPI] Iniciando envio para Meta:', payload.event_name);
   if (!process.env.META_PIXEL_ID || !process.env.META_CAPI_TOKEN) {
     throw new Error('Configurações do Meta CAPI não definidas');
   }
