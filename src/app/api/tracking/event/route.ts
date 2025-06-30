@@ -1,9 +1,7 @@
 // src/app/api/tracking/event/route.ts
 import { NextRequest, NextResponse } from 'next/server';
-import { PrismaClient } from '@prisma/client';
 import crypto from 'crypto';
-
-const prisma = new PrismaClient();
+import { prisma } from '@/lib/prisma';
 
 interface TrackingEventRequest {
   trackingId: string;
@@ -26,39 +24,50 @@ interface TrackingEventRequest {
 }
 
 export async function POST(request: NextRequest): Promise<NextResponse> {
+  console.log('[API EVENT] Recebendo requisição de evento');
   try {
     const data = await request.json() as TrackingEventRequest;
+    console.log('[API EVENT] Dados recebidos:', {
+      eventName: data.eventName,
+      eventId: data.eventId,
+      trackingId: data.trackingId
+    });
     
+    console.log('[API EVENT] Buscando sessão:', data.trackingId);
     // Verificar se a sessão existe
-    const session = await prisma.$queryRaw<Array<{id: string, landingPage: string | null}>>`
-      SELECT id, "landingPage" FROM "TrackingSession" WHERE id = ${data.trackingId} LIMIT 1
-    `;
+    const session = await prisma.trackingSession.findUnique({
+      where: { id: data.trackingId }
+    });
 
-    if (!session || session.length === 0) {
+    if (!session) {
+      console.log('[API EVENT] Sessão não encontrada:', data.trackingId);
       return NextResponse.json({ error: 'Sessão de rastreamento não encontrada' }, { status: 404 });
     }
     
+    console.log('[API EVENT] Criando evento no banco:', data.eventName);
     // Criar o evento de rastreamento no banco
-    const event = await prisma.$queryRaw<Array<{id: string}>>`
-      INSERT INTO "TrackingEvent" (
-        "id", "trackingSessionId", "eventName", "eventId", 
-        "payload", "status", "ip", "userAgent"
-      )
-      VALUES (
-        gen_random_uuid(), ${data.trackingId}, ${data.eventName}, ${data.eventId},
-        ${JSON.stringify(data.customData || {})}::jsonb, 'queued', ${data.ip}, ${data.userAgent}
-      )
-      RETURNING "id"
-    `;
+    const event = await prisma.trackingEvent.create({
+      data: {
+        trackingSessionId: data.trackingId,
+        eventName: data.eventName,
+        eventId: data.eventId,
+        payload: data.customData ? JSON.parse(JSON.stringify(data.customData)) : {},
+        status: 'queued',
+        ip: data.ip,
+        userAgent: data.userAgent
+      }
+    });
     
-    const eventId = event[0]?.id;
+    console.log('[API EVENT] Evento criado com sucesso:', event.id);
     
     // Preparar dados para o CAPI do Meta
-    const userData = prepareCAPIUserData(data, session[0] as any);
+    const userData = prepareCAPIUserData(data, session);
+    console.log('[API EVENT] Dados de usuário preparados para CAPI:', userData);
+    
     const capiPayload = {
       event_name: data.eventName,
       event_time: Math.floor(Date.now() / 1000),
-      event_source_url: (session[0]?.landingPage || ''),
+      event_source_url: session.landingPage || '',
       action_source: 'website',
       event_id: data.eventId,
       user_data: userData,
@@ -67,28 +76,35 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
     
     // Enviar para o Meta CAPI
     try {
+      console.log('[API EVENT] Enviando para Meta CAPI:', data.eventName);
       const response = await sendToMetaCAPI(capiPayload);
       
       // Atualizar o status do evento
-      await prisma.$executeRaw`
-        UPDATE "TrackingEvent"
-        SET "status" = 'success', "response" = ${JSON.stringify(response || {})}::jsonb
-        WHERE "id" = ${eventId}
-      `;
+      await prisma.trackingEvent.update({
+        where: { id: event.id },
+        data: {
+          status: 'success',
+          response: response ? JSON.parse(JSON.stringify(response)) : {}
+        }
+      });
+      console.log('[API EVENT] Evento atualizado com sucesso no banco:', event.id);
     } catch (error) {
       console.error('Erro ao enviar para Meta CAPI:', error);
       
       // Atualizar o status do evento com erro
-      await prisma.$executeRaw`
-        UPDATE "TrackingEvent"
-        SET "status" = 'error', "error" = ${error instanceof Error ? error.message : String(error)}
-        WHERE "id" = ${eventId}
-      `;
+      await prisma.trackingEvent.update({
+        where: { id: event.id },
+        data: {
+          status: 'error',
+          error: error instanceof Error ? error.message : String(error)
+        }
+      });
     }
     
-    return NextResponse.json({ success: true, eventId: eventId });
+    console.log('[API EVENT] Retornando sucesso:', event.id);
+    return NextResponse.json({ success: true, eventId: event.id });
   } catch (error) {
-    console.error('Erro ao processar evento de rastreamento:', error);
+    console.error('[API EVENT] Erro ao processar evento de rastreamento:', error);
     return NextResponse.json(
       { error: 'Erro interno ao processar evento' },
       { status: 500 }
@@ -96,37 +112,37 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
   }
 }
 
-interface TrackingSessionData {
+interface TrackingSessionForCAPI {
   id: string;
-  utmSource?: string | null;
-  utmMedium?: string | null;
-  utmCampaign?: string | null;
-  utmTerm?: string | null;
-  utmContent?: string | null;
-  fbclid?: string | null;
   fbp?: string | null;
   fbc?: string | null;
-  landingPage?: string | null;
   ip?: string | null;
   userAgent?: string | null;
+  country?: string | null;
+  city?: string | null;
+  region?: string | null;
+  zip?: string | null;
+  lat?: number | null;
+  lon?: number | null;
 }
 
-function prepareCAPIUserData(data: TrackingEventRequest, session: TrackingSessionData) {
+function prepareCAPIUserData(data: TrackingEventRequest, session: TrackingSessionForCAPI) {
   // Hash sensível dados para conformidade com CAPI
   const sha256 = (input: string) => {
     if (!input) return '';
     return crypto.createHash('sha256').update(input).digest('hex');
   };
   
+  // Priorizar dados do cliente, mas usar dados da sessão como fallback
   return {
     em: data.customer?.email ? sha256(data.customer.email.toLowerCase()) : undefined,
     ph: data.customer?.phone ? sha256(data.customer.phone) : undefined,
     fn: data.customer?.firstName ? sha256(data.customer.firstName) : undefined,
     ln: data.customer?.lastName ? sha256(data.customer.lastName) : undefined,
-    st: data.customer?.state ? sha256(data.customer.state) : undefined,
-    ct: data.customer?.city ? sha256(data.customer.city) : undefined,
-    zp: data.customer?.zipCode ? sha256(data.customer.zipCode) : undefined,
-    country: data.customer?.country ? sha256(data.customer.country) : undefined,
+    st: data.customer?.state ? sha256(data.customer.state) : (session.region ? sha256(session.region) : undefined),
+    ct: data.customer?.city ? sha256(data.customer.city) : (session.city ? sha256(session.city) : undefined),
+    zp: data.customer?.zipCode ? sha256(data.customer.zipCode) : (session.zip ? sha256(session.zip) : undefined),
+    country: data.customer?.country ? sha256(data.customer.country) : (session.country ? sha256(session.country) : undefined),
     external_id: data.customer?.externalId ? sha256(data.customer.externalId) : undefined,
     fbp: session.fbp || undefined,
     fbc: session.fbc || undefined,
@@ -165,7 +181,7 @@ async function sendToMetaCAPI(payload: MetaEventPayload): Promise<MetaApiRespons
   const pixelId = process.env.META_PIXEL_ID;
   const accessToken = process.env.META_CAPI_TOKEN;
   
-  const url = `https://graph.facebook.com/v16.0/${pixelId}/events?access_token=${accessToken}`;
+  const url = `https://graph.facebook.com/v23.0/${pixelId}/events?access_token=${accessToken}`;
   
   const response = await fetch(url, {
     method: 'POST',
