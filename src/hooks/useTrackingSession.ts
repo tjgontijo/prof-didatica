@@ -228,6 +228,18 @@ export function useTrackingSession(): TrackingHookReturn {
     try {
       const eventId = `${trackingId}_${eventName.toUpperCase()}`;
       
+      // Salvar dados do cliente no localStorage para uso futuro no advanced matching
+      if (customer && typeof window !== 'undefined') {
+        try {
+          // Salvar apenas se tivermos pelo menos um dado relevante
+          if (customer.email || customer.phone || customer.firstName || customer.lastName) {
+            localStorage.setItem('customerData', JSON.stringify(customer));
+          }
+        } catch (storageError) {
+          console.warn('Não foi possível salvar dados do cliente no localStorage:', storageError);
+        }
+      }
+      
       await fetch('/api/tracking/event', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -264,6 +276,18 @@ export function useTrackingSession(): TrackingHookReturn {
     
     // Gerar ID de evento consistente para deduplicação
     const eventId = `${trackingId}_${eventName.toUpperCase()}`;
+    
+    // Salvar dados do cliente no localStorage para uso futuro no advanced matching
+    if (customer && typeof window !== 'undefined') {
+      try {
+        // Salvar apenas se tivermos pelo menos um dado relevante
+        if (customer.email || customer.phone || customer.firstName || customer.lastName) {
+          localStorage.setItem('customerData', JSON.stringify(customer));
+        }
+      } catch (storageError) {
+        console.warn('Não foi possível salvar dados do cliente no localStorage:', storageError);
+      }
+    }
     
     // Evento no lado do cliente (Pixel)
     if (typeof window !== 'undefined' && window.fbq) {
