@@ -49,22 +49,19 @@ interface TrackingHookReturn {
   trackEventBoth: (eventName: string, customData?: Record<string, unknown>, customer?: CustomerData) => Promise<void>;
 }
 
-// Declaração para o tipo global do Facebook Pixel
-declare global {
-  interface Window {
-    fbq?: (method: string, eventName: string, params?: Record<string, unknown>) => void;
-  }
-}
+// A declaração do tipo global do Facebook Pixel já está em custom.d.ts
+
+import { generateTrackingId } from '../lib/utils';
 
 /**
  * Gera ou recupera um ID de rastreamento único para o usuário
- * @returns ID de rastreamento no formato 'trk_uuid'
+ * @returns ID de rastreamento no formato 'trk_[cuid]'
  */
 export function getTrackingId(): string {
   if (typeof window === 'undefined') return '';
   let id = localStorage.getItem('tracking_id');
   if (!id) {
-    id = `trk_${crypto.randomUUID()}`;
+    id = generateTrackingId();
     localStorage.setItem('tracking_id', id);
   }
   return id;
@@ -270,10 +267,63 @@ export function useTrackingSession(): TrackingHookReturn {
     
     // Evento no lado do cliente (Pixel)
     if (typeof window !== 'undefined' && window.fbq) {
-      window.fbq('track', eventName, {
-        ...customData,
-        event_id: eventId
-      });
+      // Guardar referência segura para fbq
+      const fbq = window.fbq;
+      
+      // Buscar dados de geolocalização para advanced matching
+      const fetchGeoData = async () => {
+        try {
+          // Usar dados do cliente se disponíveis, caso contrário tentar obter via IP
+          if (!customer || (!customer.city && !customer.state && !customer.country)) {
+            const response = await fetch('https://ipapi.co/json/');
+            if (response.ok) {
+              const geoData = await response.json();
+              
+              // Inicializar o pixel com advanced matching
+              fbq('init', window.pixelId, {
+                em: customer?.email,
+                ph: customer?.phone,
+                fn: customer?.firstName,
+                ln: customer?.lastName,
+                ct: customer?.city || geoData.city,
+                st: customer?.state || geoData.region,
+                zp: customer?.zipCode || geoData.postal,
+                country: customer?.country || geoData.country_name,
+                external_id: customer?.externalId
+              });
+            }
+          } else {
+            // Usar apenas os dados do cliente
+            fbq('init', window.pixelId, {
+              em: customer?.email,
+              ph: customer?.phone,
+              fn: customer?.firstName,
+              ln: customer?.lastName,
+              ct: customer?.city,
+              st: customer?.state,
+              zp: customer?.zipCode,
+              country: customer?.country,
+              external_id: customer?.externalId
+            });
+          }
+          
+          // Enviar o evento com dados personalizados
+          fbq('track', eventName, {
+            ...customData,
+            event_id: eventId
+          });
+        } catch (error) {
+          console.error('Erro ao obter dados de geolocalização:', error);
+          
+          // Enviar o evento mesmo sem dados de geolocalização
+          fbq('track', eventName, {
+            ...customData,
+            event_id: eventId
+          });
+        }
+      };
+      
+      fetchGeoData();
     }
     
     // Evento no lado do servidor (CAPI)
