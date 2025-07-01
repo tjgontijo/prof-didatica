@@ -57,10 +57,10 @@ CREATE TABLE "Order" (
     "status" "OrderStatus" NOT NULL DEFAULT 'DRAFT',
     "statusUpdatedAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "paidAt" TIMESTAMP(3),
-    "trackingData" JSONB,
     "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "updatedAt" TIMESTAMP(3) NOT NULL,
     "deletedAt" TIMESTAMP(3),
+    "trackingSessionId" TEXT,
 
     CONSTRAINT "Order_pkey" PRIMARY KEY ("id")
 );
@@ -166,6 +166,49 @@ CREATE TABLE "ExternalWebhookLog" (
     CONSTRAINT "ExternalWebhookLog_pkey" PRIMARY KEY ("id")
 );
 
+-- CreateTable
+CREATE TABLE "TrackingSession" (
+    "id" TEXT NOT NULL,
+    "utmSource" TEXT,
+    "utmMedium" TEXT,
+    "utmCampaign" TEXT,
+    "utmTerm" TEXT,
+    "utmContent" TEXT,
+    "fbclid" TEXT,
+    "fbp" TEXT,
+    "fbc" TEXT,
+    "landingPage" TEXT,
+    "ip" TEXT,
+    "country" TEXT,
+    "region" TEXT,
+    "city" TEXT,
+    "zip" TEXT,
+    "lat" DOUBLE PRECISION,
+    "lon" DOUBLE PRECISION,
+    "userAgent" TEXT,
+    "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+
+    CONSTRAINT "TrackingSession_pkey" PRIMARY KEY ("id")
+);
+
+-- CreateTable
+CREATE TABLE "TrackingEvent" (
+    "id" TEXT NOT NULL,
+    "trackingSessionId" TEXT NOT NULL,
+    "orderId" TEXT,
+    "eventName" TEXT NOT NULL,
+    "eventId" TEXT NOT NULL,
+    "payload" JSONB NOT NULL,
+    "status" TEXT NOT NULL,
+    "response" JSONB,
+    "error" TEXT,
+    "ip" TEXT,
+    "userAgent" TEXT,
+    "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+
+    CONSTRAINT "TrackingEvent_pkey" PRIMARY KEY ("id")
+);
+
 -- CreateIndex
 CREATE INDEX "Product_isActive_deletedAt_idx" ON "Product"("isActive", "deletedAt");
 
@@ -241,6 +284,24 @@ CREATE INDEX "ExternalWebhookLog_source_paymentId_idx" ON "ExternalWebhookLog"("
 -- CreateIndex
 CREATE INDEX "ExternalWebhookLog_action_processedAt_idx" ON "ExternalWebhookLog"("action", "processedAt");
 
+-- CreateIndex
+CREATE INDEX "TrackingSession_utmSource_utmCampaign_idx" ON "TrackingSession"("utmSource", "utmCampaign");
+
+-- CreateIndex
+CREATE INDEX "TrackingSession_fbclid_idx" ON "TrackingSession"("fbclid");
+
+-- CreateIndex
+CREATE INDEX "TrackingSession_country_region_city_idx" ON "TrackingSession"("country", "region", "city");
+
+-- CreateIndex
+CREATE INDEX "TrackingEvent_eventName_idx" ON "TrackingEvent"("eventName");
+
+-- CreateIndex
+CREATE INDEX "TrackingEvent_eventId_idx" ON "TrackingEvent"("eventId");
+
+-- CreateIndex
+CREATE INDEX "TrackingEvent_trackingSessionId_idx" ON "TrackingEvent"("trackingSessionId");
+
 -- AddForeignKey
 ALTER TABLE "Checkout" ADD CONSTRAINT "Checkout_productId_fkey" FOREIGN KEY ("productId") REFERENCES "Product"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
 
@@ -249,6 +310,9 @@ ALTER TABLE "OrderBump" ADD CONSTRAINT "OrderBump_mainProductId_fkey" FOREIGN KE
 
 -- AddForeignKey
 ALTER TABLE "OrderBump" ADD CONSTRAINT "OrderBump_bumpProductId_fkey" FOREIGN KEY ("bumpProductId") REFERENCES "Product"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "Order" ADD CONSTRAINT "Order_trackingSessionId_fkey" FOREIGN KEY ("trackingSessionId") REFERENCES "TrackingSession"("id") ON DELETE SET NULL ON UPDATE CASCADE;
 
 -- AddForeignKey
 ALTER TABLE "Order" ADD CONSTRAINT "Order_checkoutId_fkey" FOREIGN KEY ("checkoutId") REFERENCES "Checkout"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
@@ -273,3 +337,9 @@ ALTER TABLE "WebhookLog" ADD CONSTRAINT "WebhookLog_webhookId_fkey" FOREIGN KEY 
 
 -- AddForeignKey
 ALTER TABLE "Payment" ADD CONSTRAINT "Payment_orderId_fkey" FOREIGN KEY ("orderId") REFERENCES "Order"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "TrackingEvent" ADD CONSTRAINT "TrackingEvent_trackingSessionId_fkey" FOREIGN KEY ("trackingSessionId") REFERENCES "TrackingSession"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "TrackingEvent" ADD CONSTRAINT "TrackingEvent_orderId_fkey" FOREIGN KEY ("orderId") REFERENCES "Order"("id") ON DELETE SET NULL ON UPDATE CASCADE;

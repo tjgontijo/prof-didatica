@@ -99,14 +99,14 @@ export default function CarrosselDesafioLiterario() {
       content: (
         <div className="relative aspect-[7/10] w-full rounded-md">
           <LazyImage
-            src="/images/carrossel/1.webp"
+            src="/images/products/desafio-literario/carrossel/1.webp"
             alt="Missão Literária - Imagem 1"
             fill
             sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 700px"
             priority={true}
             className="object-contain"
             placeholder="blur"
-            blurDataURL="/images/carrossel/placeholder.webp"
+            blurDataURL="/images/products/desafio-literario/carrossel/placeholder.webp"
             quality={80}
             placeholderColor="#f0f0f0"
           />
@@ -118,14 +118,14 @@ export default function CarrosselDesafioLiterario() {
       content: (
         <div className="relative aspect-[7/10] w-full rounded-md">
           <LazyImage
-            src="/images/carrossel/2.webp"
+            src="/images/products/desafio-literario/carrossel/2.webp"
             alt="Missão Literária - Imagem 2"
             fill
             sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 700px"
             loading="lazy"
             className="object-contain"
             placeholder="blur"
-            blurDataURL="/images/carrossel/placeholder.webp"
+            blurDataURL="/images/products/desafio-literario/carrossel/placeholder.webp"
             quality={80}
             placeholderColor="#f0f0f0"
           />
@@ -137,14 +137,14 @@ export default function CarrosselDesafioLiterario() {
       content: (
         <div className="relative aspect-[7/10] w-full rounded-md">
           <LazyImage
-            src="/images/carrossel/3.webp"
+            src="/images/products/desafio-literario/carrossel/3.webp"
             alt="Missão Literária - Imagem 3"
             fill
             sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 700px"
             loading="lazy"
             className="object-contain"
             placeholder="blur"
-            blurDataURL="/images/carrossel/placeholder.webp"
+            blurDataURL="/images/products/desafio-literario/carrossel/placeholder.webp"
             quality={80}
             placeholderColor="#f0f0f0"
           />
@@ -156,14 +156,14 @@ export default function CarrosselDesafioLiterario() {
       content: (
         <div className="relative aspect-[7/10] w-full rounded-md">
           <LazyImage
-            src="/images/carrossel/4.webp"
+            src="/images/products/desafio-literario/carrossel/4.webp"
             alt="Missão Literária - Imagem 4"
             fill
             sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 700px"
             loading="lazy"
             className="object-contain"
             placeholder="blur"
-            blurDataURL="/images/carrossel/placeholder.webp"
+            blurDataURL="/images/products/desafio-literario/carrossel/placeholder.webp"
             quality={80}
             placeholderColor="#f0f0f0"
           />
@@ -175,14 +175,14 @@ export default function CarrosselDesafioLiterario() {
       content: (
         <div className="relative aspect-[7/10] w-full rounded-md">
           <LazyImage
-            src="/images/carrossel/5.webp"
+            src="/images/products/desafio-literario/carrossel/5.webp"
             alt="Missão Literária - Imagem 5"
             fill
             sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 700px"
             loading="lazy"
             className="object-contain"
             placeholder="blur"
-            blurDataURL="/images/carrossel/placeholder.webp"
+            blurDataURL="/images/products/desafio-literario/carrossel/placeholder.webp"
             quality={80}
             placeholderColor="#f0f0f0"
           />
@@ -194,14 +194,14 @@ export default function CarrosselDesafioLiterario() {
       content: (
         <div className="relative aspect-[7/10] w-full rounded-md">
           <LazyImage
-            src="/images/carrossel/6.webp"
+            src="/images/products/desafio-literario/carrossel/6.webp"
             alt="Missão Literária - Imagem 6"
             fill
             sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 700px"
             loading="lazy"
             className="object-contain"
             placeholder="blur"
-            blurDataURL="/images/carrossel/placeholder.webp"
+            blurDataURL="/images/products/desafio-literario/carrossel/placeholder.webp"
             quality={80}
             placeholderColor="#f0f0f0"
           />
@@ -213,14 +213,14 @@ export default function CarrosselDesafioLiterario() {
       content: (
         <div className="relative aspect-[7/10] w-full rounded-md">
           <LazyImage
-            src="/images/carrossel/8.webp"
+            src="/images/products/desafio-literario/carrossel/8.webp"
             alt="Missão Literária - Imagem 8"
             fill
             sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 700px"
             loading="lazy"
             className="object-contain"
             placeholder="blur"
-            blurDataURL="/images/carrossel/placeholder.webp"
+            blurDataURL="/images/products/desafio-literario/carrossel/placeholder.webp"
             quality={80}
             placeholderColor="#f0f0f0"
           />
@@ -232,14 +232,14 @@ export default function CarrosselDesafioLiterario() {
       content: (
         <div className="relative aspect-[7/10] w-full rounded-md">
           <LazyImage
-            src="/images/carrossel/9.webp"
+            src="/images/products/desafio-literario/carrossel/9.webp"
             alt="Missão Literária - Imagem 9"
             fill
             sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 700px"
             loading="lazy"
             className="object-contain"
             placeholder="blur"
-            blurDataURL="/images/carrossel/placeholder.webp"
+            blurDataURL="/images/products/desafio-literario/carrossel/placeholder.webp"
             quality={80}
             placeholderColor="#f0f0f0"
           />
@@ -251,14 +251,14 @@ export default function CarrosselDesafioLiterario() {
       content: (
         <div className="relative aspect-[7/10] w-full rounded-md">
           <LazyImage
-            src="/images/carrossel/10.webp"
+            src="/images/products/desafio-literario/carrossel/10.webp"
             alt="Missão Literária - Imagem 10"
             fill
             sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 700px"
             loading="lazy"
             className="object-contain"
             placeholder="blur"
-            blurDataURL="/images/carrossel/placeholder.webp"
+            blurDataURL="/images/products/desafio-literario/carrossel/placeholder.webp"
             quality={80}
             placeholderColor="#f0f0f0"
           />

@@ -5,6 +5,7 @@ import { MercadoPagoConfig, Payment as MPayment } from 'mercadopago';
 import { Prisma } from '@prisma/client';
 import { prisma } from '@/lib/prisma';
 import { broadcastSSE } from '@/lib/sse';
+import { trackServerEvent } from '@/lib/tracking/server';
 
 import { webhookRateLimit } from '@/lib/rate-limit';
 import { getWebhookService } from '@/services/webhook';
@@ -137,6 +138,20 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
 
         // Se aprovado, atualizar pedido e histórico
         if (status === 'approved' && (paymentMethodId === 'pix' || true)) {
+          // Buscar o pedido completo com os produtos para o evento de compra
+          const orderWithItems = await tx.order.findUnique({
+            where: { id: payment.orderId },
+            include: {
+              orderItems: {
+                include: {
+                  product: true,
+                },
+              },
+              customer: true,
+              trackingSession: true,
+            },
+          });
+
           await tx.order.update({
             where: { id: payment.orderId },
             data: {
@@ -153,6 +168,50 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
               notes: `Pagamento confirmado via webhook do Mercado Pago (método: ${paymentMethodId})`,
             },
           });
+          
+          // Disparar evento de compra para o Meta CAPI
+          if (orderWithItems && orderWithItems.trackingSession) {
+            const eventId = `${orderWithItems.trackingSession.id}_PURCHASE`;
+            
+            // Preparar dados do evento de compra
+            const purchaseEvent = {
+              event_name: 'Purchase',
+              event_id: eventId,
+              event_time: Math.floor(Date.now() / 1000),
+              event_source_url: orderWithItems.trackingSession.landingPage || undefined,
+              user_data: {
+                client_ip_address: orderWithItems.trackingSession.ip || undefined,
+                client_user_agent: orderWithItems.trackingSession.userAgent || undefined,
+                fbp: orderWithItems.trackingSession.fbp || undefined,
+                fbc: orderWithItems.trackingSession.fbc || undefined,
+                external_id: orderWithItems.trackingSession.id,
+                // Dados do cliente para advanced matching
+                em: orderWithItems.customer?.email,
+                ph: orderWithItems.customer?.phone,
+                fn: orderWithItems.customer?.name,
+                country: orderWithItems.trackingSession.country || undefined,
+                ct: orderWithItems.trackingSession.city || undefined,
+                st: orderWithItems.trackingSession.region || undefined,
+              },
+              custom_data: {
+                currency: 'BRL',
+                value: Number(paymentInfo.transaction_amount),
+                content_ids: orderWithItems.orderItems.map((item: { productId: string }) => item.productId),
+                content_name: orderWithItems.orderItems.map((item: { product?: { name?: string } }) => item.product?.name || '').join(', '),
+                content_type: 'product',
+                order_id: orderWithItems.id,
+                status: 'completed',
+              },
+            };
+            
+            // Enviar evento para o Meta CAPI
+            try {
+              await trackServerEvent({...purchaseEvent, action_source: 'website'}, orderWithItems.trackingSession.id);
+              console.log(`Evento Purchase enviado para o Meta CAPI: ${eventId}`);
+            } catch (error) {
+              console.error('Erro ao enviar evento Purchase para o Meta CAPI:', error);
+            }
+          }
 
           // Disparar webhook para order.paid após a transação
           setTimeout(async () => {
