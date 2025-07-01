@@ -19,53 +19,42 @@ if (process.env.NODE_ENV !== 'production') globalForPrisma.prisma = prisma;
 /**
  * Função cacheada que busca o ID do checkout com base na slug do produto
  * Esta função é executada no servidor e os resultados são cacheados pelo Next.js
+ * Otimizada para buscar o checkout diretamente com um único join, reduzindo consultas ao banco
  */
 export const getCheckoutIdBySlug = cache(async (slug: string) => {
   console.time(`Buscando checkout para produto com slug: ${slug}`);
   try {
-    // Buscar o produto pela slug
-    const product = await prisma.product.findFirst({
+    // Buscar o checkout diretamente com join no produto, eliminando consultas separadas
+    const checkout = await prisma.checkout.findFirst({
       where: {
-        slug,
+        product: {
+          slug,
+          isActive: true,
+          deletedAt: null
+        },
         isActive: true,
         deletedAt: null
       },
       select: {
         id: true,
-        name: true
-      }
-    });
-    
-    if (!product) {
-      console.error(`Produto não encontrado com slug: ${slug}`);
-      return null;
-    }
-    
-    console.log(`Produto encontrado: ${product.name} (${product.id})`);
-    
-    // Buscar checkout associado ao produto
-    const checkout = await prisma.checkout.findFirst({
-      where: {
-        productId: product.id,
-        isActive: true,
-        deletedAt: null
-      },
-      select: {
-        id: true
+        product: {
+          select: {
+            name: true,
+            id: true
+          }
+        }
       }
     });
     
     if (!checkout) {
-      console.error(`Checkout não encontrado para o produto: ${product.name} (${product.id})`);
+      console.error(`Checkout não encontrado para produto com slug: ${slug}`);
       return null;
     }
     
-    console.log(`Checkout encontrado: ${checkout.id}`);
+    console.log(`Checkout encontrado: ${checkout.id} para produto: ${checkout.product.name} (${checkout.product.id})`);
     return checkout.id;
   } catch (error) {
     console.error(`Erro ao buscar checkout para slug ${slug}:`, error);
     return null;
   }
 });
-
-// Não precisamos de mais funções além de getCheckoutIdBySlug

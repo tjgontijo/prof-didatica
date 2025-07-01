@@ -8,8 +8,9 @@ import { broadcastSSE } from '@/lib/sse';
 import { trackServerEvent } from '@/lib/tracking/server';
 
 import { webhookRateLimit } from '@/lib/rate-limit';
-import { getWebhookService } from '@/services/webhook';
-import { OrderPaidEventHandler } from '@/services/webhook/events/order-paid.event';
+import { getWebhookService } from '@/modules/webhook';
+import { OrderPaidEventHandler } from '@/modules/webhook/events/order-paid.event';
+import crypto from 'crypto';
 
 export async function POST(request: NextRequest): Promise<NextResponse> {
   try {
@@ -173,6 +174,36 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
           if (orderWithItems && orderWithItems.trackingSession) {
             const eventId = `${orderWithItems.trackingSession.id}_PURCHASE`;
             
+            // Função para hash SHA256 para o Meta CAPI
+            function hashValue(value: string | undefined | null): string | undefined {
+              if (!value) return undefined;
+              
+              try {
+                return crypto.createHash('sha256').update(value.trim().toLowerCase()).digest('hex');
+              } catch (error) {
+                console.error('Erro ao gerar hash:', error);
+                return undefined;
+              }
+            }
+            
+            // Extrair nome e sobrenome do cliente
+            const customerName = orderWithItems.customer?.name || '';
+            const nameParts = customerName.split(' ');
+            const firstName = nameParts[0] || '';
+            const lastName = nameParts.length > 1 ? nameParts.slice(1).join(' ') : '';
+            
+            // Preparar dados do cliente com hash para advanced matching
+            const customerEmail = orderWithItems.customer?.email;
+            const customerPhone = orderWithItems.customer?.phone;
+            
+            // Log para debug dos dados do cliente
+            console.log('[PURCHASE EVENT] Dados do cliente:', {
+              email: customerEmail,
+              phone: customerPhone,
+              firstName,
+              lastName
+            });
+            
             // Preparar dados do evento de compra
             const purchaseEvent = {
               event_name: 'Purchase',
@@ -185,10 +216,11 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
                 fbp: orderWithItems.trackingSession.fbp || undefined,
                 fbc: orderWithItems.trackingSession.fbc || undefined,
                 external_id: orderWithItems.trackingSession.id,
-                // Dados do cliente para advanced matching
-                em: orderWithItems.customer?.email,
-                ph: orderWithItems.customer?.phone,
-                fn: orderWithItems.customer?.name,
+                // Dados do cliente para advanced matching com hash SHA256
+                em: hashValue(customerEmail),
+                ph: hashValue(customerPhone),
+                fn: hashValue(firstName),
+                ln: hashValue(lastName),
                 country: orderWithItems.trackingSession.country || undefined,
                 ct: orderWithItems.trackingSession.city || undefined,
                 st: orderWithItems.trackingSession.region || undefined,

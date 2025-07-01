@@ -26,7 +26,7 @@ export default function Home() {
           >
             <div className="overflow-hidden rounded-lg shadow-lg hover:shadow-xl transition-shadow duration-300">
               <Image
-                src="/images/banner/banner_pixel.webp"
+                src="/images/link-bio/banner_pixel.webp"
                 alt="Banner Pixel"
                 width={540}
                 height={180}
@@ -41,7 +41,7 @@ export default function Home() {
           >
             <div className="overflow-hidden rounded-lg shadow-lg hover:shadow-xl transition-shadow duration-300">
               <Image
-                src="/images/banner/banner_projeto.webp"
+                src="/images/link-bio/banner_projeto.webp"
                 alt="Banner Projeto"
                 width={540}
                 height={180}
@@ -58,7 +58,7 @@ export default function Home() {
           >
             <div className="overflow-hidden rounded-lg shadow-lg hover:shadow-xl transition-shadow duration-300">
               <Image
-                src="/images/banner/banner_suporte.webp"
+                src="/images/link-bio/banner_suporte.webp"
                 alt="Banner Suporte"
                 width={540}
                 height={180}
@@ -75,7 +75,7 @@ export default function Home() {
           >
             <div className="overflow-hidden rounded-lg shadow-lg hover:shadow-xl transition-shadow duration-300">
               <Image
-                src="/images/banner/banner_loja.webp"
+                src="/images/link-bio/banner_loja.webp"
                 alt="Banner Loja"
                 width={540}
                 height={180}
