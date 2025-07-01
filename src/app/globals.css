@@ -62,8 +62,6 @@ section {
   box-shadow: 0 8px 15px rgba(0, 0, 0, 0.1);
 }
 
-/* Estilos otimizados para o carrossel do projeto literário */
-
 /* Estilo para as setas de navegação - mais discretas */
 .carrossel-projeto .swiper-button-next,
 .carrossel-projeto .swiper-button-prev {
