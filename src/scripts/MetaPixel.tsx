@@ -1,15 +1,174 @@
 'use client';
 
 import Script from 'next/script';
+import { usePathname, useSearchParams } from 'next/navigation';
+import { useEffect, useState, Suspense } from 'react';
 
 // Usar a variável de ambiente para o ID do pixel
 const META_PIXEL_ID = process.env.NEXT_PUBLIC_META_PIXEL_ID;
 
-export default function MetaPixel() {
+// Interface para os dados do cliente usados no Advanced Matching
+interface CustomerData {
+  email?: string;
+  phone?: string;
+  firstName?: string;
+  lastName?: string;
+  city?: string;
+  state?: string;
+  zipCode?: string;
+  country?: string;
+  externalId?: string;
+  fbp?: string;
+  fbc?: string;
+  ip?: string;
+}
+
+/**
+ * Componente para inicializar e gerenciar o Meta Pixel com Advanced Matching
+ * Deve ser incluído no layout principal da aplicação
+ */
+// Componente interno que usa useSearchParams
+function MetaPixelContent() {
+  const pathname = usePathname();
+  const searchParams = useSearchParams();
+  const [isInitialized, setIsInitialized] = useState(false);
+
+  // Função para formatar os dados do cliente para Advanced Matching
+  const formatCustomerDataForAdvancedMatching = (data: CustomerData) => {
+    if (!data) return {};
+    
+    // Formatação conforme documentação da Meta
+    const formattedData: Record<string, string | undefined> = {
+      // Email deve estar em minúsculas
+      em: data.email?.toLowerCase(),
+      
+      // Telefone deve conter apenas dígitos
+      // Adicionar código do país se não estiver presente (55 para Brasil)
+      ph: data.phone ? (
+        data.phone.replace(/\D/g, '').startsWith('55') 
+          ? data.phone.replace(/\D/g, '') 
+          : `55${data.phone.replace(/\D/g, '')}`
+      ) : undefined,
+      
+      // Nome em minúsculas e sem pontuação ou caracteres especiais
+      fn: data.firstName?.toLowerCase().normalize('NFD')
+        .replace(/[\u0300-\u036f]/g, '') // Remove acentos
+        .replace(/[^a-z]/g, ''),        // Remove não-letras
+      
+      // Sobrenome em minúsculas e sem pontuação ou caracteres especiais
+      ln: data.lastName?.toLowerCase().normalize('NFD')
+        .replace(/[\u0300-\u036f]/g, '') // Remove acentos
+        .replace(/[^a-z]/g, ''),        // Remove não-letras
+      
+      // Cidade em minúsculas e sem espaços ou caracteres especiais
+      ct: data.city?.toLowerCase().normalize('NFD')
+        .replace(/[\u0300-\u036f]/g, '') // Remove acentos
+        .replace(/\s/g, '')              // Remove espaços
+        .replace(/[^a-z]/g, ''),        // Remove não-letras
+      
+      // Estado como código de duas letras em minúsculas
+      st: data.state?.toLowerCase().substring(0, 2),
+      
+      // CEP como string sem hífens ou espaços
+      // Para CEPs dos EUA, usar apenas os 5 primeiros dígitos
+      zp: data.zipCode?.replace(/[\s-]/g, ''),
+      
+      // País como código de duas letras em minúsculas
+      country: data.country?.toLowerCase().substring(0, 2) || 'br',
+      
+      // ID externo
+      external_id: data.externalId,     
+      
+    };
+    
+    // Remover campos undefined
+    Object.keys(formattedData).forEach(key => {
+      if (formattedData[key] === undefined) {
+        delete formattedData[key];
+      }
+    });
+    
+    return formattedData;
+  };
+
+  // Função para obter dados do cliente do localStorage
+  const getCustomerDataFromStorage = (): CustomerData | null => {
+    try {
+      const customerDataStr = localStorage.getItem('customerData');
+      if (!customerDataStr) return null;
+      
+      const customerData = JSON.parse(customerDataStr);
+      
+      // Verificar cookies do Facebook
+      const getCookie = (name: string): string | null => {
+        const cookies = document.cookie.split(';');
+        for (let i = 0; i < cookies.length; i++) {
+          const cookie = cookies[i].trim();
+          if (cookie.indexOf(`${name}=`) === 0) {
+            return cookie.substring(`${name}=`.length);
+          }
+        }
+        return null;
+      };
+      
+      // Adicionar cookies se não estiverem presentes
+      customerData.fbp = customerData.fbp || getCookie('_fbp');
+      customerData.fbc = customerData.fbc || getCookie('_fbc');
+      
+      return customerData;
+    } catch (e) {
+      console.error('Erro ao recuperar dados do cliente:', e);
+      return null;
+    }
+  };
+
+  // Inicializar o pixel e monitorar mudanças de rota
+  useEffect(() => {
+    // Função para inicializar o pixel
+    const initializePixel = () => {
+      if (typeof window === 'undefined' || !window.fbq || !META_PIXEL_ID) return;
+      
+      try {
+        // Obter dados do cliente para Advanced Matching
+        const customerData = getCustomerDataFromStorage();
+        const advancedMatchingData = customerData ? formatCustomerDataForAdvancedMatching(customerData) : {};
+        
+        // Inicializar o pixel com Advanced Matching
+        window.fbq('init', META_PIXEL_ID, advancedMatchingData);
+        
+        // Marcar como inicializado
+        setIsInitialized(true);
+        
+        // Log para depuração
+        console.log('Meta Pixel inicializado com Advanced Matching:', advancedMatchingData);
+      } catch (error) {
+        console.error('Erro ao inicializar o Meta Pixel:', error);
+      }
+    };
+    
+    // Inicializar o pixel quando o script estiver carregado
+    if (typeof window !== 'undefined' && window.fbq && !isInitialized) {
+      initializePixel();
+    }
+  }, [isInitialized]);
+
+  // Enviar evento PageView em cada mudança de rota
+  useEffect(() => {
+    if (typeof window === 'undefined' || !window.fbq || !isInitialized) return;
+    
+    // Enviar evento PageView
+    try {
+      window.fbq('track', 'PageView');
+      console.log('Evento PageView enviado para o Meta Pixel');
+    } catch (error) {
+      console.error('Erro ao enviar evento PageView:', error);
+    }
+  }, [pathname, searchParams, isInitialized]);
+
   return (
     <>
-      {/* Meta Pixel Code - Inicialização básica */}
-      <Script id="facebook-pixel-init" strategy="afterInteractive">
+      {/* Meta Pixel Code - Script base */}
+      <Script id="facebook-pixel" strategy="afterInteractive">
         {`
           !function(f,b,e,v,n,t,s)
           {if(f.fbq)return;n=f.fbq=function(){n.callMethod?
@@ -19,234 +178,7 @@ export default function MetaPixel() {
           t.src=v;s=b.getElementsByTagName(e)[0];
           s.parentNode.insertBefore(t,s)}(window, document,'script',
           'https://connect.facebook.net/en_US/fbevents.js');
-          
-          // Inicializar o pixel
-          fbq('init', '${META_PIXEL_ID}');
-        `.replace(/\$\{META_PIXEL_ID\}/g, META_PIXEL_ID || '')}
-      </Script>
-      
-      {/* Script para capturar e usar fbp e fbc */}
-      <Script id="facebook-pixel-fbp-fbc" strategy="afterInteractive">
-        {`
-          // Função para obter o parâmetro fbclid da URL
-          function getFbclid() {
-            const params = new URLSearchParams(window.location.search);
-            return params.get('fbclid');
-          }
-          
-          // Função para obter o cookie _fbp existente
-          function getExistingFbp() {
-            const cookies = document.cookie.split(';');
-            for (let i = 0; i < cookies.length; i++) {
-              const cookie = cookies[i].trim();
-              if (cookie.indexOf('_fbp=') === 0) {
-                return cookie.substring('_fbp='.length);
-              }
-            }
-            return null;
-          }
-          
-          // Função para obter o cookie _fbc existente
-          function getExistingFbc() {
-            const cookies = document.cookie.split(';');
-            for (let i = 0; i < cookies.length; i++) {
-              const cookie = cookies[i].trim();
-              if (cookie.indexOf('_fbc=') === 0) {
-                return cookie.substring('_fbc='.length);
-              }
-            }
-            return null;
-          }
-          
-          // Criar novo cookie _fbp se não existir
-          function createFbpCookie() {
-            const version = 'fb';
-            const subdomainIndex = '1';
-            const creationTime = Date.now();
-            const randomNumber = Math.floor(Math.random() * 1000000000);
-            
-            const fbpValue = version + '.' + subdomainIndex + '.' + creationTime + '.' + randomNumber;
-            
-            // Definir o cookie _fbp com validade de 90 dias
-            const expiryDate = new Date();
-            expiryDate.setDate(expiryDate.getDate() + 90);
-            document.cookie = '_fbp=' + fbpValue + ';expires=' + expiryDate.toUTCString() + ';path=/;domain=' + window.location.hostname + ';SameSite=Lax';
-            
-            return fbpValue;
-          }
-          
-          // Criar novo cookie _fbc se tiver fbclid
-          function createFbcCookie(fbclid) {
-            if (!fbclid) return null;
-            
-            const version = 'fb';
-            const subdomainIndex = '1';
-            const creationTime = Date.now();
-            
-            const fbcValue = version + '.' + subdomainIndex + '.' + creationTime + '.' + fbclid;
-            
-            // Definir o cookie _fbc com validade de 90 dias
-            const expiryDate = new Date();
-            expiryDate.setDate(expiryDate.getDate() + 90);
-            document.cookie = '_fbc=' + fbcValue + ';expires=' + expiryDate.toUTCString() + ';path=/;domain=' + window.location.hostname + ';SameSite=Lax';
-            
-            return fbcValue;
-          }
-          
-          // Obter ou criar os cookies fbp e fbc
-          let fbp = getExistingFbp();
-          if (!fbp) {
-            fbp = createFbpCookie();
-          }
-          
-          const fbclid = getFbclid();
-          let fbc = getExistingFbc();
-          if (fbclid) {
-            fbc = createFbcCookie(fbclid);
-          }
         `}
-      </Script>
-      
-      {/* Script para enviar o PageView com os parâmetros adicionais e advanced matching */}
-      <Script id="facebook-pixel-pageview" strategy="afterInteractive">
-        {`
-          // Função para obter dados do cliente do localStorage
-          function getCustomerDataFromStorage() {
-            try {
-              // Verificar se temos dados do cliente armazenados
-              const customerDataStr = localStorage.getItem('customerData');
-              if (customerDataStr) {
-                return JSON.parse(customerDataStr);
-              }
-              
-              // Verificar se temos dados de usuário armazenados em outro formato
-              const userData = localStorage.getItem('userData');
-              if (userData) {
-                const parsedUserData = JSON.parse(userData);
-                return {
-                  email: parsedUserData.email,
-                  phone: parsedUserData.phone || parsedUserData.telefone,
-                  firstName: parsedUserData.firstName || parsedUserData.nome,
-                  lastName: parsedUserData.lastName || parsedUserData.sobrenome,
-                  city: parsedUserData.city || parsedUserData.cidade,
-                  state: parsedUserData.state || parsedUserData.estado,
-                  zipCode: parsedUserData.zipCode || parsedUserData.cep,
-                  country: parsedUserData.country || parsedUserData.pais || 'Brasil',
-                  externalId: parsedUserData.externalId || parsedUserData.id
-                };
-              }
-            } catch (e) {
-              console.error('Erro ao recuperar dados do cliente:', e);
-            }
-            return null;
-          }
-          
-          // Função para aplicar hash SHA-256 aos dados do cliente
-          async function hashCustomerData(customerData) {
-            if (!customerData) return {};
-            
-            const hashValue = async (value) => {
-              if (!value) return undefined;
-              
-              // Normalizar o valor (remover espaços, converter para minúsculas)
-              const normalized = value.trim().toLowerCase();
-              
-              // Verificar se o navegador suporta SubtleCrypto
-              if (window.crypto && window.crypto.subtle && window.crypto.subtle.digest) {
-                try {
-                  // Converter string para bytes
-                  const encoder = new TextEncoder();
-                  const data = encoder.encode(normalized);
-                  
-                  // Gerar hash SHA-256
-                  const hashBuffer = await window.crypto.subtle.digest('SHA-256', data);
-                  
-                  // Converter buffer para string hexadecimal
-                  const hashArray = Array.from(new Uint8Array(hashBuffer));
-                  const hashHex = hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
-                  
-                  return hashHex;
-                } catch (e) {
-                  console.error('Erro ao gerar hash:', e);
-                }
-              }
-              
-              return undefined;
-            };
-            
-            // Aplicar hash em todos os campos
-            const hashedData = {};
-            if (customerData.email) hashedData.em = await hashValue(customerData.email);
-            if (customerData.phone) hashedData.ph = await hashValue(customerData.phone);
-            if (customerData.firstName) hashedData.fn = await hashValue(customerData.firstName);
-            if (customerData.lastName) hashedData.ln = await hashValue(customerData.lastName);
-            if (customerData.city) hashedData.ct = await hashValue(customerData.city);
-            if (customerData.state) hashedData.st = await hashValue(customerData.state);
-            if (customerData.zipCode) hashedData.zp = await hashValue(customerData.zipCode);
-            if (customerData.country) hashedData.country = await hashValue(customerData.country);
-            if (customerData.externalId) hashedData.external_id = await hashValue(customerData.externalId);
-            
-            return hashedData;
-          }
-          
-          // Coletar informações adicionais para o PageView
-          const pageViewData = {
-            page_title: document.title,
-            page_location: window.location.href,
-            page_path: window.location.pathname,
-            referrer: document.referrer || undefined,
-            user_agent: navigator.userAgent,
-            language: navigator.language,
-            screen_width: window.screen.width,
-            screen_height: window.screen.height,
-            timestamp: new Date().toISOString()
-          };
-          
-          // Adicionar os parâmetros fbp e fbc para melhorar o matching
-          const cookies = document.cookie.split(';');
-          for (let i = 0; i < cookies.length; i++) {
-            const cookie = cookies[i].trim();
-            if (cookie.indexOf('_fbp=') === 0) {
-              pageViewData.fbp = cookie.substring('_fbp='.length);
-            }
-            if (cookie.indexOf('_fbc=') === 0) {
-              pageViewData.fbc = cookie.substring('_fbc='.length);
-            }
-          }
-          
-          // Processar e enviar o evento com advanced matching
-          async function sendPageViewWithAdvancedMatching() {
-            try {
-              // Obter dados do cliente do localStorage
-              const customerData = getCustomerDataFromStorage();
-              
-              // Se temos dados do cliente, aplicar hash e incluir no advanced matching
-              if (customerData) {
-                const hashedData = await hashCustomerData(customerData);
-                
-                // Inicializar o pixel com advanced matching
-                if (typeof fbq !== 'undefined' && Object.keys(hashedData).length > 0) {
-                  fbq('init', '${META_PIXEL_ID}', hashedData);
-                }
-              }
-              
-              // Enviar evento PageView com dados adicionais
-              if (typeof fbq !== 'undefined') {
-                fbq('track', 'PageView', pageViewData);
-              }
-            } catch (e) {
-              console.error('Erro ao processar advanced matching:', e);
-              
-              // Garantir que o evento seja enviado mesmo se houver erro
-              if (typeof fbq !== 'undefined') {
-                fbq('track', 'PageView', pageViewData);
-              }
-            }
-          }
-          
-          // Executar o envio do evento
-          sendPageViewWithAdvancedMatching();
-        `.replace(/\$\{META_PIXEL_ID\}/g, META_PIXEL_ID || '')}
       </Script>
       
       <noscript>
@@ -254,11 +186,23 @@ export default function MetaPixel() {
         <img 
           height="1" 
           width="1" 
-          style={{ display: 'none' }}
-          src={`https://www.facebook.com/tr?id=${META_PIXEL_ID}&ev=PageView&noscript=1`}
+          style={{ display: 'none' }} 
+          src={`https://www.facebook.com/tr?id=${META_PIXEL_ID}&ev=PageView&noscript=1`} 
           alt=""
         />
       </noscript>
     </>
+  );
+}
+
+/**
+ * Componente exportado que envolve o conteúdo em um Suspense boundary
+ * para resolver o erro de useSearchParams
+ */
+export default function MetaPixel() {
+  return (
+    <Suspense fallback={null}>
+      <MetaPixelContent />
+    </Suspense>
   );
 }
