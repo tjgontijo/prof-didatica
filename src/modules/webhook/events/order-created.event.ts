@@ -9,8 +9,8 @@ import {
   OrderEventDataSchema,
   OrderWithRelationsForEvent,
   PaymentRawData,
-} from '@/services/webhook/core/types';
-import { getWebhookConfig } from '@/services/webhook/config/webhook.config';
+} from '@/modules/webhook/core/types';
+import { getWebhookConfig } from '@/modules/webhook/config/webhook.config';
 
 export class OrderCreatedEventHandler {
   private config = getWebhookConfig();

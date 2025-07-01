@@ -1,8 +1,7 @@
 import type { Metadata } from 'next';
 import './globals.css';
 import { Inter } from 'next/font/google';
-import MetaPixel from '@/scripts/MetaPixel';
-import TrackingInitializer from '@/components/tracking/Initializer';
+import TrackingInitializer from '@/modules/tracking/components/Initializer';
 
 const inter = Inter({
   subsets: ['latin'],
@@ -25,8 +24,7 @@ export default function RootLayout({
       <head>              
       </head>     
       <body className={`${inter.variable} font-sans antialiased`}>
-        <TrackingInitializer />
-        <MetaPixel />        
+        <TrackingInitializer />        
         {children}
       </body>
     </html>

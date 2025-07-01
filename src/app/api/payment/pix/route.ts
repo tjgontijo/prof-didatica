@@ -3,8 +3,8 @@ import { MercadoPagoConfig, Payment } from 'mercadopago';
 import { prisma } from '@/lib/prisma';
 import { z } from 'zod';
 import { Prisma } from '@prisma/client';
-import { getWebhookService } from '@/services/webhook';
-import { OrderCreatedEventHandler } from '@/services/webhook/events/order-created.event';
+import { getWebhookService } from '@/modules/webhook';
+import { OrderCreatedEventHandler } from '@/modules/webhook/events/order-created.event';
 import { paymentRateLimit } from '@/lib/rate-limit';
 
 // Schema para validação do payload

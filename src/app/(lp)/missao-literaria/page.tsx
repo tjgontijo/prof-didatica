@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState, useEffect, useCallback, Suspense, lazy, memo } from 'react';
-import EstoqueECountdown from '@/components/EstoqueECountdown';
+import EstoqueECountdown from '@/components/lp/EstoqueECountdown';
 import { FaChevronDown, FaCheck } from 'react-icons/fa';
 import Image from 'next/image';
 

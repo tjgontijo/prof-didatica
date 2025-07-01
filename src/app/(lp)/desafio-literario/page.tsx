@@ -1,11 +1,11 @@
 'use client';
 
 import React, { useState, useEffect, useCallback, Suspense, lazy, memo } from 'react';
-import EstoqueECountdown from '@/components/EstoqueECountdown';
+import EstoqueECountdown from '@/components/lp/EstoqueECountdown';
 import { FaChevronDown, FaCheck } from 'react-icons/fa';
 import Image from 'next/image';
 import { useRouter } from 'next/navigation';
-import { getCheckoutIdBySlug } from './actions';
+import { getCheckoutIdBySlug } from './cache';
 
 // Lazy load do CarrosselProjeto
 const CarrosselProjeto = lazy(() => import('@/components/carrossel/Carrossel-Missao-Literaria'));
@@ -71,6 +71,7 @@ export default function Page() {
   const [hasReachedThreshold, setHasReachedThreshold] = useState<boolean>(false);
   const [prefetchRealizado, setPrefetchRealizado] = useState<boolean>(false);
   const [prefetchErro, setPrefetchErro] = useState<string | null>(null);
+  const [isNavigating, setIsNavigating] = useState<boolean>(false);
 
   // Efeito para monitorar o scroll e mostrar o botão de compra
   useEffect(() => {
@@ -89,60 +90,52 @@ export default function Page() {
   // Estado para armazenar o ID do checkout obtido dinamicamente
   const [checkoutId, setCheckoutId] = useState<string | null>(null);
 
-  // Efeito para pré-carregar os dados do checkout
+  // Efeito para pré-carregar os dados do checkout imediatamente
   useEffect(() => {
     // Variável para controlar se o prefetch já foi feito
     let prefetchExecutado = false;
 
     // Função para executar o prefetch
-    const executarPrefetch = () => {
+    const executarPrefetch = async () => {
       if (prefetchExecutado) return; // Evita execuções duplicadas
       prefetchExecutado = true;
 
-      // Buscar o ID do checkout usando a slug do produto
-      getCheckoutIdBySlug(PRODUCT_SLUG)
-        .then((checkoutIdResult: string | null) => {
-          if (checkoutIdResult) {
-            setPrefetchRealizado(true);
-            setPrefetchErro(null);
-            setCheckoutId(checkoutIdResult); // Salva o ID do checkout obtido
-            
-            // Também prefetch da página de checkout
-            router.prefetch(`/checkout/${checkoutIdResult}`);
-          } else {
-            console.warn(`Não foi possível carregar o checkout para o produto ${PRODUCT_SLUG}`);
-            setPrefetchErro(`Não foi possível carregar o checkout para o produto ${PRODUCT_SLUG}`);
-            setPrefetchRealizado(true); // Ainda permitimos tentar navegar para o checkout
-          }
-        })
-        .catch((erro: Error) => {
-          console.error('Erro ao buscar checkout:', erro);
-          setPrefetchErro('Erro ao carregar dados: ' + (erro?.message || 'Erro desconhecido'));
-          setPrefetchRealizado(true); // Ainda permitimos tentar navegar para o checkout
-        });
+      try {
+        // Prefetch da estrutura da página de checkout imediatamente (sem esperar pelo ID)
+        router.prefetch('/checkout/[id]');
+        
+        // Buscar o ID do checkout usando a slug do produto
+        const checkoutIdResult = await getCheckoutIdBySlug(PRODUCT_SLUG);
+        
+        if (checkoutIdResult) {
+          setPrefetchRealizado(true);
+          setPrefetchErro(null);
+          setCheckoutId(checkoutIdResult); // Salva o ID do checkout obtido
+          
+          // Prefetch da página específica de checkout
+          router.prefetch(`/checkout/${checkoutIdResult}`);
+          
+          // Pré-carregar os dados do checkout usando uma requisição fetch
+          // Isso ajuda a popular o cache do Next.js
+          fetch(`/api/checkouts/${checkoutIdResult}`, { priority: 'high' })
+            .catch(() => {/* Ignorar erros silenciosamente */});
+        } else {
+          console.warn(`Não foi possível carregar o checkout para o produto ${PRODUCT_SLUG}`);
+          setPrefetchErro(`Não foi possível carregar o checkout para o produto ${PRODUCT_SLUG}`);
+          setPrefetchRealizado(true);
+        }
+      } catch (erro) {
+        console.error('Erro ao buscar checkout:', erro);
+        setPrefetchErro('Erro ao carregar dados: ' + ((erro as Error)?.message || 'Erro desconhecido'));
+        setPrefetchRealizado(true);
+      }
     };
 
-    // Verificar se a página já está carregada
-    if (document.readyState === 'complete') {
-      // Se a página já estiver carregada, executar após um pequeno delay
-      setTimeout(executarPrefetch, 3000);
-    } else {
-      // Caso contrário, aguardar o evento load
-      window.addEventListener('load', () => {
-        // Adicionar um delay para garantir que a LP esteja totalmente renderizada
-        setTimeout(executarPrefetch, 3000);
-      });
-    }
-
-    // Usar um timeout como fallback
-    const timeoutId = setTimeout(() => {
-      executarPrefetch();
-    }, 5000); // 5 segundos após a montagem do componente
+    // Executar o prefetch imediatamente
+    executarPrefetch();
 
     return () => {
-      // Limpeza
-      window.removeEventListener('load', executarPrefetch);
-      clearTimeout(timeoutId);
+      // Não é necessário limpar nada aqui
     };
   }, [router]);
 
@@ -510,20 +503,37 @@ export default function Page() {
 
               <button
                 onClick={() => {
+                  // Indicar que a navegação está em andamento
+                  setIsNavigating(true);
+                  
                   // Se o prefetch foi realizado, navegar diretamente para o checkout
                   if (prefetchRealizado && checkoutId) {
                     // Redirecionar para a URL correta do checkout
                     router.push(`/checkout/${checkoutId}`);
+                    
+                    // Timeout de segurança para resetar o estado caso a navegação demore muito
+                    setTimeout(() => setIsNavigating(false), 5000);
                   } else {
                     // Caso não tenha encontrado o ID do checkout ou ainda esteja aguardando, usar link de fallback
                     console.warn('Usando link de fallback para checkout');
                     window.location.href = offerData.fallbackLink;
                   }
                 }}
-                className="btn-purchase block w-full bg-gradient-to-r from-[#457B9D] to-[#1D3557] hover:from-[#1D3557] hover:to-[#457B9D] text-white text-base sm:text-lg font-bold py-3 sm:py-4 px-6 sm:px-8 rounded-xl shadow-lg transform transition-all duration-300 hover:scale-[1.02] hover:shadow-xl relative overflow-hidden group text-center uppercase"
+                disabled={isNavigating}
+                className={`btn-purchase block w-full bg-gradient-to-r from-[#457B9D] to-[#1D3557] hover:from-[#1D3557] hover:to-[#457B9D] text-white text-base sm:text-lg font-bold py-3 sm:py-4 px-6 sm:px-8 rounded-xl shadow-lg transform transition-all duration-300 hover:scale-[1.02] hover:shadow-xl relative overflow-hidden group text-center uppercase ${isNavigating ? 'opacity-75 cursor-not-allowed' : ''}`}
               >
                 <div className="absolute inset-0 bg-white/20 rounded-xl opacity-0 group-hover:opacity-100 transition-opacity"></div>
-                <span className="relative">Quero meus alunos apaixonados pela leitura</span>
+                {isNavigating ? (
+                  <div className="flex items-center justify-center">
+                    <svg className="animate-spin -ml-1 mr-3 h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                      <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                      <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                    </svg>
+                    <span className="relative">Carregando...</span>
+                  </div>
+                ) : (
+                  <span className="relative">Quero meus alunos apaixonados pela leitura</span>
+                )}
               </button>
               <EstoqueECountdown estoqueInicial={11} estoqueTotal={30} />
             </div>

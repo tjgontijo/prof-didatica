@@ -8,7 +8,8 @@ import { FaSpinner } from 'react-icons/fa';
 
 import { ProdutoInfo, OrderBump } from './types';
 import { collectTrackingData, TrackingData } from '@/lib/tracking';
-import { useTrackingSession } from '@/hooks/useTrackingSession';
+import { useTrackingSession } from '@/modules/tracking/hooks/useTrackingSession';
+import * as Storage from '@/modules/tracking/utils/storage';
 
 import OrderBumps from '@/components/checkout/OrderBumps';
 import FormCustomer, {
@@ -54,7 +55,9 @@ export default function CheckoutClientComponent({
   checkoutId,
 }: CheckoutClientComponentProps) {
   const router = useRouter();
-  const { ready, trackEventBoth } = useTrackingSession();
+  // Usar o hook useTrackingSession para obter a função trackEventBoth
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  const { trackEventBoth, ready } = useTrackingSession();
   // Estado para armazenar o ID do pedido
   const [orderId, setOrderId] = useState<string | null>(null);
   const [orderBumpsSelecionados, setOrderBumpsSelecionados] = useState<OrderBump[]>([]);
@@ -86,19 +89,51 @@ export default function CheckoutClientComponent({
     setOrderBumpsSelecionados(bumpsInicial);
   }, [orderBumps]);
 
-  // Dispara o evento InitiateCheckout quando o componente é montado
+  // Dispara o evento InitiateCheckout quando o componente é montado, mas apenas uma vez por sessão de checkout
   useEffect(() => {
-    if (ready) {
-      // Dispara o evento InitiateCheckout tanto no Pixel quanto no CAPI
-      trackEventBoth('InitiateCheckout', {
+    if (!ready) return;
+    
+    // Verificar se já enviamos este evento para este checkout específico
+    const checkoutEventKey = `checkout_event_${checkoutId}`;
+    const hasInitiatedCheckout = localStorage.getItem(checkoutEventKey);
+    
+    if (!hasInitiatedCheckout) {
+      // Obter dados do cliente usando a função do módulo de armazenamento
+      const customerData = Storage.getCustomerData() || {};
+      
+      // Verificar se há eventref na URL para eventos oficiais do Meta
+      const url = new URL(window.location.href);
+      const eventRef = url.searchParams.get('eventref');
+      
+      // Preparar parâmetros do evento conforme documentação oficial
+      const eventParams = {
         content_type: 'product',
         content_ids: [product.id],
         content_name: product.name,
         value: product.price,
-        currency: 'BRL'
-      });
+        currency: 'BRL',
+        // Adicionar eventref apenas se estiver presente na URL
+        eventref: eventRef === 'fb_oea' ? 'fb_oea' : '',
+        // Adicionar parâmetros adicionais para melhorar o EMQ
+        num_items: 1
+      };
+      
+      console.log('Disparando InitiateCheckout com parâmetros:', eventParams);
+      console.log('Dados do cliente para advanced matching:', customerData);
+      
+      // Dispara o evento InitiateCheckout tanto no Pixel quanto no CAPI
+      // usando a função do hook useTrackingSession
+      trackEventBoth('InitiateCheckout', eventParams, customerData);
+      
+      // Registra que o evento foi enviado para este checkout
+      localStorage.setItem(checkoutEventKey, 'true');
+      
+      // Opcional: Definir um tempo de expiração (24 horas)
+      setTimeout(() => {
+        localStorage.removeItem(checkoutEventKey);
+      }, 24 * 60 * 60 * 1000);
     }
-  }, [ready, trackEventBoth, product.id, product.name, product.price]);
+  }, [ready, trackEventBoth, product.id, product.name, product.price, checkoutId]);
 
   // Não precisamos mais recuperar o orderId da sessão
 

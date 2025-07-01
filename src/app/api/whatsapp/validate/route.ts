@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { WhatsappService } from '@/services/whatsapp/whatsapp.service';
+import { WhatsappService } from '@/modules/whatsapp/whatsapp.service';
 import logger from '@/lib/logger';
 
 // Cache para evitar chamadas repetidas à API

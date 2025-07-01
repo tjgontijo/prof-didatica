@@ -2,7 +2,7 @@
 
 import React, { useState } from 'react';
 import { UseFormRegister, FieldErrors, UseFormTrigger, FormState } from 'react-hook-form';
-import { useTrackingSession } from '@/hooks/useTrackingSession';
+import { useTrackingSession } from '@/modules/tracking/hooks/useTrackingSession';
 import { FaArrowRight, FaWhatsapp } from 'react-icons/fa';
 import { FiUser, FiMail } from 'react-icons/fi';
 import { formatBrazilianPhone, cleanPhone, validateBrazilianPhone } from '@/lib/phone';
@@ -23,6 +23,12 @@ export const customerFormSchema = z.object({
 
 export type CustomerFormValues = z.infer<typeof customerFormSchema>;
 
+interface Product {
+  id: string;
+  name: string;
+  price: number;
+}
+
 interface FormCustomerProps {
   register: UseFormRegister<CustomerFormValues>;
   errors: FieldErrors<CustomerFormValues>;
@@ -30,15 +36,18 @@ interface FormCustomerProps {
   trigger: UseFormTrigger<CustomerFormValues>;
   formState: FormState<CustomerFormValues>;
   onProceedToPayment: () => void;
+  product?: Product;
 }
 
-const FormCustomer: React.FC<FormCustomerProps> = ({
+function FormCustomer({
   register,
   errors,
   isSubmitting,
-  trigger,
+  trigger,  
   onProceedToPayment,
-}) => {
+  product
+}: FormCustomerProps) {
+  // Usar o hook useTrackingSession para obter a função trackEventBoth
   const { trackEventBoth } = useTrackingSession();
   const [isNameValid, setIsNameValid] = useState(false);
   const [isEmailValid, setIsEmailValid] = useState(false);
@@ -227,16 +236,72 @@ const FormCustomer: React.FC<FormCustomerProps> = ({
                   phone: cleanPhone(phoneInput?.value || '')
                 };
                 
-                // Enviar evento com dados do cliente para advanced matching
-                trackEventBoth('AddPaymentInfo', {
-                  content_category: 'form',
-                  currency: 'BRL'
-                }, {
-                  // Dados do cliente para advanced matching
-                  firstName: formValues.name,
-                  email: formValues.email,
-                  phone: formValues.phone
-                });
+                // Verificar se já enviamos este evento para este formulário
+                const paymentInfoEventKey = `payment_info_${formValues.email}`;
+                const hasAddedPaymentInfo = localStorage.getItem(paymentInfoEventKey);
+                
+                if (!hasAddedPaymentInfo) {
+                  // Extrair nome e sobrenome
+                  const nameParts = formValues.name.split(' ');
+                  const firstName = nameParts[0] || '';
+                  const lastName = nameParts.length > 1 ? nameParts.slice(1).join(' ') : '';
+                  
+                  // Obter dados do produto e checkout do contexto
+                  // Usar valores padrão caso o produto não esteja disponível
+                  const defaultProduct = {
+                    id: 'default-product',
+                    name: 'Produto',
+                    price: 0
+                  };
+                  const currentProduct = product || defaultProduct;
+                  const productValue = currentProduct.price;
+                  const productId = currentProduct.id;
+                  const productName = currentProduct.name;
+                  
+                  // Verificar se há eventref na URL para eventos oficiais do Meta
+                  const url = new URL(window.location.href);
+                  const eventRef = url.searchParams.get('eventref');
+                  
+                  // Preparar parâmetros do evento conforme documentação oficial
+                  const eventParams = {
+                    content_category: 'form',
+                    content_type: 'product',
+                    content_ids: [productId],
+                    content_name: productName,
+                    value: productValue,
+                    currency: 'BRL',
+                    // Adicionar eventref apenas se estiver presente na URL
+                    eventref: eventRef === 'fb_oea' ? 'fb_oea' : '',
+                    // Adicionar parâmetros adicionais para melhorar o EMQ
+                    num_items: 1,
+                    predicted_ltv: productValue * 1.5 // Valor estimado de LTV baseado no preço do produto
+                  };
+                  
+                  // Preparar dados do cliente para advanced matching
+                  const customerData = {
+                    // Dados do cliente para advanced matching
+                    firstName: firstName,
+                    lastName: lastName,
+                    email: formValues.email,
+                    phone: formValues.phone,
+                    // Adicionar dados adicionais para melhorar o EMQ
+                    externalId: formValues.email.split('@')[0] // ID externo baseado no email
+                  };
+                  
+                  console.log('Disparando AddPaymentInfo com parâmetros:', eventParams);
+                  console.log('Dados do cliente para advanced matching:', customerData);
+                  
+                  // Enviar evento com dados do cliente para advanced matching
+                  trackEventBoth('AddPaymentInfo', eventParams, customerData);
+                  
+                  // Registrar que o evento foi enviado para este email
+                  localStorage.setItem(paymentInfoEventKey, 'true');
+                  
+                  // Opcional: Definir um tempo de expiração (24 horas)
+                  setTimeout(() => {
+                    localStorage.removeItem(paymentInfoEventKey);
+                  }, 24 * 60 * 60 * 1000);
+                }
                 
                 onProceedToPayment();
               }
