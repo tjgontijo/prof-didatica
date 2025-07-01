@@ -1,6 +1,6 @@
 datasource db {
-  provider = "postgresql"
-  url      = env("DATABASE_URL")
+  provider  = "postgresql"
+  url       = env("DATABASE_URL")
   directUrl = env("DIRECT_URL")
 }
 
@@ -14,129 +14,132 @@ enum OrderStatus {
   PAID
   COMPLETED
   CANCELLED
-  }
+}
 
 // ========================
 // Checkout and Digital Sales
 // ========================
 
 model Product {
-  id              String   @id @default(cuid())
-  name            String
-  description     String
-  imageUrl        String?  // URL da imagem do produto
-  slug            String   // URL amigável  @unique
-  price           Int  
-  salesPageUrl    String?  
-  googleDriveUrl  String?  // URL do Google Drive com o material digital
-  isActive        Boolean  @default(true)
-  createdAt       DateTime @default(now())
-  updatedAt       DateTime @updatedAt
-  deletedAt       DateTime?
+  id             String    @id @default(cuid())
+  name           String
+  description    String
+  imageUrl       String? // URL da imagem do produto
+  slug           String // URL amigável  @unique
+  price          Int
+  salesPageUrl   String?
+  googleDriveUrl String? // URL do Google Drive com o material digital
+  isActive       Boolean   @default(true)
+  createdAt      DateTime  @default(now())
+  updatedAt      DateTime  @updatedAt
+  deletedAt      DateTime?
 
-  checkouts       Checkout[]
-  
+  checkouts Checkout[]
+
   // Relações de order bumps
   mainProductBumps OrderBump[] @relation("MainProductOrderBumps") // Order bumps que este produto oferece
-  asBumpProduct   OrderBump[] @relation("BumpProducts")          // Quando este produto é oferecido como order bump
-  
+  asBumpProduct    OrderBump[] @relation("BumpProducts") // Quando este produto é oferecido como order bump
+
   // Configuração de redirecionamento após pagamento
-  orders          Order[]
-  orderItems      OrderItem[]
-    
+  orders     Order[]
+  orderItems OrderItem[]
+
   @@index([isActive, deletedAt])
 }
 
 model Checkout {
-  id              String    @id @default(cuid())  
-  productId       String
-  campaignName    String? 
-  isActive        Boolean   @default(true)
-  createdAt       DateTime  @default(now())
-  updatedAt       DateTime  @updatedAt
-  deletedAt       DateTime? 
+  id           String    @id @default(cuid())
+  productId    String
+  campaignName String?
+  isActive     Boolean   @default(true)
+  createdAt    DateTime  @default(now())
+  updatedAt    DateTime  @updatedAt
+  deletedAt    DateTime?
 
-  product         Product   @relation(fields: [productId], references: [id])
-  orders          Order[]
-    
+  product Product @relation(fields: [productId], references: [id])
+  orders  Order[]
+
   @@index([isActive, deletedAt])
 }
 
 model OrderBump {
-  id                String   @id @default(cuid())
-  mainProductId     String
-  bumpProductId     String
+  id            String @id @default(cuid())
+  mainProductId String
+  bumpProductId String
 
-  mainProduct       Product  @relation("MainProductOrderBumps", fields: [mainProductId], references: [id])
-  bumpProduct       Product  @relation("BumpProducts", fields: [bumpProductId], references: [id])
+  mainProduct Product @relation("MainProductOrderBumps", fields: [mainProductId], references: [id])
+  bumpProduct Product @relation("BumpProducts", fields: [bumpProductId], references: [id])
 
-  specialPrice      Int
-  displayOrder      Int?
-  isActive          Boolean  @default(true)
-  
-  createdAt         DateTime @default(now())
-  updatedAt         DateTime @updatedAt
-  deletedAt         DateTime?
+  specialPrice Int
+  displayOrder Int?
+  isActive     Boolean @default(true)
+
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+  deletedAt DateTime?
 
   @@index([mainProductId])
   @@index([bumpProductId])
 }
 
 model Order {
-  id              String        @id @default(cuid())
+  id              String      @id @default(cuid())
   checkoutId      String
   productId       String
   customerId      String
   paidAmount      Int
-  status          OrderStatus   @default(DRAFT)
-  statusUpdatedAt DateTime      @default(now())
-  paidAt          DateTime?     // Data do pagamento
-  trackingData    Json?         // Dados de rastreamento (UTMs, lead, etc)
+  status          OrderStatus @default(DRAFT)
+  statusUpdatedAt DateTime    @default(now())
+  paidAt          DateTime?
 
-  createdAt       DateTime      @default(now())
-  updatedAt       DateTime      @updatedAt
-  deletedAt       DateTime?
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+  deletedAt DateTime?
 
-  payment         Payment?
-  checkout        Checkout      @relation(fields: [checkoutId], references: [id])
-  product         Product       @relation(fields: [productId], references: [id])  
-  orderItems      OrderItem[]
-  statusHistory   OrderStatusHistory[]
-  customer        Customer      @relation(fields: [customerId], references: [id])
-  
+  trackingSessionId String?
+  trackingSession   TrackingSession? @relation(fields: [trackingSessionId], references: [id])
+
+  payment        Payment?
+  checkout       Checkout             @relation(fields: [checkoutId], references: [id])
+  product        Product              @relation(fields: [productId], references: [id])
+  orderItems     OrderItem[]
+  statusHistory  OrderStatusHistory[]
+  customer       Customer             @relation(fields: [customerId], references: [id])
+  trackingEvents TrackingEvent[]
+
   @@index([createdAt])
   @@index([customerId])
   @@index([deletedAt])
 }
 
 model OrderItem {
-  id          String  @id @default(cuid())
+  id          String    @id @default(cuid())
   orderId     String
   productId   String
-  quantity    Int     @default(1)
-  priceAtTime Float    // Preço no momento da compra
-  isOrderBump Boolean  @default(false)
-  isUpsell    Boolean  @default(false)
-  createdAt   DateTime @default(now())
+  quantity    Int       @default(1)
+  priceAtTime Float // Preço no momento da compra
+  isOrderBump Boolean   @default(false)
+  isUpsell    Boolean   @default(false)
+  createdAt   DateTime  @default(now())
   deletedAt   DateTime?
 
-  order       Order   @relation(fields: [orderId], references: [id])
-  product     Product @relation(fields: [productId], references: [id])
-  
+  order   Order   @relation(fields: [orderId], references: [id])
+  product Product @relation(fields: [productId], references: [id])
+
   @@index([orderId])
   @@index([productId])
   @@index([deletedAt])
 }
 
 model OrderStatusHistory {
-  id             String        @id @default(cuid())
+  id             String       @id @default(cuid())
   orderId        String
   previousStatus OrderStatus?
   newStatus      OrderStatus
   notes          String?
-  createdAt      DateTime      @default(now())
-  order          Order         @relation(fields: [orderId], references: [id])
-  
+  createdAt      DateTime     @default(now())
+  order          Order        @relation(fields: [orderId], references: [id])
+
   @@index([orderId])
 }
 
@@ -144,47 +147,47 @@ model Webhook {
   id          String    @id @default(cuid())
   url         String
   events      String[]
-  active      Boolean   @default(true)  
-  description String? 
+  active      Boolean   @default(true)
+  description String?
   createdAt   DateTime  @default(now())
   updatedAt   DateTime  @updatedAt
   deletedAt   DateTime?
-  
-  logs        WebhookLog[]
-  
+
+  logs WebhookLog[]
+
   @@index([active])
 }
 
 model WebhookLog {
-  id          String   @id @default(cuid())
-  webhookId   String
-  event       String
-  payload     String   // JSON payload enviado
-  response    String?  // resposta do servidor externo
-  statusCode  Int?
-  success     Boolean
-  sentAt      DateTime @default(now())
-  
-  webhook     Webhook  @relation(fields: [webhookId], references: [id])
-  
+  id         String   @id @default(cuid())
+  webhookId  String
+  event      String
+  payload    String // JSON payload enviado
+  response   String? // resposta do servidor externo
+  statusCode Int?
+  success    Boolean
+  sentAt     DateTime @default(now())
+
+  webhook Webhook @relation(fields: [webhookId], references: [id])
+
   @@index([webhookId, success])
   @@index([event, sentAt])
 }
 
 model Payment {
-  id             String   @id @default(cuid())
-  orderId        String   @unique
-  status         String   // era PaymentStatus
-  method         String   // pix, credit_card, boleto, etc.
-  mercadoPagoId  String?  // ID do Mercado Pago
-  amount         Int      // valor em centavos  
-  rawData        Json?    // Dados crus do provedor de pagamento
-  paidAt         DateTime?
-  createdAt      DateTime @default(now())
-  updatedAt      DateTime @updatedAt
-  deletedAt      DateTime?
+  id            String    @id @default(cuid())
+  orderId       String    @unique
+  status        String // era PaymentStatus
+  method        String // pix, credit_card, boleto, etc.
+  mercadoPagoId String? // ID do Mercado Pago
+  amount        Int // valor em centavos  
+  rawData       Json? // Dados crus do provedor de pagamento
+  paidAt        DateTime?
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+  deletedAt     DateTime?
 
-  order          Order    @relation(fields: [orderId], references: [id])
+  order Order @relation(fields: [orderId], references: [id])
 
   @@index([orderId])
   @@index([deletedAt])
@@ -192,14 +195,14 @@ model Payment {
 
 // Dados de clientes (leads e clientes)
 model Customer {
-  id         String    @id @default(cuid())
-  name       String
-  email      String    @unique
-  phone      String    @unique
-  createdAt  DateTime  @default(now())
-  updatedAt  DateTime  @updatedAt
-  orders     Order[]
-  
+  id        String   @id @default(cuid())
+  name      String
+  email     String   @unique
+  phone     String   @unique
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  orders    Order[]
+
   @@index([email])
   @@index([phone])
 }
@@ -211,17 +214,68 @@ model Customer {
 model ExternalWebhookLog {
   id          String   @id @default(cuid())
   webhookId   String   @unique // ID único do webhook (x-request-id ou gerado)
-  source      String   // 'mercadopago', 'stripe', etc
-  paymentId   String?  // ID do pagamento externo
-  action      String   // Ação do webhook (payment.created, payment.updated, etc)
-  status      String?  // Status processado
-  payload     String   // JSON payload recebido
-  headers     String?  // Headers importantes (JSON)
+  source      String // 'mercadopago', 'stripe', etc
+  paymentId   String? // ID do pagamento externo
+  action      String // Ação do webhook (payment.created, payment.updated, etc)
+  status      String? // Status processado
+  payload     String // JSON payload recebido
+  headers     String? // Headers importantes (JSON)
   processedAt DateTime @default(now())
   success     Boolean  @default(true)
-  errorMsg    String?  // Mensagem de erro se falhou
-  
+  errorMsg    String? // Mensagem de erro se falhou
+
   @@index([webhookId])
   @@index([source, paymentId])
   @@index([action, processedAt])
+}
+
+model TrackingSession {
+  id          String   @id @default(cuid()) // tracking_id
+  utmSource   String?
+  utmMedium   String?
+  utmCampaign String?
+  utmTerm     String?
+  utmContent  String?
+  fbclid      String?
+  fbp         String?
+  fbc         String?
+  landingPage String?
+  ip          String? // do api.ipify.org
+  country     String? // do ip-api.com
+  region      String? // do ip-api.com .regionName
+  city        String? // do ip-api.com
+  zip         String? // do ip-api.com .zip
+  lat         Float? // do ip-api.com .lat
+  lon         Float? // do ip-api.com .lon
+  userAgent   String?
+  createdAt   DateTime @default(now())
+
+  trackingEvents TrackingEvent[]
+  orders         Order[]
+
+  @@index([utmSource, utmCampaign])
+  @@index([fbclid])
+  @@index([country, region, city])
+}
+
+model TrackingEvent {
+  id                String   @id @default(cuid())
+  trackingSessionId String
+  orderId           String?
+  eventName         String
+  eventId           String
+  payload           Json
+  status            String
+  response          Json?
+  error             String?
+  ip                String?
+  userAgent         String?
+  createdAt         DateTime @default(now())
+
+  trackingSession TrackingSession @relation(fields: [trackingSessionId], references: [id])
+  order           Order?          @relation(fields: [orderId], references: [id])
+
+  @@index([eventName])
+  @@index([eventId])
+  @@index([trackingSessionId])
 }

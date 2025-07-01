@@ -99,14 +99,14 @@ export default function CarrosselMissaoLiteraria() {
       content: (
         <div className="relative aspect-[7/10] w-full rounded-md">
           <LazyImage
-            src="/images/carrossel/missao-literaria/1.webp"
+            src="/images/products/missao-literaria/carrossel/1.webp"
             alt="Missão Literária - Imagem 1"
             fill
             sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 700px"
             priority={true}
             className="object-contain"
             placeholder="blur"
-            blurDataURL="/images/carrossel/missao-literaria/placeholder.webp"
+            blurDataURL="/images/products/missao-literaria/carrossel/placeholder.webp"
             quality={80}
             placeholderColor="#f0f0f0"
           />
@@ -118,14 +118,14 @@ export default function CarrosselMissaoLiteraria() {
       content: (
         <div className="relative aspect-[7/10] w-full rounded-md">
           <LazyImage
-            src="/images/carrossel/missao-literaria/2.webp"
+            src="/images/products/missao-literaria/carrossel/2.webp"
             alt="Missão Literária - Imagem 2"
             fill
             sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 700px"
             loading="lazy"
             className="object-contain"
             placeholder="blur"
-            blurDataURL="/images/carrossel/missao-literaria/placeholder.webp"
+            blurDataURL="/images/products/missao-literaria/carrossel/placeholder.webp"
             quality={80}
             placeholderColor="#f0f0f0"
           />
@@ -137,14 +137,14 @@ export default function CarrosselMissaoLiteraria() {
       content: (
         <div className="relative aspect-[7/10] w-full rounded-md">
           <LazyImage
-            src="/images/carrossel/missao-literaria/3.webp"
+            src="/images/products/missao-literaria/carrossel/3.webp"
             alt="Missão Literária - Imagem 3"
             fill
             sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 700px"
             loading="lazy"
             className="object-contain"
             placeholder="blur"
-            blurDataURL="/images/carrossel/missao-literaria/placeholder.webp"
+            blurDataURL="/images/products/missao-literaria/carrossel/placeholder.webp"
             quality={80}
             placeholderColor="#f0f0f0"
           />
@@ -156,14 +156,14 @@ export default function CarrosselMissaoLiteraria() {
       content: (
         <div className="relative aspect-[7/10] w-full rounded-md">
           <LazyImage
-            src="/images/carrossel/missao-literaria/4.webp"
+            src="/images/products/missao-literaria/carrossel/4.webp"
             alt="Missão Literária - Imagem 4"
             fill
             sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 700px"
             loading="lazy"
             className="object-contain"
             placeholder="blur"
-            blurDataURL="/images/carrossel/missao-literaria/placeholder.webp"
+            blurDataURL="/images/products/missao-literaria/carrossel/placeholder.webp"
             quality={80}
             placeholderColor="#f0f0f0"
           />
@@ -175,14 +175,14 @@ export default function CarrosselMissaoLiteraria() {
       content: (
         <div className="relative aspect-[7/10] w-full rounded-md">
           <LazyImage
-            src="/images/carrossel/missao-literaria/5.webp"
+            src="/images/products/missao-literaria/carrossel/5.webp"            
             alt="Missão Literária - Imagem 5"
             fill
             sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 700px"
             loading="lazy"
             className="object-contain"
             placeholder="blur"
-            blurDataURL="/images/carrossel/missao-literaria/placeholder.webp"
+            blurDataURL="/images/products/missao-literaria/carrossel/placeholder.webp"
             quality={80}
             placeholderColor="#f0f0f0"
           />

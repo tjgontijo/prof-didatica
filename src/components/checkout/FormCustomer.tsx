@@ -2,6 +2,7 @@
 
 import React, { useState } from 'react';
 import { UseFormRegister, FieldErrors, UseFormTrigger, FormState } from 'react-hook-form';
+import { useTrackingSession } from '@/hooks/useTrackingSession';
 import { FaArrowRight, FaWhatsapp } from 'react-icons/fa';
 import { FiUser, FiMail } from 'react-icons/fi';
 import { formatBrazilianPhone, cleanPhone, validateBrazilianPhone } from '@/lib/phone';
@@ -38,6 +39,7 @@ const FormCustomer: React.FC<FormCustomerProps> = ({
   trigger,
   onProceedToPayment,
 }) => {
+  const { trackEventBoth } = useTrackingSession();
   const [isNameValid, setIsNameValid] = useState(false);
   const [isEmailValid, setIsEmailValid] = useState(false);
   const [isWhatsappValid, setIsWhatsappValid] = useState(false);
@@ -214,6 +216,28 @@ const FormCustomer: React.FC<FormCustomerProps> = ({
               const emailValid = await trigger('email');
               const phoneValid = await trigger('phone');
               if (nameValid && emailValid && phoneValid && isWhatsappValid) {
+                // Disparar o evento AddPaymentInfo com os dados do cliente para advanced matching
+                const nameInput = document.getElementById('name') as HTMLInputElement;
+                const emailInput = document.getElementById('email') as HTMLInputElement;
+                const phoneInput = document.getElementById('phone') as HTMLInputElement;
+                
+                const formValues = {
+                  name: nameInput?.value || '',
+                  email: emailInput?.value || '',
+                  phone: cleanPhone(phoneInput?.value || '')
+                };
+                
+                // Enviar evento com dados do cliente para advanced matching
+                trackEventBoth('AddPaymentInfo', {
+                  content_category: 'form',
+                  currency: 'BRL'
+                }, {
+                  // Dados do cliente para advanced matching
+                  firstName: formValues.name,
+                  email: formValues.email,
+                  phone: formValues.phone
+                });
+                
                 onProceedToPayment();
               }
             }}

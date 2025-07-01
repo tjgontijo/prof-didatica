@@ -220,7 +220,7 @@ export default function Page() {
 
               <div className="flex flex-col items-center mb-8">
                 <Image
-                  src="/images/lp/prof.webp"
+                  src="/images/products/desafio-literario/lp/prof.webp"
                   alt="Professora cansada com turma agitada ao fundo"
                   width={600}
                   height={600}

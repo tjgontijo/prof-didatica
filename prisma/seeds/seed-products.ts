@@ -2,7 +2,7 @@ export const initialProducts = [
   {
     name: 'Desafio Literário',
     description: '20 Fichas prontas, leitura gamificada com leiturômetro e controle de leitura. Um kit completo pra engajar sua turma de forma prática e lúdica.',
-    imageUrl: '/images/products/desafio_literario_cover.webp',
+    imageUrl: '/images/products/desafio-literario/cover/desafio_literario_cover.webp',
     googleDriveUrl: 'https://drive.google.com/drive/folders/1dKXQPGdYNhDTl-W4_yS8kJ-wHRdN3y9E?usp=drive_link',
     slug: 'desafio-literario',
     price: 1200
