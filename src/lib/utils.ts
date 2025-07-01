@@ -16,9 +16,10 @@ export function generateCuid(): string {
 }
 
 /**
- * Gera um ID de rastreamento no formato trk_[cuid]
+ * Gera um ID de rastreamento usando CUID
  * @returns string ID de rastreamento
  */
 export function generateTrackingId(): string {
-  return `trk_${generateCuid()}`;
+  // Usar CUID puro para compatibilidade com o Prisma
+  return generateCuid();
 }
