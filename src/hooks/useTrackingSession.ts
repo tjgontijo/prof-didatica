@@ -11,12 +11,17 @@ interface UtmData {
 }
 
 interface TrackingSessionData extends UtmData {
-  trackingId: string;
+  trackingId?: string; // Opcional para permitir que o backend gere
   fbp?: string;
   fbc?: string;
   landingPage: string;
   userAgent: string;
   ip?: string;
+  // Campos de geolocalização
+  city?: string;
+  state?: string;
+  zipCode?: string;
+  country?: string;
 }
 
 interface CustomerData {
@@ -29,6 +34,8 @@ interface CustomerData {
   zipCode?: string;
   country?: string;
   externalId?: string;
+  fbp?: string; // Cookie do Facebook Pixel
+  fbc?: string; // Cookie do Facebook Click ID
 }
 
 interface TrackingEventData {
@@ -49,22 +56,32 @@ interface TrackingHookReturn {
   trackEventBoth: (eventName: string, customData?: Record<string, unknown>, customer?: CustomerData) => Promise<void>;
 }
 
-// A declaração do tipo global do Facebook Pixel já está em custom.d.ts
-
-import { generateTrackingId } from '../lib/utils';
+// Interface para dados de geolocalização
+interface GeoData {
+  city?: string;
+  region?: string;
+  postal?: string;
+  country?: string;
+  country_name?: string; // Nome completo do país usado pelo ipapi.co
+}
 
 /**
- * Gera ou recupera um ID de rastreamento único para o usuário
- * @returns ID de rastreamento no formato 'trk_[cuid]'
+ * Recupera o ID de rastreamento do localStorage, se existir
+ * @returns ID de rastreamento ou string vazia
  */
-export function getTrackingId(): string {
+export function getStoredTrackingId(): string {
   if (typeof window === 'undefined') return '';
-  let id = localStorage.getItem('tracking_id');
-  if (!id) {
-    id = generateTrackingId();
-    localStorage.setItem('tracking_id', id);
-  }
-  return id;
+  const id = localStorage.getItem('tracking_id');
+  return id || '';
+}
+
+/**
+ * Armazena o ID de rastreamento no localStorage
+ * @param id ID de rastreamento gerado pelo backend
+ */
+export function storeTrackingId(id: string): void {
+  if (typeof window === 'undefined' || !id) return;
+  localStorage.setItem('tracking_id', id);
 }
 
 /**
@@ -98,112 +115,205 @@ function collectUtms(): UtmData {
     'fbclid',
     'gclid'
   ];
+
+  const utmData: UtmData = {};
   
-  return utmKeys.reduce<UtmData>((acc, key) => {
+  utmKeys.forEach(key => {
     const value = params.get(key);
     if (value) {
-      acc[key as keyof UtmData] = value;
+      utmData[key as keyof UtmData] = value;
     }
-    return acc;
-  }, {});
+  });
+  
+  return utmData;
 }
 
 /**
- * Verifica se existem dados antigos de rastreamento para migrar
- * @returns Dados UTM migrados do sistema antigo, se disponíveis
+ * Migra dados de rastreamento antigos para o novo formato
+ * @returns Dados UTM do formato antigo
  */
 function migrateOldTrackingData(): UtmData {
   if (typeof window === 'undefined') return {};
   
-  const legacyTracking = localStorage.getItem('trackingParameters');
-  if (!legacyTracking) return {};
+  const legacyKeys = [
+    { old: 'utm_source', new: 'utm_source' },
+    { old: 'utm_medium', new: 'utm_medium' },
+    { old: 'utm_campaign', new: 'utm_campaign' },
+    { old: 'utm_term', new: 'utm_term' },
+    { old: 'utm_content', new: 'utm_content' },
+    { old: 'fbclid', new: 'fbclid' }
+  ];
   
-  try {
-    const parsed = JSON.parse(legacyTracking);
-    if (parsed.trackingParameters && parsed.expiresAt && Date.now() < parsed.expiresAt) {
-      const result: UtmData = {};
-      
-      if (parsed.trackingParameters.utm_source) {
-        result.utm_source = parsed.trackingParameters.utm_source;
-      }
-      if (parsed.trackingParameters.utm_medium) {
-        result.utm_medium = parsed.trackingParameters.utm_medium;
-      }
-      if (parsed.trackingParameters.utm_campaign) {
-        result.utm_campaign = parsed.trackingParameters.utm_campaign;
-      }
-      if (parsed.trackingParameters.utm_content) {
-        result.utm_content = parsed.trackingParameters.utm_content;
-      }
-      if (parsed.trackingParameters.utm_term) {
-        result.utm_term = parsed.trackingParameters.utm_term;
-      }
-      
-      return result;
+  const migratedData: UtmData = {};
+  
+  legacyKeys.forEach(({ old, new: newKey }) => {
+    const value = localStorage.getItem(old);
+    if (value) {
+      migratedData[newKey as keyof UtmData] = value;
+      // Limpar dados antigos
+      localStorage.removeItem(old);
     }
-  } catch (e) {
-    console.error('Erro ao migrar dados de rastreamento antigos:', e);
-  }
+  });
   
-  return {};
+  return migratedData;
 }
 
 /**
  * Hook para gerenciar sessão de rastreamento
- * Inicializa automaticamente a sessão e permite enviar eventos
+ * @returns Objeto contendo o estado da sessão e funções para enviar eventos
  */
 export function useTrackingSession(): TrackingHookReturn {
-  const [ready, setReady] = useState<boolean>(false);
-  const [trackingId, setTrackingId] = useState<string>('');
+  const [ready, setReady] = useState(false);
+  const [trackingId, setTrackingId] = useState('');
 
   useEffect(() => {
+    // Função para inicializar a sessão
     async function initSession(): Promise<void> {
-      const id = getTrackingId();
-      setTrackingId(id);
-      
-      // Coletar UTMs da URL atual
-      const utmData = collectUtms();
-      
-      // Migrar dados antigos se necessário
-      const legacyData = migrateOldTrackingData();
-      
-      // Mesclar dados, priorizando os novos
-      const mergedUtmData: UtmData = {
-        ...legacyData,
-        ...utmData
-      };
-      
-      const fbp = document.cookie.match(/_fbp=([^;]+)/)?.[1] || '';
-      const fbc = document.cookie.match(/_fbc=([^;]+)/)?.[1] || '';
-      const landing = window.location.href;
-      const ua = navigator.userAgent;
-      const ip = await fetchPublicIp();
-
       try {
-        const response = await fetch('/api/tracking/session', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            trackingId: id,
-            ...mergedUtmData,
-            fbp,
-            fbc,
-            landingPage: landing,
-            userAgent: ua,
-            ip
-          } as TrackingSessionData)
-        });
+        // Coletar parâmetros UTM da URL atual
+        const utmData = collectUtms();
+        
+        // Migrar dados antigos se necessário
+        const legacyData = migrateOldTrackingData();
+        
+        // Recuperar UTMs armazenados
+        const storedUtmDataStr = localStorage.getItem('utm_data');
+        const parsedUtmData = storedUtmDataStr ? JSON.parse(storedUtmDataStr) : {};
+        
+        // Mesclar todos os UTMs, priorizando os novos
+        const allUtmData = { ...parsedUtmData, ...legacyData, ...utmData };
+        
+        // Armazenar UTMs atualizados
+        localStorage.setItem('utm_data', JSON.stringify(allUtmData));
 
-        if (response.ok) {
+        // Buscar IP público
+        const ip = await fetchPublicIp();
+
+        // Inicializar objeto de dados do cliente
+        let customerData: CustomerData = {
+          city: '',
+          state: '',
+          zipCode: '',
+          country: ''
+        };
+
+        // Tentar recuperar dados existentes do cliente
+        try {
+          const storedData = localStorage.getItem('customerData');
+          if (storedData) {
+            customerData = JSON.parse(storedData);
+          }
+        } catch (error) {
+          console.error('Erro ao recuperar dados do cliente:', error);
+        }
+
+        // Buscar dados de geolocalização
+        try {
+          const geoResponse = await fetch('https://ipapi.co/json/');
+          const geoData = await geoResponse.json() as GeoData;
+          
+          // Atualizar dados do cliente com geolocalização
+          customerData.city = geoData.city || customerData.city;
+          customerData.state = geoData.region || customerData.state;
+          customerData.zipCode = geoData.postal || customerData.zipCode;
+          customerData.country = geoData.country || customerData.country;
+          
+          // Coletar cookies do Facebook
+          const getCookie = (name: string): string | null => {
+            if (typeof document === 'undefined') return null;
+            const cookies = document.cookie.split(';');
+            for (let i = 0; i < cookies.length; i++) {
+              const cookie = cookies[i].trim();
+              if (cookie.indexOf(`${name}=`) === 0) {
+                return cookie.substring(`${name}=`.length);
+              }
+            }
+            return null;
+          };
+          
+          // Adicionar cookies do Facebook
+          customerData.fbp = getCookie('_fbp') || customerData.fbp;
+          customerData.fbc = getCookie('_fbc') || customerData.fbc;
+          
+          // Salvar no localStorage
+          localStorage.setItem('customerData', JSON.stringify(customerData));
+          
+          // Registrar a sessão no servidor
+          const response = await fetch('/api/tracking/session', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              // Deixamos o backend gerar o ID
+              landingPage: window.location.href,
+              userAgent: navigator.userAgent,
+              ip,
+              // Incluir dados de geolocalização no registro da sessão
+              city: customerData.city,
+              state: customerData.state,
+              zipCode: customerData.zipCode,
+              country: customerData.country,
+              // Incluir cookies do Facebook
+              fbp: customerData.fbp,
+              fbc: customerData.fbc,
+              ...allUtmData
+            } as TrackingSessionData)
+          });
+
+          // Verificar se a resposta foi bem-sucedida
+          if (!response.ok) {
+            throw new Error(`Erro ao registrar sessão: ${response.status}`);
+          }
+          
+          // Obter o ID gerado pelo backend
+          const responseData = await response.json() as { id: string };
+          const sessionId = responseData.id;
+          
+          // Armazenar o ID recebido do backend
+          if (sessionId) {
+            storeTrackingId(sessionId);
+            setTrackingId(sessionId);
+          }
+
+          // Marcar como pronto
           setReady(true);
-        } else {
-          console.error('Falha ao registrar sessão de rastreamento:', await response.text());
+        } catch (error) {
+          console.error('Erro ao buscar dados de geolocalização:', error);
+          // Mesmo com erro, tentar registrar a sessão com os dados disponíveis
+          try {
+            const response = await fetch('/api/tracking/session', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({
+                landingPage: window.location.href,
+                userAgent: navigator.userAgent,
+                ip,
+                ...allUtmData
+              } as TrackingSessionData)
+            });
+            
+            if (response.ok) {
+              // Obter o ID gerado pelo backend
+              const responseData = await response.json() as { id: string };
+              const sessionId = responseData.id;
+              
+              // Armazenar o ID recebido do backend
+              if (sessionId) {
+                storeTrackingId(sessionId);
+                setTrackingId(sessionId);
+              }
+            }
+            
+            setReady(true);
+          } catch (sessionError) {
+            console.error('Erro ao registrar sessão:', sessionError);
+          }
         }
       } catch (error) {
-        console.error('Erro ao registrar sessão de rastreamento:', error);
+        console.error('Erro na inicialização da sessão:', error);
       }
     }
 
+    // Iniciar a sessão se estivermos no navegador
     if (typeof window !== 'undefined') {
       initSession();
     }
@@ -220,13 +330,15 @@ export function useTrackingSession(): TrackingHookReturn {
     customData: Record<string, unknown> = {},
     customer?: CustomerData
   ): Promise<void> => {
-    if (!ready || !trackingId) {
+    // Verificar se temos um ID de rastreamento válido
+    const currentTrackingId = trackingId;
+    if (!ready || !currentTrackingId) {
       console.warn('Sessão de rastreamento não está pronta');
       return;
     }
 
     try {
-      const eventId = `${trackingId}_${eventName.toUpperCase()}`;
+      const eventId = `${currentTrackingId}_${eventName.toUpperCase()}`;
       
       // Salvar dados do cliente no localStorage para uso futuro no advanced matching
       if (customer && typeof window !== 'undefined') {
@@ -244,7 +356,7 @@ export function useTrackingSession(): TrackingHookReturn {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          trackingId,
+          trackingId: currentTrackingId,
           eventName,
           eventId,
           customData,
@@ -269,13 +381,15 @@ export function useTrackingSession(): TrackingHookReturn {
     customData: Record<string, unknown> = {},
     customer?: CustomerData
   ): Promise<void> => {
-    if (!trackingId) {
+    // Verificar se temos um ID de rastreamento válido
+    const currentTrackingId = trackingId;
+    if (!currentTrackingId) {
       console.warn('ID de rastreamento não disponível');
       return;
     }
     
     // Gerar ID de evento consistente para deduplicação
-    const eventId = `${trackingId}_${eventName.toUpperCase()}`;
+    const eventId = `${currentTrackingId}_${eventName.toUpperCase()}`;
     
     // Salvar dados do cliente no localStorage para uso futuro no advanced matching
     if (customer && typeof window !== 'undefined') {
@@ -295,13 +409,13 @@ export function useTrackingSession(): TrackingHookReturn {
       const fbq = window.fbq;
       
       // Buscar dados de geolocalização para advanced matching
-      const fetchGeoData = async () => {
+      const fetchGeoData = async (): Promise<void> => {
         try {
           // Usar dados do cliente se disponíveis, caso contrário tentar obter via IP
           if (!customer || (!customer.city && !customer.state && !customer.country)) {
             const response = await fetch('https://ipapi.co/json/');
             if (response.ok) {
-              const geoData = await response.json();
+              const geoData = await response.json() as GeoData;
               
               // Inicializar o pixel com advanced matching
               fbq('init', window.pixelId, {
