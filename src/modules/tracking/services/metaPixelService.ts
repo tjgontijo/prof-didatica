@@ -204,43 +204,70 @@ export function trackPixelEvent(
       }
     });
     
-    // Se temos dados do cliente, adicionar advanced matching diretamente ao payload
+    // Se temos dados do cliente, configurar advanced matching
     if (customerData) {
       // Formatar os dados do cliente para advanced matching
       const advancedMatchingData = formatCustomerData(customerData);
       
-      // Parâmetros de advanced matching para incluir diretamente no payload
-      // Isso garante que o Meta Pixel use esses dados para advanced matching
-      const advancedMatchingParams = [
-        'em',           // Email (hash)
-        'ph',           // Telefone (hash)
-        'fn',           // Primeiro nome (hash)
-        'ln',           // Sobrenome (hash)
-        'ct',           // Cidade (hash)
-        'st',           // Estado (hash)
-        'zp',           // CEP (hash)
-        'country',      // País
-        'external_id',  // ID externo do cliente (hash)
-        'client_ip_address',  // IP do cliente
-        'client_user_agent',  // User agent do cliente
-        'fbc',          // Facebook Click ID
-        'fbp'           // Facebook Browser ID
+      // Separar os parâmetros de advanced matching dos parâmetros do evento
+      // Apenas parâmetros técnicos podem ir no payload do evento
+      const technicalParams = [
+        'client_ip_address',
+        'client_user_agent',
+        'fbc',
+        'fbp',
+        'external_id'
       ];
       
-      // Adicionar todos os parâmetros de advanced matching ao payload
-      advancedMatchingParams.forEach(key => {
+      // Adicionar apenas os parâmetros técnicos ao payload do evento
+      technicalParams.forEach(key => {
         if (advancedMatchingData[key]) {
           payload[key] = advancedMatchingData[key];
         }
       });
       
-      console.log(`🎯 Evento ${eventName} rastreado com advanced matching:`, {
-        eventName,
-        advancedMatchingFields: Object.keys(advancedMatchingData)
+      // Criar objeto de advanced matching para o Meta Pixel
+      // Estes dados serão hasheados automaticamente pelo Meta Pixel
+      const userDataForPixel: Record<string, string> = {};
+      
+      // Parâmetros que devem ser enviados como advanced matching
+      const userDataParams = [
+        'em',           // Email
+        'ph',           // Telefone
+        'fn',           // Primeiro nome
+        'ln',           // Sobrenome
+        'ct',           // Cidade
+        'st',           // Estado
+        'zp',           // CEP
+        'country',      // País
+        'external_id'   // ID externo do cliente
+      ];
+      
+      // Adicionar os parâmetros de dados do usuário ao objeto de advanced matching
+      userDataParams.forEach(key => {
+        if (advancedMatchingData[key]) {
+          userDataForPixel[key] = advancedMatchingData[key];
+        }
       });
+      
+      // Configurar os dados do usuário para o Meta Pixel
+      try {
+        // Usar o comando 'init' para atualizar os dados do usuário
+        // Isso é uma técnica recomendada para atualizar os dados de advanced matching
+        const pixelId = window.fbPixelId;
+        if (pixelId) {
+          window.fbq!('init', pixelId, userDataForPixel);
+          console.log(`✅ Advanced matching atualizado para o evento ${eventName}:`, 
+            Object.keys(userDataForPixel));
+        }
+      } catch (setError) {
+        console.error('Erro ao configurar advanced matching:', setError);
+      }
+      
+      console.log(`🎯 Evento ${eventName} rastreado com advanced matching configurado`);
     }
     
-    // Envia o evento com os dados de advanced matching inclusos no payload
+    // Envia o evento com apenas os parâmetros técnicos no payload
     window.fbq!('track', eventName, payload);
     
     // Registra os dados enviados para debug
