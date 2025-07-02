@@ -5,6 +5,7 @@ export type ProdutoInfo = {
   price: number;
   imagemUrl: string;
   description?: string;
+  category?: string; // Categoria do produto para eventos de rastreamento
 };
 
 export type OrderBump = {

@@ -27,6 +27,7 @@ interface Product {
   id: string;
   name: string;
   price: number;
+  category?: string;
 }
 
 interface FormCustomerProps {
@@ -34,18 +35,21 @@ interface FormCustomerProps {
   errors: FieldErrors<CustomerFormValues>;
   isSubmitting: boolean;
   trigger: UseFormTrigger<CustomerFormValues>;
-  formState: FormState<CustomerFormValues>;
+  formState: FormState<CustomerFormValues>; // Mantemos no tipo para compatibilidade
   onProceedToPayment: () => void;
   product?: Product;
+  checkoutId?: string;
 }
 
 function FormCustomer({
   register,
   errors,
   isSubmitting,
-  trigger,  
+  trigger,
+  // formState não é utilizado, então removemos da desestruturação
   onProceedToPayment,
-  product
+  product,
+  checkoutId,
 }: FormCustomerProps) {
   // Usar o hook useTrackingSession para obter a função trackEventBoth
   const { trackEventBoth } = useTrackingSession();
@@ -247,35 +251,85 @@ function FormCustomer({
                   const lastName = nameParts.length > 1 ? nameParts.slice(1).join(' ') : '';
                   
                   // Obter dados do produto e checkout do contexto
-                  // Usar valores padrão caso o produto não esteja disponível
-                  const defaultProduct = {
-                    id: 'default-product',
-                    name: 'Produto',
-                    price: 0
-                  };
-                  const currentProduct = product || defaultProduct;
-                  const productValue = currentProduct.price;
-                  const productId = currentProduct.id;
-                  const productName = currentProduct.name;
+                  // Verificar se temos dados do produto
+                  if (!product) {
+                    console.error('Erro: Produto não disponível para o evento AddPaymentInfo');
+                    // Não vamos disparar o evento se não tivermos dados do produto
+                    return;
+                  }
+                  
+                  // Usar os dados reais do produto
+                  const productValue = product.price;
+                  const productId = product.id;
+                  const productName = product.name;
+                  const productCategory = product.category || 'Curso';
                   
                   // Verificar se há eventref na URL para eventos oficiais do Meta
                   const url = new URL(window.location.href);
                   const eventRef = url.searchParams.get('eventref');
                   
                   // Preparar parâmetros do evento conforme documentação oficial
+                  // https://developers.facebook.com/docs/meta-pixel/reference#standard-events
                   const eventParams = {
-                    content_category: 'form',
+                    // Parâmetros padrão do evento
+                    content_category: productCategory,
                     content_type: 'product',
                     content_ids: [productId],
                     content_name: productName,
                     value: productValue,
                     currency: 'BRL',
-                    // Adicionar eventref apenas se estiver presente na URL
-                    eventref: eventRef === 'fb_oea' ? 'fb_oea' : '',
-                    // Adicionar parâmetros adicionais para melhorar o EMQ
                     num_items: 1,
-                    predicted_ltv: productValue * 1.5 // Valor estimado de LTV baseado no preço do produto
+                    
+                    // Adicionar eventref apenas se estiver presente na URL
+                    eventref: eventRef === 'fb_oea' ? 'fb_oea' : undefined,
+                    
+                    // Parâmetros adicionais para melhorar o EMQ e segmentação
+                    contents: [{
+                      id: productId,
+                      quantity: 1,
+                      item_price: productValue,
+                      title: productName,
+                      category: productCategory
+                    }],
+                    predicted_ltv: productValue * 1.5, // Valor estimado de LTV baseado no preço do produto
+                    
+                    // Informações da página
+                    page_title: document.title,
+                    page_url: window.location.href,
+                    page_referrer: document.referrer || undefined,
+                    
+                    // Informações do checkout
+                    checkout_id: checkoutId,
+                    
+                    // Dados de dispositivo e plataforma
+                    platform: 'website',
+                    device_type: /Mobile|Android|iPhone|iPad|iPod|Windows Phone/i.test(navigator.userAgent) ? 'mobile' : 'desktop'
                   };
+                  
+                  // Obter dados de geolocalização armazenados
+                  const storedGeoData = await import('@/modules/tracking/utils/ipAndLocation')
+                    .then(module => module.getStoredGeoData())
+                    .catch(() => null);
+                  
+                  // Obter dados do cliente existentes como tipo seguro
+                  const storedCustomerData = await import('@/modules/tracking/utils/storage')
+                    .then(module => module.getCustomerData())
+                    .catch(() => ({}));
+                  
+                  // Definir tipos para evitar erros
+                  type SafeCustomerData = {
+                    city?: string;
+                    state?: string;
+                    zipCode?: string;
+                    country?: string;
+                    ip?: string;
+                    fbp?: string;
+                    fbc?: string;
+                    [key: string]: string | undefined;
+                  };
+                  
+                  // Converter para tipo seguro
+                  const safeCustomerData = storedCustomerData as SafeCustomerData;
                   
                   // Preparar dados do cliente para advanced matching
                   const customerData = {
@@ -284,8 +338,21 @@ function FormCustomer({
                     lastName: lastName,
                     email: formValues.email,
                     phone: formValues.phone,
-                    // Adicionar dados adicionais para melhorar o EMQ
-                    externalId: formValues.email.split('@')[0] // ID externo baseado no email
+                    externalId: formValues.email.split('@')[0], // ID externo baseado no email
+                    
+                    // Dados de geolocalização
+                    city: storedGeoData?.city || safeCustomerData.city || '',
+                    state: storedGeoData?.region || safeCustomerData.state || '',
+                    zipCode: storedGeoData?.postal || safeCustomerData.zipCode || '',
+                    country: storedGeoData?.country || safeCustomerData.country || 'br',
+                    
+                    // Dados técnicos
+                    ip: safeCustomerData.ip || '',
+                    userAgent: navigator.userAgent,
+                    
+                    // Cookies do Facebook
+                    fbp: safeCustomerData.fbp,
+                    fbc: safeCustomerData.fbc
                   };
                   
                   console.log('Disparando AddPaymentInfo com parâmetros:', eventParams);

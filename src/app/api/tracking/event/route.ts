@@ -45,12 +45,13 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
     }
     
     console.log('[API EVENT] Criando evento no banco:', data.eventName);
-    // Criar o evento de rastreamento no banco
+    
+    // Criar o evento de rastreamento no banco - o Prisma gerará o ID automaticamente
     const event = await prisma.trackingEvent.create({
       data: {
         trackingSessionId: data.trackingId,
         eventName: data.eventName,
-        eventId: data.eventId,
+        // Removemos eventId para que o Prisma gere automaticamente
         payload: data.customData ? JSON.parse(JSON.stringify(data.customData)) : {},
         status: 'queued',
         ip: data.ip,
@@ -69,7 +70,7 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
       event_time: Math.floor(Date.now() / 1000),
       event_source_url: session.landingPage || '',
       action_source: 'website',
-      event_id: data.eventId,
+      event_id: event.id, // Usar o ID gerado pelo Prisma
       user_data: userData,
       custom_data: data.customData || {}
     };
