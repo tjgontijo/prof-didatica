@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { z } from 'zod';
 import { prisma } from '@/lib/prisma';
 import { getGeoFromIp } from '@/modules/tracking/utils/ipAndLocation';
+import { upsertTrackingSession, findTrackingSessionByIpAndUserAgent } from '@/lib/tracking/trackingSessionUtils';
 
 // Define o schema com validação Zod
 const TrackingSessionSchema = z.object({
@@ -68,28 +69,17 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
     let session;
 
     if (trackingId) {
-      session = await prisma.trackingSession.update({
-        where: { id: trackingId },
-        data: sessionData
-      });
+      // Usar o utilitário de upsert que garante que o ID é fornecido corretamente
+      session = await upsertTrackingSession(trackingId, sessionData);
     } else {
-      const existingSession = await prisma.trackingSession.findFirst({
-        where: {
-          ip,
-          userAgent,
-          createdAt: {
-            gte: new Date(Date.now() - 24 * 60 * 60 * 1000)
-          }
-        },
-        orderBy: { createdAt: 'desc' }
-      });
+      // Buscar sessão existente por IP e User Agent
+      const existingSession = await findTrackingSessionByIpAndUserAgent(ip, userAgent);
 
       if (existingSession) {
-        session = await prisma.trackingSession.update({
-          where: { id: existingSession.id },
-          data: sessionData
-        });
+        // Se encontrou uma sessão existente, atualiza usando o utilitário de upsert
+        session = await upsertTrackingSession(existingSession.id, sessionData);
       } else {
+        // Se não encontrou, cria uma nova sessão
         session = await prisma.trackingSession.create({ data: sessionData });
       }
     }
