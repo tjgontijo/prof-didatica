@@ -10,6 +10,7 @@ type FbqCommand = 'init' | 'track' | 'trackCustom' | 'set';
 // Removemos o tipo não utilizado AdvancedMatchingData
 // Usamos diretamente Record<string, string> para os dados de advanced matching
 
+// Definimos os tipos para o fbq
 interface FbqFunction {
   (command: FbqCommand, ...params: unknown[]): void;
   callMethod?: (...args: unknown[]) => void;
@@ -23,6 +24,7 @@ declare global {
   interface Window {
     fbPixelId?: string;
     _fbq?: FbqFunction;
+    // fbq já está definido em outro lugar do código, não precisamos declarar novamente
   }
 }
 
@@ -60,7 +62,7 @@ function formatCustomerData(data: CustomerData): Record<string, string> {
   // Preparar todos os campos de advanced matching
   // https://developers.facebook.com/docs/meta-pixel/advanced-matching
   const obj: Record<string, string | undefined> = {
-    // Campos de identificação pessoal
+    // Campos de identificação pessoal - SEMPRE ENVIAR ESTES CAMPOS
     em: data.email ? clean(data.email) : undefined, // Email (hash)
     ph: ph || undefined, // Telefone (hash)
     fn: data.firstName ? clean(data.firstName) : undefined, // Primeiro nome (hash)
@@ -87,6 +89,21 @@ function formatCustomerData(data: CustomerData): Record<string, string> {
   // Registrar os campos que estamos enviando para debug
   const fieldsBeingSent = Object.keys(obj).filter(k => obj[k] !== undefined);
   console.log('📊 Meta Pixel Advanced Matching campos enviados:', fieldsBeingSent);
+  
+  // Log detalhado dos valores para debug
+  console.log('Advanced Matching - valores enviados:', {
+    email: obj.em ? '***' + obj.em.substring(obj.em.length - 5) : undefined, // Mostrar apenas parte do email por privacidade
+    phone: obj.ph ? '***' + obj.ph.substring(obj.ph.length - 4) : undefined, // Mostrar apenas parte do telefone por privacidade
+    firstName: obj.fn,
+    lastName: obj.ln,
+    city: obj.ct,
+    state: obj.st,
+    zipCode: obj.zp,
+    country: obj.country,
+    externalId: obj.external_id,
+    fbp: obj.fbp ? obj.fbp.substring(0, 10) + '...' : undefined,
+    fbc: obj.fbc ? obj.fbc.substring(0, 10) + '...' : undefined
+  });
 
   // Retorna apenas valores definidos
   return Object.entries(obj).reduce((acc, [k, v]) => {
@@ -175,7 +192,7 @@ export function trackPixelEvent(
   if (typeof window === 'undefined' || !window.fbq || !isPixelInitialized) return;
 
   try {
-    // Filtra valores válidos
+    // Filtra valores válidos para o evento
     const payload: Record<string, string | number> = {};
     
     Object.entries(eventData).forEach(([k, v]) => {
@@ -187,20 +204,47 @@ export function trackPixelEvent(
       }
     });
     
-    // Envia o evento sem advanced matching
-    // O advanced matching já foi configurado durante a inicialização do pixel
-    // e o Meta usa automaticamente os cookies para associar os eventos
+    // Se temos dados do cliente, adicionar advanced matching diretamente ao payload
+    if (customerData) {
+      // Formatar os dados do cliente para advanced matching
+      const advancedMatchingData = formatCustomerData(customerData);
+      
+      // Parâmetros de advanced matching para incluir diretamente no payload
+      // Isso garante que o Meta Pixel use esses dados para advanced matching
+      const advancedMatchingParams = [
+        'em',           // Email (hash)
+        'ph',           // Telefone (hash)
+        'fn',           // Primeiro nome (hash)
+        'ln',           // Sobrenome (hash)
+        'ct',           // Cidade (hash)
+        'st',           // Estado (hash)
+        'zp',           // CEP (hash)
+        'country',      // País
+        'external_id',  // ID externo do cliente (hash)
+        'client_ip_address',  // IP do cliente
+        'client_user_agent',  // User agent do cliente
+        'fbc',          // Facebook Click ID
+        'fbp'           // Facebook Browser ID
+      ];
+      
+      // Adicionar todos os parâmetros de advanced matching ao payload
+      advancedMatchingParams.forEach(key => {
+        if (advancedMatchingData[key]) {
+          payload[key] = advancedMatchingData[key];
+        }
+      });
+      
+      console.log(`🎯 Evento ${eventName} rastreado com advanced matching:`, {
+        eventName,
+        advancedMatchingFields: Object.keys(advancedMatchingData)
+      });
+    }
+    
+    // Envia o evento com os dados de advanced matching inclusos no payload
     window.fbq!('track', eventName, payload);
     
     // Registra os dados enviados para debug
-    if (customerData) {
-      console.log(`🎯 Evento ${eventName} rastreado com customerData disponível`, { 
-        payload,
-        customerDataFields: Object.keys(customerData).filter(k => customerData[k as keyof CustomerData]) 
-      });
-    } else {
-      console.log(`🎯 Evento ${eventName} rastreado`, payload);
-    }
+    console.log(`🎯 Payload do evento ${eventName}:`, payload);
   } catch (error) {
     console.error(`Erro ao enviar evento ${eventName} para o Meta Pixel:`, error);
   }
