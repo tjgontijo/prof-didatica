@@ -10,7 +10,7 @@ export const initialProducts = [
   {
     name: '40 textos para: Desafio Literário',
     description: 'Coletânea com 40 textos feitos sob medida para usar com as fichas do Desafio Literário e enriquecer ainda mais as suas aulas.',
-    imageUrl: '/images/products/textos-para-missao-literaria/textos_missao_literaria_cover.webp',
+    imageUrl: '/images/products/textos-para-missao-literaria/cover/textos_missao_literaria_cover.webp',
     googleDriveUrl: 'https://drive.google.com/drive/folders/164nlnziZpknRlr0Rvi5XUTI39n6aFZ_X?usp=drive_link',
     slug: 'textos-para-desafio-literario',
     price: 1200    
@@ -18,7 +18,7 @@ export const initialProducts = [
   {
     name: 'Apostila de Interpretação de Textos',
     description: 'Apostila com textos e atividades de interpretação para trabalhar leitura crítica e compreensão de forma leve e prática.',
-    imageUrl: '/images/products/apostila-de-interpretacao-de-textos/apostila_interpretacao_cover.webp',
+    imageUrl: '/images/products/interpretacao-de-textos/cover/apostila_interpretacao_cover.webp',
     googleDriveUrl: 'https://drive.google.com/drive/folders/1jsBZU2MzHwB4_PBWeAVB8NeG73Llky75?usp=drive_link',
     slug: 'apostila-de-interpretacao-de-textos',
     price: 1200    
