@@ -65,23 +65,10 @@ export function useTrackingSession(): TrackingHookReturn {
         // Armazenar os cookies para uso futuro
         Cookies.storeFacebookCookies(fbp, fbc);
         
-        try {
-          // Buscar dados de geolocalização com fallback
-          const geoData = await IpLocation.fetchGeoLocationWithFallback();
-          
-          if (geoData && !geoData.error) {
-            // Atualizar dados do cliente com geolocalização
-            customerData.city = geoData.city || customerData.city;
-            customerData.state = geoData.region || customerData.state;
-            customerData.zipCode = geoData.postal || customerData.zipCode;
-            customerData.country = geoData.country || customerData.country;
-          }
-        } catch (geoError) {
-          console.error('Erro ao buscar dados de geolocalização:', geoError);
-        } finally {
-          // Armazenar dados do cliente atualizados
-          Storage.storeCustomerData(customerData);
-        }
+        // Não buscamos dados de geolocalização aqui, apenas enviamos o IP para o backend
+        // O backend fará a geolocalização e retornará os dados completos
+        // Armazenamos os dados do cliente atualizados (sem geolocalização por enquanto)
+        Storage.storeCustomerData(customerData);
           
         try {
           // Registrar sessão no backend
@@ -104,6 +91,26 @@ export function useTrackingSession(): TrackingHookReturn {
           if (sessionId) {
             Storage.storeTrackingId(sessionId);
             setTrackingId(sessionId);
+            
+            // Recuperar os dados de geolocalização atualizados pelo backend
+            const geoData = IpLocation.getStoredGeoData();
+            if (geoData) {
+              // Atualizar os dados do cliente com as informações de geolocalização
+              customerData.city = geoData.city || customerData.city;
+              customerData.state = geoData.region || customerData.state;
+              customerData.zipCode = geoData.postal || customerData.zipCode;
+              customerData.country = geoData.country || customerData.country || 'br';
+              
+              // Armazenar os dados atualizados
+              Storage.storeCustomerData(customerData);
+              
+              console.log('Dados de geolocalização atualizados:', {
+                city: customerData.city,
+                state: customerData.state,
+                zipCode: customerData.zipCode,
+                country: customerData.country
+              });
+            }
           }
           
           // Marcar como pronto
@@ -132,13 +139,13 @@ export function useTrackingSession(): TrackingHookReturn {
           const ip = await IpLocation.fetchPublicIp();
           if (ip) baseCustomerData.ip = ip;
           
-          // Tentar obter dados de geolocalização
-          const geoData = await IpLocation.fetchGeoLocationWithFallback();
-          if (geoData && !geoData.error) {
-            baseCustomerData.city = geoData.city || '';
-            baseCustomerData.state = geoData.region || '';
-            baseCustomerData.zipCode = geoData.postal || '';
-            baseCustomerData.country = geoData.country || 'br';
+          // Verificar se já temos dados de geolocalização armazenados
+          const storedGeoData = IpLocation.getStoredGeoData();
+          if (storedGeoData) {
+            baseCustomerData.city = storedGeoData.city || '';
+            baseCustomerData.state = storedGeoData.region || '';
+            baseCustomerData.zipCode = storedGeoData.postal || '';
+            baseCustomerData.country = storedGeoData.country || 'br';
           }
           
           // Tentar obter dados do usuário logado do localStorage
@@ -235,15 +242,19 @@ export function useTrackingSession(): TrackingHookReturn {
       };
       
       // Enviar evento para o backend
-      await ApiService.sendEventToApi({
+      // Não enviamos mais um eventId - o backend/Prisma irá gerar
+      const response = await ApiService.sendEventToApi({
         trackingId,
         eventName,
-        eventId: `${trackingId}_${eventName}_${Date.now()}`,
+        // Removemos a geração de eventId aqui para usar o ID gerado pelo backend
         customData,
         customer: mergedCustomer,
         userAgent: mergedCustomer.userAgent,
         ip: mergedCustomer.ip,
       });
+      
+      // O backend deve retornar o ID do evento para que possamos usar na deduplicação
+      console.log(`Evento ${eventName} enviado para API com sucesso`, response);
     } catch (error) {
       console.error(`Erro ao enviar evento ${eventName}:`, error);
     }
@@ -285,34 +296,63 @@ export function useTrackingSession(): TrackingHookReturn {
       mergedCustomer.ip = customer?.ip || storedCustomer?.ip || '';
       mergedCustomer.userAgent = customer?.userAgent || storedCustomer?.userAgent || navigator.userAgent;
       
-      // 1. Enviar para o Meta Pixel (browser)
-      if (META_PIXEL_ID) {
-        // Verificar se o pixel já foi inicializado
-        if (!PixelService.isInitialized()) {
-          // Se não foi inicializado, inicializar com advanced matching
-          console.log('Inicializando Meta Pixel com advanced matching durante o envio de evento');
-          PixelService.initializePixel(META_PIXEL_ID, mergedCustomer);
-        }
-        
-        // Enviar o evento com os dados customizados
-        // O advanced matching já foi aplicado na inicialização, não precisamos passar novamente
-        console.log(`Enviando evento ${eventName} para o Meta Pixel`, customData);
-        PixelService.trackPixelEvent(eventName, customData);
+      // Verificar se o Meta Pixel já foi inicializado
+      if (META_PIXEL_ID && !PixelService.isInitialized()) {
+        // Se não foi inicializado, inicializar com advanced matching
+        console.log('Inicializando Meta Pixel com advanced matching durante o envio de evento');
+        PixelService.initializePixel(META_PIXEL_ID, mergedCustomer);
       }
       
-      // 2. Enviar para a API (servidor CAPI)
+      let eventId: string | undefined;
+      
+      // 1. PRIMEIRO enviar para a API (servidor CAPI) para obter o ID do evento
       if (trackingId) {
-        await ApiService.sendEventToApi({
-          trackingId,
-          eventName,
-          eventId: `${trackingId}_${eventName}_${Date.now()}`,
-          customData,
-          customer: mergedCustomer,
-          userAgent: mergedCustomer.userAgent,
-          ip: mergedCustomer.ip
-        });
+        try {
+          const response = await ApiService.sendEventToApi({
+            trackingId,
+            eventName,
+            // Não enviamos eventId - o backend irá gerar
+            customData,
+            customer: mergedCustomer,
+            userAgent: mergedCustomer.userAgent,
+            ip: mergedCustomer.ip
+          });
+          
+          // Obter o ID do evento gerado pelo backend para deduplicação
+          eventId = response.eventId;
+          console.log(`Evento ${eventName} enviado para API com sucesso, ID: ${eventId}`);
+        } catch (apiError) {
+          console.error(`Erro ao enviar evento ${eventName} para API:`, apiError);
+          // Continuamos com o envio para o pixel mesmo se falhar o backend
+        }
       } else {
         console.warn('Tentativa de enviar evento sem ID de rastreamento');
+      }
+      
+      // 2. DEPOIS enviar para o Meta Pixel (browser) com o mesmo ID
+      if (META_PIXEL_ID) {
+        try {
+          // Se temos um eventId do backend, vamos usá-lo para deduplicação
+          if (eventId) {
+            // Adicionar o eventId aos dados customizados para deduplicação
+            const pixelData = {
+              ...customData,
+              // Adicionar o event_id para deduplicação com o CAPI
+              event_id: eventId
+            };
+            
+            console.log(`Enviando evento ${eventName} para o Meta Pixel com ID para deduplicação: ${eventId} e advanced matching`, pixelData);
+            // Passar os dados do cliente para o Meta Pixel para advanced matching
+            PixelService.trackPixelEvent(eventName, pixelData, mergedCustomer);
+          } else {
+            // Fallback: enviar sem ID de deduplicação, mas com advanced matching
+            console.log(`Enviando evento ${eventName} para o Meta Pixel sem ID de deduplicação, mas com advanced matching`, customData);
+            // Passar os dados do cliente para o Meta Pixel para advanced matching
+            PixelService.trackPixelEvent(eventName, customData, mergedCustomer);
+          }
+        } catch (pixelError) {
+          console.error(`Erro ao enviar evento ${eventName} para o Meta Pixel:`, pixelError);
+        }
       }
     } catch (error) {
       console.error(`Erro ao enviar evento ${eventName}:`, error);

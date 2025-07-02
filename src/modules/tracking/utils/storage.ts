@@ -229,6 +229,17 @@ export function getStoredGeoData(): GeoData | null {
   
   if (!storage.location) return null;
   
+  // Verificar se os dados estão expirados (24 horas)
+  if (storage.lastUpdated) {
+    const now = Date.now();
+    const expirationTime = 24 * 60 * 60 * 1000; // 24 horas em milissegundos
+    
+    if ((now - storage.lastUpdated) > expirationTime) {
+      // Dados expirados, retornar null para forçar nova busca
+      return null;
+    }
+  }
+  
   // Construir objeto GeoData a partir dos dados de localização
   const geoData: GeoData = {
     ip: storage.location.ip,
@@ -237,7 +248,8 @@ export function getStoredGeoData(): GeoData | null {
     country: storage.location.country,
     postal: storage.location.zipCode,
     latitude: storage.location.latitude,
-    longitude: storage.location.longitude
+    longitude: storage.location.longitude,
+    timestamp: storage.lastUpdated // Usar o timestamp de atualização do storage
   };
   
   return Object.keys(geoData).some(key => geoData[key as keyof GeoData] !== undefined) 
@@ -265,7 +277,9 @@ export function storeGeoData(data: GeoData): void {
   if (data.country) storage.location.country = data.country;
   if (data.latitude) storage.location.latitude = data.latitude;
   if (data.longitude) storage.location.longitude = data.longitude;
-  if (data.country_name) storage.location.country_name = data.country_name;
+  
+  // Forçar timestamp para controle de expiração
+  storage.lastUpdated = data.timestamp || Date.now();
   
   // Salvar dados unificados
   saveTrackingData(storage);

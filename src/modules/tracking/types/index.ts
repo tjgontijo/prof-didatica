@@ -57,7 +57,7 @@ export interface CustomerData {
 export interface TrackingEventData {
   trackingId: string;
   eventName: string;
-  eventId: string;
+  eventId?: string; // Opcional para permitir que o backend gere
   customData?: Record<string, unknown>;
   customer?: CustomerData;
   userAgent?: string;
@@ -79,14 +79,15 @@ export interface TrackingHookReturn {
  * Interface para dados de geolocalização
  */
 export interface GeoData {
-  ip?: string;
   city?: string;
   region?: string;
   postal?: string;
   country?: string;
+  country_code?: string;
+  country_name?: string;
   latitude?: number;
   longitude?: number;
-  country_name?: string; // Nome completo do país usado pelo ipapi.co
-  country_code?: string; // Código do país usado pelo serviço alternativo
-  error?: boolean; // Indica se houve erro na API
+  ip?: string;
+  error?: boolean;
+  timestamp?: number; // Timestamp para controle de expiração
 }

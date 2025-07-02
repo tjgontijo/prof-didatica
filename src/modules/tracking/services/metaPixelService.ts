@@ -4,8 +4,14 @@ import { CustomerData } from '../types';
 // Complementando os tipos já existentes em custom.d.ts
 type FbqQueueItem = unknown[];
 
+// Definimos os tipos de comandos que o fbq aceita
+type FbqCommand = 'init' | 'track' | 'trackCustom' | 'set';
+
+// Removemos o tipo não utilizado AdvancedMatchingData
+// Usamos diretamente Record<string, string> para os dados de advanced matching
+
 interface FbqFunction {
-  (...params: unknown[]): void;
+  (command: FbqCommand, ...params: unknown[]): void;
   callMethod?: (...args: unknown[]) => void;
   queue?: FbqQueueItem[];
   push?: unknown;
@@ -60,7 +66,7 @@ function formatCustomerData(data: CustomerData): Record<string, string> {
     fn: data.firstName ? clean(data.firstName) : undefined, // Primeiro nome (hash)
     ln: data.lastName ? clean(data.lastName) : undefined, // Sobrenome (hash)
     
-    // Campos de localização
+    // Campos de localização - garantir que todos sejam enviados se disponíveis
     ct: data.city ? clean(data.city) : undefined, // Cidade (hash)
     st: data.state ? data.state.toLowerCase().substring(0, 2) : undefined, // Estado (hash)
     zp: data.zipCode ? data.zipCode.replace(/[\s-]/g, '') : undefined, // CEP (hash)
@@ -138,10 +144,16 @@ export function initializePixel(pixelId: string, customerData?: CustomerData): v
     // Inicializar o pixel com advanced matching
     window.fbq!('init', pixelId, advancedMatching);
     
-    // Enviar PageView - o advanced matching já foi aplicado na inicialização
-    // Não precisamos passar novamente os dados para o PageView
-    window.fbq!('track', 'PageView');
-
+    // Enviar PageView com parâmetros adicionais
+    window.fbq!('track', 'PageView', {
+      content_name: document.title || 'Página',
+      content_category: 'Página',
+      content_ids: [window.location.pathname],
+      content_type: 'product_group',
+      url: window.location.href,
+      referrer: document.referrer || undefined
+    });
+    
     isPixelInitialized = true;
     console.log(`✅ Meta Pixel ${pixelId} inicializado${advancedMatching ? ' com advanced matching' : ''}`);
   } catch (error) {
@@ -153,10 +165,12 @@ export function initializePixel(pixelId: string, customerData?: CustomerData): v
  * Envia um evento para o Meta Pixel sem reinicializar
  * @param eventName Nome do evento
  * @param eventData Dados personalizados do evento
+ * @param customerData Dados do cliente para advanced matching
  */
 export function trackPixelEvent(
   eventName: string,
-  eventData: Record<string, unknown> = {}
+  eventData: Record<string, unknown> = {},
+  customerData?: CustomerData
 ): void {
   if (typeof window === 'undefined' || !window.fbq || !isPixelInitialized) return;
 
@@ -173,9 +187,20 @@ export function trackPixelEvent(
       }
     });
     
-    // Envia o evento sem reinicializar o pixel
+    // Envia o evento sem advanced matching
+    // O advanced matching já foi configurado durante a inicialização do pixel
+    // e o Meta usa automaticamente os cookies para associar os eventos
     window.fbq!('track', eventName, payload);
-    console.log(`🎯 Evento ${eventName} rastreado`, payload);
+    
+    // Registra os dados enviados para debug
+    if (customerData) {
+      console.log(`🎯 Evento ${eventName} rastreado com customerData disponível`, { 
+        payload,
+        customerDataFields: Object.keys(customerData).filter(k => customerData[k as keyof CustomerData]) 
+      });
+    } else {
+      console.log(`🎯 Evento ${eventName} rastreado`, payload);
+    }
   } catch (error) {
     console.error(`Erro ao enviar evento ${eventName} para o Meta Pixel:`, error);
   }

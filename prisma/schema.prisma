@@ -263,7 +263,7 @@ model TrackingEvent {
   trackingSessionId String
   orderId           String?
   eventName         String
-  eventId           String
+  eventId           String   @default(cuid())
   payload           Json
   status            String
   response          Json?

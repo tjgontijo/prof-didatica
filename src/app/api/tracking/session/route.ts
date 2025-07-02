@@ -1,106 +1,117 @@
-// src/app/api/tracking/session/route.ts
 import { NextRequest, NextResponse } from 'next/server';
-import { PrismaClient } from '@prisma/client';
+import { z } from 'zod';
+import { prisma } from '@/lib/prisma';
+import { getGeoFromIp } from '@/modules/tracking/utils/ipAndLocation';
 
-const prisma = new PrismaClient();
+// Define o schema com validação Zod
+const TrackingSessionSchema = z.object({
+  trackingId: z.string().optional(),
+  utm_source: z.string().optional(),
+  utm_medium: z.string().optional(),
+  utm_campaign: z.string().optional(),
+  utm_term: z.string().optional(),
+  utm_content: z.string().optional(),
+  fbclid: z.string().optional(),
+  fbp: z.string().optional(),
+  fbc: z.string().optional(),
+  landingPage: z.string().optional(),
+  userAgent: z.string().optional(),
+  ip: z.string().ip().optional()
+});
 
-interface TrackingSessionRequest {
-  trackingId: string;
-  utm_source?: string;
-  utm_medium?: string;
-  utm_campaign?: string;
-  utm_term?: string;
-  utm_content?: string;
-  fbclid?: string;
-  fbp?: string;
-  fbc?: string;
-  landingPage?: string;
-  userAgent?: string;
-  ip?: string;
-}
+export type TrackingSessionRequest = z.infer<typeof TrackingSessionSchema>;
 
 export async function POST(request: NextRequest): Promise<NextResponse> {
   try {
-    const data = await request.json() as TrackingSessionRequest;
-    
-    // Enriquecimento de dados geográficos via IP
-    let geoData = null;
-    if (data.ip) {
-      try {
-        const geoResponse = await fetch(`http://ip-api.com/json/${data.ip}?fields=status,country,regionName,city,zip,lat,lon`);
-        if (geoResponse.ok) {
-          geoData = await geoResponse.json();
-        }
-      } catch (error) {
-        console.error('Erro ao buscar dados geográficos:', error);
-      }
-    }
-    
-    let session;
-    
-    // Dados comuns para criar/atualizar sessão
+    const rawData = await request.json();
+
+    // Validação com Zod
+    const data = TrackingSessionSchema.parse(rawData);
+
+    const {
+      trackingId,
+      utm_source,
+      utm_medium,
+      utm_campaign,
+      utm_term,
+      utm_content,
+      fbclid,
+      fbp,
+      fbc,
+      landingPage,
+      userAgent,
+      ip
+    } = data;
+
+    const geoData = ip ? await getGeoFromIp(ip) : null;
+
     const sessionData = {
-      utmSource: data.utm_source,
-      utmMedium: data.utm_medium,
-      utmCampaign: data.utm_campaign,
-      utmTerm: data.utm_term,
-      utmContent: data.utm_content,
-      fbclid: data.fbclid,
-      fbp: data.fbp,
-      fbc: data.fbc,
-      landingPage: data.landingPage,
-      userAgent: data.userAgent,
-      ip: data.ip,
-      country: geoData?.status === 'success' ? geoData.country : null,
-      region: geoData?.status === 'success' ? geoData.regionName : null,
-      city: geoData?.status === 'success' ? geoData.city : null,
-      zip: geoData?.status === 'success' ? geoData.zip : null,
-      lat: geoData?.status === 'success' ? geoData.lat : null,
-      lon: geoData?.status === 'success' ? geoData.lon : null
+      utmSource: utm_source,
+      utmMedium: utm_medium,
+      utmCampaign: utm_campaign,
+      utmTerm: utm_term,
+      utmContent: utm_content,
+      fbclid,
+      fbp,
+      fbc,
+      landingPage,
+      userAgent,
+      ip,
+      country: geoData?.country,
+      region: geoData?.region,
+      city: geoData?.city,
+      zip: geoData?.postal,
+      lat: geoData?.latitude,
+      lon: geoData?.longitude
     };
-    
-    // Verificar se o trackingId foi fornecido
-    if (data.trackingId) {
-      // Atualizar sessão existente
+
+    let session;
+
+    if (trackingId) {
       session = await prisma.trackingSession.update({
-        where: { id: data.trackingId },
+        where: { id: trackingId },
         data: sessionData
       });
     } else {
-      // Tentar encontrar sessão existente por IP e agente de usuário para evitar duplicações
       const existingSession = await prisma.trackingSession.findFirst({
         where: {
-          ip: data.ip,
-          userAgent: data.userAgent,
-          // Considerar apenas sessões recentes (menos de 24 horas)
+          ip,
+          userAgent,
           createdAt: {
             gte: new Date(Date.now() - 24 * 60 * 60 * 1000)
           }
         },
-        orderBy: {
-          createdAt: 'desc'
-        }
+        orderBy: { createdAt: 'desc' }
       });
-      
+
       if (existingSession) {
-        // Atualizar sessão existente
         session = await prisma.trackingSession.update({
           where: { id: existingSession.id },
           data: sessionData
         });
       } else {
-        // Criar nova sessão (Prisma vai gerar ID com cuid())
-        session = await prisma.trackingSession.create({
-          data: sessionData
-        });
+        session = await prisma.trackingSession.create({ data: sessionData });
       }
     }
-    
-    return NextResponse.json({ success: true, id: session.id });
-  } catch (error) {
-    console.error('Erro ao processar sessão de rastreamento:', error);
+
+    // Retornar o ID da sessão e os dados de geolocalização para o frontend
+    return NextResponse.json({ 
+      success: true, 
+      id: session.id,
+      geoData: geoData ? {
+        city: geoData.city,
+        region: geoData.region,
+        postal: geoData.postal,
+        country: geoData.country,
+        latitude: geoData.latitude,
+        longitude: geoData.longitude
+      } : null
+    });
+  } catch (error: unknown) {
+    console.error('[TRACKING_SESSION_ERROR]', error);
+    const errorMessage = error instanceof Error ? error.message : 'Erro interno ao processar sessão';
     return NextResponse.json(
-      { error: 'Erro interno ao processar sessão' },
+      { error: errorMessage },
       { status: 500 }
     );
   }

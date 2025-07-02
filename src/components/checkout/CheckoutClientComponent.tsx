@@ -106,16 +106,40 @@ export default function CheckoutClientComponent({
       const eventRef = url.searchParams.get('eventref');
       
       // Preparar parâmetros do evento conforme documentação oficial
+      // https://developers.facebook.com/docs/meta-pixel/reference#standard-events
       const eventParams = {
+        // Parâmetros padrão do evento
         content_type: 'product',
         content_ids: [product.id],
         content_name: product.name,
         value: product.price,
         currency: 'BRL',
+        num_items: 1,
+        
         // Adicionar eventref apenas se estiver presente na URL
-        eventref: eventRef === 'fb_oea' ? 'fb_oea' : '',
-        // Adicionar parâmetros adicionais para melhorar o EMQ
-        num_items: 1
+        eventref: eventRef === 'fb_oea' ? 'fb_oea' : undefined,
+        
+        // Parâmetros adicionais para melhorar o EMQ e segmentação
+        contents: [{
+          id: product.id,
+          quantity: 1,
+          item_price: product.price,
+          title: product.name,
+          category: product.category || 'Curso'
+        }],
+        content_category: product.category || 'Curso',
+        
+        // Informações da página
+        page_title: document.title,
+        page_url: window.location.href,
+        page_referrer: document.referrer || undefined,
+        
+        // Informações do checkout
+        checkout_id: checkoutId,
+        
+        // Dados de dispositivo e plataforma
+        platform: 'website',
+        device_type: /Mobile|Android|iPhone|iPad|iPod|Windows Phone/i.test(navigator.userAgent) ? 'mobile' : 'desktop'
       };
       
       console.log('Disparando InitiateCheckout com parâmetros:', eventParams);
@@ -133,7 +157,7 @@ export default function CheckoutClientComponent({
         localStorage.removeItem(checkoutEventKey);
       }, 24 * 60 * 60 * 1000);
     }
-  }, [ready, trackEventBoth, product.id, product.name, product.price, checkoutId]);
+  }, [ready, trackEventBoth, product.id, product.name, product.price, product.category, checkoutId]);
 
   // Não precisamos mais recuperar o orderId da sessão
 
@@ -434,6 +458,8 @@ export default function CheckoutClientComponent({
                 trigger={trigger}
                 formState={formState}
                 onProceedToPayment={handleSubmit(handleSaveCustomerDataAndProceed)}
+                product={product}
+                checkoutId={checkoutId}
               />
             </form>
           )}
