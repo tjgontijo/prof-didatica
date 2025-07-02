@@ -5,12 +5,7 @@ import { useRouter } from 'next/navigation';
 import { useForm, SubmitHandler } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { FaSpinner } from 'react-icons/fa';
-
 import { ProdutoInfo, OrderBump } from './types';
-import { collectTrackingData, TrackingData } from '@/lib/tracking';
-import { useTrackingSession } from '@/modules/tracking/hooks/useTrackingSession';
-import * as Storage from '@/modules/tracking/utils/storage';
-
 import OrderBumps from '@/components/checkout/OrderBumps';
 import FormCustomer, {
   CustomerFormValues,
@@ -21,8 +16,9 @@ import PaymentSelector from '@/components/checkout/PaymentSelector';
 import FormPix from '@/components/checkout/FormPix';
 import ProductHeader from '@/components/checkout/ProductHeader';
 import { cleanPhone } from '@/lib/phone';
-
 import Image from 'next/image';
+import { useInitiateCheckout } from '@/modules/tracking_front/hooks/useInitiateCheckout';
+
 
 type OrderDraftPayload = {
   productId: string;
@@ -34,7 +30,6 @@ type OrderDraftPayload = {
     productId: string;
     quantity: number;
   }>;
-  trackingData?: TrackingData;
 };
 
 type OrderUpdatePayload = {
@@ -49,30 +44,26 @@ interface CheckoutClientComponentProps {
   checkoutId: string;
 }
 
+
+
 export default function CheckoutClientComponent({
   product,
   orderBumps,
   checkoutId,
 }: CheckoutClientComponentProps) {
   const router = useRouter();
-  // Usar o hook useTrackingSession para obter a função trackEventBoth
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  const { trackEventBoth, ready } = useTrackingSession();
-  // Estado para armazenar o ID do pedido
   const [orderId, setOrderId] = useState<string | null>(null);
   const [orderBumpsSelecionados, setOrderBumpsSelecionados] = useState<OrderBump[]>([]);
   const [valorTotal, setValorTotal] = useState(product.price);
   const [carregando, setCarregando] = useState(false);
   const [erro, setErro] = useState<string | null>(null);
   const [dadosCliente, setDadosCliente] = useState<CustomerFormValues | null>(null);
-  // Estado para controlar a criação de pedido
   const [, setIsCreatingOrder] = useState(false);
   const [currentStep, setCurrentStep] = useState<'personal-info' | 'payment'>('personal-info');
-
   const { register, handleSubmit, trigger, formState } = useForm<CustomerFormValues>({
     resolver: zodResolver(customerFormSchema),
-    mode: 'onBlur', // Usando onBlur para validar apenas quando o campo perde o foco
-    reValidateMode: 'onBlur', // Revalidar apenas no evento onBlur, não durante a digitação
+    mode: 'onBlur',
+    reValidateMode: 'onBlur',
     defaultValues: {
       name: '',
       email: '',
@@ -89,79 +80,23 @@ export default function CheckoutClientComponent({
     setOrderBumpsSelecionados(bumpsInicial);
   }, [orderBumps]);
 
-  // Dispara o evento InitiateCheckout quando o componente é montado, mas apenas uma vez por sessão de checkout
+  const initiateCheckout = useInitiateCheckout();
+
   useEffect(() => {
-    if (!ready) return;
-    
-    // Verificar se já enviamos este evento para este checkout específico
-    const checkoutEventKey = `checkout_event_${checkoutId}`;
-    const hasInitiatedCheckout = localStorage.getItem(checkoutEventKey);
-    
-    if (!hasInitiatedCheckout) {
-      // Obter dados do cliente usando a função do módulo de armazenamento
-      const customerData = Storage.getCustomerData() || {};
-      
-      // Verificar se há eventref na URL para eventos oficiais do Meta
-      const url = new URL(window.location.href);
-      const eventRef = url.searchParams.get('eventref');
-      
-      // Preparar parâmetros do evento conforme documentação oficial
-      // https://developers.facebook.com/docs/meta-pixel/reference#standard-events
-      const eventParams = {
-        // Parâmetros padrão do evento
-        content_type: 'product',
-        content_ids: [product.id],
-        content_name: product.name,
-        value: product.price,
-        currency: 'BRL',
-        num_items: 1,
-        
-        // Adicionar eventref apenas se estiver presente na URL
-        eventref: eventRef === 'fb_oea' ? 'fb_oea' : undefined,
-        
-        // Parâmetros adicionais para melhorar o EMQ e segmentação
-        contents: [{
-          id: product.id,
-          quantity: 1,
-          item_price: product.price,
-          title: product.name,
-          category: product.category || 'Curso'
-        }],
-        content_category: product.category || 'Curso',
-        
-        // Informações da página
-        page_title: document.title,
-        page_url: window.location.href,
-        page_referrer: document.referrer || undefined,
-        
-        // Informações do checkout
-        checkout_id: checkoutId,
-        
-        // Dados de dispositivo e plataforma
-        platform: 'website',
-        device_type: /Mobile|Android|iPhone|iPad|iPod|Windows Phone/i.test(navigator.userAgent) ? 'mobile' : 'desktop'
-      };
-      
-      console.log('Disparando InitiateCheckout com parâmetros:', eventParams);
-      console.log('Dados do cliente para advanced matching:', customerData);
-      
-      // Dispara o evento InitiateCheckout tanto no Pixel quanto no CAPI
-      // usando a função do hook useTrackingSession
-      trackEventBoth('InitiateCheckout', eventParams, customerData);
-      
-      // Registra que o evento foi enviado para este checkout
-      localStorage.setItem(checkoutEventKey, 'true');
-      
-      // Opcional: Definir um tempo de expiração (24 horas)
-      setTimeout(() => {
-        localStorage.removeItem(checkoutEventKey);
-      }, 24 * 60 * 60 * 1000);
-    }
-  }, [ready, trackEventBoth, product.id, product.name, product.price, product.category, checkoutId]);
+  const storageKey = `initiateCheckoutFired_${checkoutId}`;
+  if (typeof window === 'undefined') return;
+  if (localStorage.getItem(storageKey) === 'true') return;
 
-  // Não precisamos mais recuperar o orderId da sessão
+  initiateCheckout({
+    content_ids: [product.id],
+    content_type: product.category,
+    currency: 'BRL',
+    value: product.price
+  });
 
-  // Função para lidar com a seleção/deseleção de order bumps
+  localStorage.setItem(storageKey, 'true');
+  }, [initiateCheckout, product.id, product.price, product.category, checkoutId]);
+
   const handleToggleOrderBump = useCallback((id: string) => {
     setOrderBumpsSelecionados((prev) => {
       const updated = prev.map((bump) => {
@@ -170,17 +105,13 @@ export default function CheckoutClientComponent({
         }
         return bump;
       });
-
       return updated;
     });
   }, []);
-
-  // Calcula o valor total (produto principal + order bumps selecionados) usando useMemo
+  
   const calculatedTotal = useMemo(() => {
-    // Valor do produto principal
     let total = product.price;
 
-    // Adiciona o valor dos order bumps selecionados
     orderBumpsSelecionados.forEach((bump) => {
       if (bump.selected) {
         total += bump.specialPrice;
@@ -190,12 +121,10 @@ export default function CheckoutClientComponent({
     return total;
   }, [product.price, orderBumpsSelecionados]);
 
-  // Atualiza o estado do valorTotal quando o calculatedTotal mudar
   useEffect(() => {
     setValorTotal(calculatedTotal);
   }, [calculatedTotal]);
 
-  // Função para salvar o ID do pedido no estado e na sessão
   const saveOrderId = useCallback((id: string) => {
     try {
       setOrderId(id);
@@ -205,16 +134,11 @@ export default function CheckoutClientComponent({
       return false;
     }
   }, []);
-
-  // Função para criar um novo pedido
+  
   const createOrder = useCallback(
     async (data: CustomerFormValues, phoneNormalized: string) => {
       setIsCreatingOrder(true);
-      try {
-        // Coletar dados de rastreamento do localStorage
-        const trackingData = collectTrackingData();
-
-        // Preparar o payload
+      try {        
         const payload: OrderDraftPayload = {
           productId: product.id,
           checkoutId,
@@ -224,18 +148,11 @@ export default function CheckoutClientComponent({
           orderBumps: orderBumpsSelecionados
             .filter((bump) => bump.selected)
             .map((bump) => ({
-              productId: bump.productId, // Usando o productId ao invés do id do order bump
+              productId: bump.productId,
               quantity: 1,
-            })),
-          trackingData, // Incluindo os dados de rastreamento
+            }))
         };
-        
-        // Log para depuração
-        console.log('Enviando order bumps:', orderBumpsSelecionados
-            .filter((bump) => bump.selected)
-            .map(bump => ({ id: bump.id, productId: bump.productId, name: bump.name })));
-
-        // Fazer a chamada API
+                
         const response = await fetch('/api/orders', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
@@ -245,11 +162,9 @@ export default function CheckoutClientComponent({
         if (!response.ok) {
           throw new Error(`Erro ao criar pedido: ${response.status} ${response.statusText}`);
         }
-
-        // Processar a resposta
+        
         const orderData = await response.json();
-
-        // Verificação detalhada da estrutura da resposta
+        
         if (!orderData) {
           throw new Error('Resposta inválida da API: sem dados');
         }
@@ -262,19 +177,17 @@ export default function CheckoutClientComponent({
           throw new Error('Resposta inválida da API: objeto order ausente');
         }
 
-        // Obter e validar o ID
         const newOrderId = orderData.order.id;
 
         if (!newOrderId) {
           throw new Error('ID do pedido inválido ou inexistente na resposta');
         }
-
-        // Salvar o ID no estado React
-        setOrderId(newOrderId); // Atualiza diretamente
+        
+        setOrderId(newOrderId);
 
         return newOrderId;
       } catch (error) {
-        throw error; // Re-lança para tratamento no nível superior
+        throw error;
       } finally {
         setIsCreatingOrder(false);
       }
@@ -282,7 +195,6 @@ export default function CheckoutClientComponent({
     [checkoutId, orderBumpsSelecionados, product.id, setOrderId],
   );
 
-  // Função para atualizar um pedido existente
   const updateOrder = useCallback(
     async (orderId: string, data: CustomerFormValues, phoneNormalized: string) => {
       const payload: OrderUpdatePayload = {
@@ -344,8 +256,7 @@ export default function CheckoutClientComponent({
     },
     [orderId, createOrder, updateOrder, setOrderId],
   );
-
-  // Lista de order bumps selecionados usando useMemo para evitar recálculos desnecessários
+ 
   const selectedOrderBumps = useMemo(() => {
     return orderBumpsSelecionados.filter((bump) => bump.selected);
   }, [orderBumpsSelecionados]);
@@ -372,16 +283,13 @@ export default function CheckoutClientComponent({
         ...orderBumpsSelecionados
           .filter((bump) => bump.selected)
           .map((bump) => ({
-            id: bump.productId, // Usando o productId que é o ID do produto correto
+            id: bump.productId,
             nome: bump.name,
             quantidade: 1,
             preco: bump.specialPrice,
           })),
       ];
 
-      // Coletar dados de rastreamento do localStorage
-      const trackingData = collectTrackingData();
-      
       const dadosPedido = {
         items,
         cliente: {
@@ -391,8 +299,7 @@ export default function CheckoutClientComponent({
         },
         valorTotal,
         checkoutId,
-        orderId: currentOrderId,
-        trackingData, // Incluir os dados de rastreamento no payload
+        orderId: currentOrderId
       };
 
       const resposta = await fetch('/api/payment/pix', {
@@ -458,8 +365,6 @@ export default function CheckoutClientComponent({
                 trigger={trigger}
                 formState={formState}
                 onProceedToPayment={handleSubmit(handleSaveCustomerDataAndProceed)}
-                product={product}
-                checkoutId={checkoutId}
               />
             </form>
           )}

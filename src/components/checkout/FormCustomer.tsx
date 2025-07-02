@@ -2,7 +2,6 @@
 
 import React, { useState } from 'react';
 import { UseFormRegister, FieldErrors, UseFormTrigger, FormState } from 'react-hook-form';
-import { useTrackingSession } from '@/modules/tracking/hooks/useTrackingSession';
 import { FaArrowRight, FaWhatsapp } from 'react-icons/fa';
 import { FiUser, FiMail } from 'react-icons/fi';
 import { formatBrazilianPhone, cleanPhone, validateBrazilianPhone } from '@/lib/phone';
@@ -11,7 +10,11 @@ import { z } from 'zod';
 const phoneValidationCache: Record<string, boolean> = {};
 
 export const customerFormSchema = z.object({
-  name: z.string().min(3, 'Nome deve ter pelo menos 3 caracteres'),
+  name: z.string()
+    .min(3, 'Nome deve ter pelo menos 3 caracteres')
+    .refine((val) => val.trim().split(' ').length >= 2, {
+      message: 'Informe nome e sobrenome',
+    }),
   email: z.string().email('Email inválido'),
   phone: z
     .string()
@@ -35,7 +38,7 @@ interface FormCustomerProps {
   errors: FieldErrors<CustomerFormValues>;
   isSubmitting: boolean;
   trigger: UseFormTrigger<CustomerFormValues>;
-  formState: FormState<CustomerFormValues>; // Mantemos no tipo para compatibilidade
+  formState: FormState<CustomerFormValues>;
   onProceedToPayment: () => void;
   product?: Product;
   checkoutId?: string;
@@ -46,13 +49,8 @@ function FormCustomer({
   errors,
   isSubmitting,
   trigger,
-  // formState não é utilizado, então removemos da desestruturação
-  onProceedToPayment,
-  product,
-  checkoutId,
+  onProceedToPayment,  
 }: FormCustomerProps) {
-  // Usar o hook useTrackingSession para obter a função trackEventBoth
-  const { trackEventBoth } = useTrackingSession();
   const [isNameValid, setIsNameValid] = useState(false);
   const [isEmailValid, setIsEmailValid] = useState(false);
   const [isWhatsappValid, setIsWhatsappValid] = useState(false);
@@ -87,8 +85,7 @@ function FormCustomer({
     const cleaned = cleanPhone(value);
     const validFormat = await trigger('phone');
 
-    if (cleaned.length === 11 && validFormat) {
-      // Verificar cache local primeiro
+    if (cleaned.length === 11 && validFormat) {      
       if (cleaned === lastValidatedPhone) {
         setIsWhatsappValid(lastValidationResult);
         if (!lastValidationResult) setWhatsappError('Informe um WhatsApp válido');
@@ -104,8 +101,7 @@ function FormCustomer({
         return;
       }
 
-      try {
-        // Chamar a API do servidor para validar o número
+      try {        
         const response = await fetch('/api/whatsapp/validate', {
           method: 'POST',
           headers: {
@@ -120,8 +116,7 @@ function FormCustomer({
 
         const data = await response.json();
         const isValid = data.isWhatsapp === true;
-        
-        // Atualizar cache local
+                
         phoneValidationCache[cleaned] = isValid;
         setLastValidatedPhone(cleaned);
         setLastValidationResult(isValid);
@@ -137,8 +132,6 @@ function FormCustomer({
       }
     }
   };
-
-
   
   return (
     <div id="formCustomer">
@@ -228,148 +221,7 @@ function FormCustomer({
               const nameValid = await trigger('name');
               const emailValid = await trigger('email');
               const phoneValid = await trigger('phone');
-              if (nameValid && emailValid && phoneValid && isWhatsappValid) {
-                // Disparar o evento AddPaymentInfo com os dados do cliente para advanced matching
-                const nameInput = document.getElementById('name') as HTMLInputElement;
-                const emailInput = document.getElementById('email') as HTMLInputElement;
-                const phoneInput = document.getElementById('phone') as HTMLInputElement;
-                
-                const formValues = {
-                  name: nameInput?.value || '',
-                  email: emailInput?.value || '',
-                  phone: cleanPhone(phoneInput?.value || '')
-                };
-                
-                // Verificar se já enviamos este evento para este formulário
-                const paymentInfoEventKey = `payment_info_${formValues.email}`;
-                const hasAddedPaymentInfo = localStorage.getItem(paymentInfoEventKey);
-                
-                if (!hasAddedPaymentInfo) {
-                  // Extrair nome e sobrenome
-                  const nameParts = formValues.name.split(' ');
-                  const firstName = nameParts[0] || '';
-                  const lastName = nameParts.length > 1 ? nameParts.slice(1).join(' ') : '';
-                  
-                  // Obter dados do produto e checkout do contexto
-                  // Verificar se temos dados do produto
-                  if (!product) {
-                    console.error('Erro: Produto não disponível para o evento AddPaymentInfo');
-                    // Não vamos disparar o evento se não tivermos dados do produto
-                    return;
-                  }
-                  
-                  // Usar os dados reais do produto
-                  const productValue = product.price;
-                  const productId = product.id;
-                  const productName = product.name;
-                  const productCategory = product.category || 'Curso';
-                  
-                  // Verificar se há eventref na URL para eventos oficiais do Meta
-                  const url = new URL(window.location.href);
-                  const eventRef = url.searchParams.get('eventref');
-                  
-                  // Preparar parâmetros do evento conforme documentação oficial
-                  // https://developers.facebook.com/docs/meta-pixel/reference#standard-events
-                  const eventParams = {
-                    // Parâmetros padrão do evento
-                    content_category: productCategory,
-                    content_type: 'product',
-                    content_ids: [productId],
-                    content_name: productName,
-                    value: productValue,
-                    currency: 'BRL',
-                    num_items: 1,
-                    
-                    // Adicionar eventref apenas se estiver presente na URL
-                    eventref: eventRef === 'fb_oea' ? 'fb_oea' : undefined,
-                    
-                    // Parâmetros adicionais para melhorar o EMQ e segmentação
-                    contents: [{
-                      id: productId,
-                      quantity: 1,
-                      item_price: productValue,
-                      title: productName,
-                      category: productCategory
-                    }],
-                    predicted_ltv: productValue * 1.5, // Valor estimado de LTV baseado no preço do produto
-                    
-                    // Informações da página
-                    page_title: document.title,
-                    page_url: window.location.href,
-                    page_referrer: document.referrer || undefined,
-                    
-                    // Informações do checkout
-                    checkout_id: checkoutId,
-                    
-                    // Dados de dispositivo e plataforma
-                    platform: 'website',
-                    device_type: /Mobile|Android|iPhone|iPad|iPod|Windows Phone/i.test(navigator.userAgent) ? 'mobile' : 'desktop'
-                  };
-                  
-                  // Obter dados de geolocalização armazenados
-                  const storedGeoData = await import('@/modules/tracking/utils/ipAndLocation')
-                    .then(module => module.getStoredGeoData())
-                    .catch(() => null);
-                  
-                  // Obter dados do cliente existentes como tipo seguro
-                  const storedCustomerData = await import('@/modules/tracking/utils/storage')
-                    .then(module => module.getCustomerData())
-                    .catch(() => ({}));
-                  
-                  // Definir tipos para evitar erros
-                  type SafeCustomerData = {
-                    city?: string;
-                    state?: string;
-                    zipCode?: string;
-                    country?: string;
-                    ip?: string;
-                    fbp?: string;
-                    fbc?: string;
-                    [key: string]: string | undefined;
-                  };
-                  
-                  // Converter para tipo seguro
-                  const safeCustomerData = storedCustomerData as SafeCustomerData;
-                  
-                  // Preparar dados do cliente para advanced matching
-                  const customerData = {
-                    // Dados do cliente para advanced matching
-                    firstName: firstName,
-                    lastName: lastName,
-                    email: formValues.email,
-                    phone: formValues.phone,
-                    externalId: formValues.email.split('@')[0], // ID externo baseado no email
-                    
-                    // Dados de geolocalização
-                    city: storedGeoData?.city || safeCustomerData.city || '',
-                    state: storedGeoData?.region || safeCustomerData.state || '',
-                    zipCode: storedGeoData?.postal || safeCustomerData.zipCode || '',
-                    country: storedGeoData?.country || safeCustomerData.country || 'br',
-                    
-                    // Dados técnicos
-                    ip: safeCustomerData.ip || '',
-                    userAgent: navigator.userAgent,
-                    
-                    // Cookies do Facebook
-                    fbp: safeCustomerData.fbp,
-                    fbc: safeCustomerData.fbc
-                  };
-                  
-                  console.log('Disparando AddPaymentInfo com parâmetros:', eventParams);
-                  console.log('Dados do cliente para advanced matching:', customerData);
-                  
-                  // Enviar evento com dados do cliente para advanced matching
-                  trackEventBoth('AddPaymentInfo', eventParams, customerData);
-                  
-                  // Registrar que o evento foi enviado para este email
-                  localStorage.setItem(paymentInfoEventKey, 'true');
-                  
-                  // Opcional: Definir um tempo de expiração (24 horas)
-                  setTimeout(() => {
-                    localStorage.removeItem(paymentInfoEventKey);
-                  }, 24 * 60 * 60 * 1000);
-                }
-                
+              if (nameValid && emailValid && phoneValid && isWhatsappValid) {                
                 onProceedToPayment();
               }
             }}

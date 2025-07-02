@@ -4,8 +4,6 @@ import { getCheckoutData, type CheckoutData } from '@/components/checkout/getChe
 import CheckoutClientComponent from '@/components/checkout/CheckoutClientComponent';
 import { ProdutoInfo, OrderBump as OrderBumpType } from '@/components/checkout/types';
 
-// Usando os tipos importados do arquivo types.ts
-
 export type paramsType = Promise<{ id: string }>;
 
 export async function generateMetadata(props: { params: paramsType }): Promise<Metadata> {

@@ -14,6 +14,7 @@
     "@hookform/resolvers": "^5.1.1",
     "@mercadopago/sdk-react": "^1.0.3",
     "@prisma/client": "^6.9.0",
+    "cuid": "^3.0.0",
     "logger": "^0.0.1",
     "mercadopago": "^2.7.0",
     "next": "15.3.2",
