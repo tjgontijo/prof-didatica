@@ -40,17 +40,29 @@ export async function upsertTrackingSession(
     throw new Error('ID da sessão de rastreamento é obrigatório para upsert');
   }
 
-  // Realizar o upsert com o campo ID definido corretamente
-  return await prisma.trackingSession.upsert({
-    where: {
-      id: trackingId // Campo único obrigatório
-    },
-    update: data,
-    create: {
-      id: trackingId,
-      ...data
-    }
+  // Verificar se a sessão existe antes de tentar atualizar
+  const existingSession = await prisma.trackingSession.findUnique({
+    where: { id: trackingId }
   });
+
+  if (existingSession) {
+    // Se a sessão existe, atualiza
+    return await prisma.trackingSession.update({
+      where: { id: trackingId },
+      data
+    });
+  } else {
+    // Se a sessão não existe, cria
+    return await prisma.trackingSession.create({
+      data: {
+        id: trackingId,
+        ...data
+      }
+    });
+  }
+  
+  // Não usamos upsert diretamente para evitar problemas com o Prisma
+  // quando o registro não existe
 }
 
 /**
@@ -92,8 +104,26 @@ export async function findTrackingSessionByIpAndUserAgent(
     gte: new Date(Date.now() - 24 * 60 * 60 * 1000)
   };
   
-  return await prisma.trackingSession.findFirst({
-    where: whereClause,
-    orderBy: { createdAt: 'desc' }
-  });
+  try {
+    // Buscar a sessão mais recente
+    const session = await prisma.trackingSession.findFirst({
+      where: whereClause,
+      orderBy: { createdAt: 'desc' }
+    });
+    
+    // Verificar se a sessão existe e é válida
+    if (session) {
+      // Confirmar que a sessão ainda existe com uma consulta adicional
+      const validSession = await prisma.trackingSession.findUnique({
+        where: { id: session.id }
+      });
+      
+      return validSession; // Retorna null se a sessão não existir mais
+    }
+    
+    return null;
+  } catch (error) {
+    console.error('[findTrackingSessionByIpAndUserAgent] Erro ao buscar sessão:', error);
+    return null;
+  }
 }

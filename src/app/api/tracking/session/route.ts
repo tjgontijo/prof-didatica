@@ -17,7 +17,9 @@ const TrackingSessionSchema = z.object({
   fbc: z.string().optional(),
   landingPage: z.string().optional(),
   userAgent: z.string().optional(),
-  ip: z.string().ip().optional()
+  // Alteramos a validação de IP para aceitar qualquer string ou nulo
+  // Isso evita erros quando o formato do IP não é padrão
+  ip: z.string().optional().nullable()
 });
 
 export type TrackingSessionRequest = z.infer<typeof TrackingSessionSchema>;

@@ -35,13 +35,29 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
     
     console.log('[API EVENT] Buscando sessão:', data.trackingId);
     // Verificar se a sessão existe
-    const session = await prisma.trackingSession.findUnique({
-      where: { id: data.trackingId }
-    });
+    let session;
+    try {
+      session = await prisma.trackingSession.findUnique({
+        where: { id: data.trackingId }
+      });
 
-    if (!session) {
-      console.log('[API EVENT] Sessão não encontrada:', data.trackingId);
-      return NextResponse.json({ error: 'Sessão de rastreamento não encontrada' }, { status: 404 });
+      if (!session) {
+        console.log('[API EVENT] Sessão não encontrada:', data.trackingId);
+        return NextResponse.json({ error: 'Sessão de rastreamento não encontrada' }, { status: 404 });
+      }
+      
+      // Verificar novamente para garantir que a sessão existe
+      const sessionExists = await prisma.trackingSession.count({
+        where: { id: data.trackingId }
+      });
+      
+      if (sessionExists === 0) {
+        console.log('[API EVENT] Sessão não encontrada na segunda verificação:', data.trackingId);
+        return NextResponse.json({ error: 'Sessão de rastreamento não encontrada' }, { status: 404 });
+      }
+    } catch (error) {
+      console.error('[API EVENT] Erro ao buscar sessão:', error);
+      return NextResponse.json({ error: 'Erro ao buscar sessão de rastreamento' }, { status: 500 });
     }
     
     console.log('[API EVENT] Criando evento no banco:', data.eventName);
@@ -176,24 +192,47 @@ interface MetaApiResponse {
 }
 
 async function sendToMetaCAPI(payload: MetaEventPayload): Promise<MetaApiResponse> {
+  // Verificar se as variáveis de ambiente estão definidas
   if (!process.env.META_PIXEL_ID || !process.env.META_CAPI_TOKEN) {
-    throw new Error('Configurações do Meta CAPI não definidas');
+    console.warn('[META CAPI] Configurações do Meta CAPI não definidas. Evento será registrado apenas localmente.');
+    // Retornar uma resposta simulada para não interromper o fluxo
+    return {
+      events_received: 0,
+      messages: ['Configurações do Meta CAPI não definidas']
+    };
   }
   
-  const pixelId = process.env.META_PIXEL_ID;
-  const accessToken = process.env.META_CAPI_TOKEN;
-  
-  const url = `https://graph.facebook.com/v23.0/${pixelId}/events?access_token=${accessToken}`;
-  
-  const response = await fetch(url, {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json'
-    },
-    body: JSON.stringify({
-      data: [payload]
-    })
-  });
-  
-  return response.json();
+  try {
+    const pixelId = process.env.META_PIXEL_ID;
+    const accessToken = process.env.META_CAPI_TOKEN;
+    
+    const url = `https://graph.facebook.com/v23.0/${pixelId}/events?access_token=${accessToken}`;
+    
+    const response = await fetch(url, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({
+        data: [payload]
+      })
+    });
+    
+    if (!response.ok) {
+      const errorText = await response.text();
+      console.error(`[META CAPI] Erro na resposta: ${response.status} ${response.statusText}`, errorText);
+    }
+    
+    return response.json();
+  } catch (error) {
+    console.error('[META CAPI] Erro ao enviar evento:', error);
+    // Retornar uma resposta de erro para que o sistema continue funcionando
+    return {
+      error: {
+        message: error instanceof Error ? error.message : String(error),
+        type: 'api_error',
+        code: 500
+      }
+    };
+  }
 }
