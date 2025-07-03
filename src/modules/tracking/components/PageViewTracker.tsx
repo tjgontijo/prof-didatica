@@ -1,6 +1,6 @@
 'use client'
 
-import { usePageView } from './usePageView'
+import { usePageView } from '../hooks/usePageView'
 
 export default function PageViewTracker() {
   usePageView()

@@ -10,9 +10,8 @@ export function getUrlParams(): UrlParams {
     return match?.split('=')[1]
   }
 
-  const fbclid = params.get('fbclid')
   const fbp = getCookie('_fbp')
-  const fbc = getCookie('_fbc') || (fbclid ? `fb.1.${Date.now()}.${fbclid}` : undefined)
+  const fbc = getCookie('_fbc')
 
   const keys: (keyof UrlParams)[] = [
     'utm_source',

@@ -169,6 +169,7 @@ CREATE TABLE "ExternalWebhookLog" (
 -- CreateTable
 CREATE TABLE "TrackingSession" (
     "id" TEXT NOT NULL,
+    "sessionId" TEXT NOT NULL,
     "utmSource" TEXT,
     "utmMedium" TEXT,
     "utmCampaign" TEXT,
@@ -283,6 +284,9 @@ CREATE INDEX "ExternalWebhookLog_source_paymentId_idx" ON "ExternalWebhookLog"("
 
 -- CreateIndex
 CREATE INDEX "ExternalWebhookLog_action_processedAt_idx" ON "ExternalWebhookLog"("action", "processedAt");
+
+-- CreateIndex
+CREATE UNIQUE INDEX "TrackingSession_sessionId_key" ON "TrackingSession"("sessionId");
 
 -- CreateIndex
 CREATE INDEX "TrackingSession_utmSource_utmCampaign_idx" ON "TrackingSession"("utmSource", "utmCampaign");

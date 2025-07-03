@@ -21,6 +21,8 @@ interface IpApiResponse {
   regionName?: string;
   city?: string;
   zip?: string;
+  lat?: number;
+  lon?: number;
 }
 
 // Interface para resposta do ipwho.is
@@ -30,6 +32,8 @@ interface IpWhoIsResponse {
   region?: string;
   postal?: string;
   country?: string;
+  latitude?: number;
+  longitude?: number;
 }
 
 // Interface para resposta do ipapi.co
@@ -39,6 +43,8 @@ interface IpapiCoResponse {
   region?: string;
   postal?: string;
   country_name?: string;
+  latitude?: number;
+  longitude?: number;
 }
 
 /**
@@ -101,37 +107,41 @@ async function lookupGeo(ip: string): Promise<GeoData | null> {
 
   // Lista de serviços de geolocalização, em ordem de preferência
   const geoServices = [
-    // 1. ip-api.com
-    {
-      url: `https://ip-api.com/json/${ip}?fields=status,country,regionName,city,zip`,
-      name: 'ip-api.com',
-      parser: (data: IpApiResponse): GeoData | null => {
-        if (data.status === 'success') {
-          return {
-            ct: data.city || '',
-            st: data.regionName || '',
-            zp: data.zip || '',
-            country: data.country || '',
-            client_ip_address: ip,
-            timestamp: Date.now()
-          }
-        }
-        return null
-      }
-    },
-    // 2. ipwho.is
+    // 1. ipwho.is (primeira opção por ser mais confiável)
     {
       url: `https://ipwho.is/${ip}`,
       name: 'ipwho.is',
       parser: (data: IpWhoIsResponse): GeoData | null => {
         if (data.success) {
           return {
-            ct: data.city || '',
-            st: data.region || '',
-            zp: data.postal || '',
+            city: data.city || '',
+            region: data.region || '',
+            zip: data.postal || '',
             country: data.country || '',
-            client_ip_address: ip,
-            timestamp: Date.now()
+            clientIpAddress: ip,
+            timestamp: Date.now(),
+            lat: data.latitude,
+            lon: data.longitude
+          }
+        }
+        return null
+      }
+    },
+    // 2. ip-api.com (segunda opção devido a problemas de limite de requisições)
+    {
+      url: `https://ip-api.com/json/${ip}?fields=status,country,regionName,city,zip,lat,lon`,
+      name: 'ip-api.com',
+      parser: (data: IpApiResponse): GeoData | null => {
+        if (data.status === 'success') {
+          return {
+            city: data.city || '',
+            region: data.regionName || '',
+            zip: data.zip || '',
+            country: data.country || '',
+            clientIpAddress: ip,
+            timestamp: Date.now(),
+            lat: data.lat,
+            lon: data.lon
           }
         }
         return null
@@ -144,12 +154,14 @@ async function lookupGeo(ip: string): Promise<GeoData | null> {
       parser: (data: IpapiCoResponse): GeoData | null => {
         if (!data.error) {
           return {
-            ct: data.city || '',
-            st: data.region || '',
-            zp: data.postal || '',
+            city: data.city || '',
+            region: data.region || '',
+            zip: data.postal || '',
             country: data.country_name || '',
-            client_ip_address: ip,
-            timestamp: Date.now()
+            clientIpAddress: ip,
+            timestamp: Date.now(),
+            lat: data.latitude,
+            lon: data.longitude
           }
         }
         return null
@@ -216,5 +228,3 @@ export async function getGeoData(): Promise<GeoData | null> {
     return null
   }
 }
-
-// Função de fallback removida para evitar envio de dados incorretos ao Meta Pixel
