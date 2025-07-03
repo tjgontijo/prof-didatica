@@ -1,8 +1,9 @@
 import type { Metadata } from 'next';
 import './globals.css';
 import { Inter } from 'next/font/google';
-import MetaPixel from '@/modules/tracking_front/components/MetaPixel';
-import PageViewTracker from '@/modules/tracking_front/hooks/PageViewTracker';
+import MetaPixel from '@/modules/tracking/components/MetaPixel';
+import PageViewTracker from '@/modules/tracking/components/PageViewTracker';
+import { TrackingInitializer } from '@/modules/tracking/components/TrackingInitializer';
 
 
 const inter = Inter({
@@ -26,6 +27,8 @@ export default function RootLayout({
       <head>              
       </head>     
       <body className={`${inter.variable} font-sans antialiased`}>
+        {/* Inicialização do tracking e gerenciamento de sessão */}
+        <TrackingInitializer />
         {/* Usando apenas o MetaPixel para inicialização e primeiro PageView */}
         <MetaPixel />
         {/* PageViewTracker agora só rastreia mudanças de rota após o carregamento inicial */}

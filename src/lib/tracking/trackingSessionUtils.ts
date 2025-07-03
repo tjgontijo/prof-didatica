@@ -56,6 +56,7 @@ export async function upsertTrackingSession(
     return await prisma.trackingSession.create({
       data: {
         id: trackingId,
+        sessionId: trackingId,
         ...data
       }
     });

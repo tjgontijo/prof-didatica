@@ -84,20 +84,16 @@ export default function MetaPixel() {
         // Criar objeto de advanced matching apenas com dados válidos
         const advancedMatching: AdvancedMatchingData = {}
         
-        // Adicionar dados de geolocalização apenas se disponíveis
-        if (tracking.geoData) {
-          if (tracking.geoData.ct) advancedMatching.ct = tracking.geoData.ct.toLowerCase()
-          if (tracking.geoData.st) advancedMatching.st = tracking.geoData.st.toLowerCase()
-          if (tracking.geoData.zp) advancedMatching.zp = tracking.geoData.zp
-          if (tracking.geoData.country) advancedMatching.country = tracking.geoData.country.toLowerCase()
-          if (tracking.geoData.client_ip_address) advancedMatching.client_ip_address = tracking.geoData.client_ip_address
-        }
+        if (tracking.city) advancedMatching.city = tracking.city.toLowerCase()
+        if (tracking.region) advancedMatching.region = tracking.region.toLowerCase()
+        if (tracking.zip) advancedMatching.zip = String(tracking.zip).replace(/[^0-9]/g, '').substring(0, 5)
+        if (tracking.country) advancedMatching.country = tracking.country.toLowerCase()
+        if (tracking.ip) advancedMatching.clientIpAddress = tracking.ip
         
-        // Adicionar outros dados de tracking
-        if (tracking.clientUserAgent) advancedMatching.client_user_agent = tracking.clientUserAgent
-        if (tracking.externalId) advancedMatching.external_id = tracking.externalId
-        if (tracking.urlParams.fbp) advancedMatching.fbp = tracking.urlParams.fbp
-        if (tracking.urlParams.fbc) advancedMatching.fbc = tracking.urlParams.fbc
+        if (tracking.userAgent) advancedMatching.clientUserAgent = tracking.userAgent
+
+        if (tracking.fbp) advancedMatching.fbp = tracking.fbp
+        if (tracking.fbc) advancedMatching.fbc = tracking.fbc
         
         console.log('[Meta Pixel] Inicializando com ID:', META_PIXEL_ID)
         console.log('[Meta Pixel] Advanced matching:', advancedMatching)
@@ -105,6 +101,50 @@ export default function MetaPixel() {
         // Inicializar o pixel
         if (window.fbq) {
           window.fbq('init', META_PIXEL_ID, advancedMatching)
+          
+          // Polling para aguardar sessionId e cookies fbp/fbc antes de disparar o PATCH
+          let attempts = 0;
+          const maxAttempts = 10; // evita loop infinito (ex: 10 tentativas)
+          const interval = setInterval(async () => {
+            attempts++;
+            // Só dispara se sessionId existir e for válido
+            if (tracking.sessionId) {
+              const getCookie = (name: string): string | undefined => {
+                const cookies = document.cookie.split(';')
+                const match = cookies.find(c => c.trim().startsWith(`${name}=`))
+                return match?.split('=')[1]
+              }
+              const fbp = getCookie('_fbp')
+              const fbc = getCookie('_fbc')
+              if (fbp || fbc) {
+                try {
+                  console.log('[Meta Pixel] Cookies encontrados após inicialização:', { fbp, fbc })
+                  console.log('[Meta Pixel] Atualizando sessão com cookies...')
+                  // Enviar atualização para a API
+                  const response = await fetch('/api/tracking/session', {
+                    method: 'PATCH',
+                    headers: {
+                      'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                      sessionId: tracking.sessionId,
+                      fbp,
+                      fbc
+                    }),
+                  })
+                  if (response.ok) {
+                    console.log('[Meta Pixel] Sessão atualizada com sucesso com cookies fbp/fbc')
+                  } else {
+                    console.error('[Meta Pixel] Erro ao atualizar sessão com cookies:', await response.text())
+                  }
+                } catch (error) {
+                  console.error('[Meta Pixel] Erro ao atualizar cookies na sessão:', error)
+                }
+                clearInterval(interval); // para o polling
+              }
+            }
+            if (attempts >= maxAttempts) clearInterval(interval); // segurança
+          }, 1000); // tenta a cada 1 segundo
           
           // Verificar se o evento PageView já foi disparado
           if (!window.metaPixelPageViewFired) {

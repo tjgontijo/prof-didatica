@@ -1,0 +1,247 @@
+import { NextRequest, NextResponse } from 'next/server';
+import { z } from 'zod';
+import { prisma } from '@/lib/prisma';
+import crypto from 'crypto';
+
+// Schema para validação dos dados do evento
+const CustomerSchema = z.object({
+  email: z.string().optional(),
+  phone: z.string().optional(),
+  firstName: z.string().optional(),
+  lastName: z.string().optional(),
+  state: z.string().optional(),
+  city: z.string().optional(),
+  zipCode: z.string().optional(),
+  country: z.string().optional(),
+  externalId: z.string().optional()
+}).optional();
+
+const TrackingEventSchema = z.object({
+  trackingSessionId: z.string(),
+  orderId: z.string().optional(),
+  eventName: z.string(),
+  eventId: z.string(),
+  payload: z.record(z.unknown()),
+  ip: z.string().optional().nullable(),
+  userAgent: z.string().optional(),
+  customData: z.record(z.unknown()).optional(),
+  customer: CustomerSchema
+});
+
+export type TrackingEventRequest = z.infer<typeof TrackingEventSchema>;
+
+export async function POST(request: NextRequest): Promise<NextResponse> {
+  try {
+    const rawData = await request.json();
+    const data = TrackingEventSchema.parse(rawData);
+
+    // Removendo desestruturação para evitar variáveis não utilizadas
+    
+    console.log('[API EVENT] Dados recebidos:', {
+      eventId: data.eventId,
+      trackingId: data.trackingSessionId
+    });
+    
+    console.log('[API EVENT] Buscando sessão:', data.trackingSessionId);
+    // Verificar se a sessão existe
+    let session;
+    try {
+      session = await prisma.trackingSession.findUnique({
+        where: { id: data.trackingSessionId }
+      });
+
+      if (!session) {
+        console.log('[API EVENT] Sessão não encontrada:', data.trackingSessionId);
+        return NextResponse.json({ error: 'Sessão de rastreamento não encontrada' }, { status: 404 });
+      }
+      
+      // Verificar novamente para garantir que a sessão existe
+      const sessionExists = await prisma.trackingSession.count({
+        where: { id: data.trackingSessionId }
+      });
+      
+      if (sessionExists === 0) {
+        console.log('[API EVENT] Sessão não encontrada na segunda verificação:', data.trackingSessionId);
+        return NextResponse.json({ error: 'Sessão de rastreamento não encontrada' }, { status: 404 });
+      }
+    } catch (error) {
+      console.error('[API EVENT] Erro ao buscar sessão:', error);
+      return NextResponse.json({ error: 'Erro ao buscar sessão de rastreamento' }, { status: 500 });
+    }
+    
+    console.log('[API EVENT] Criando evento no banco:', data.eventName);
+    
+    // Criar o evento de rastreamento no banco
+    const event = await prisma.trackingEvent.create({
+      data: {
+        trackingSessionId: data.trackingSessionId,
+        eventName: data.eventName,
+        // Usamos o eventId fornecido ou deixamos o Prisma gerar um novo
+        eventId: data.eventId || crypto.randomUUID(),
+        payload: data.customData ? JSON.parse(JSON.stringify(data.customData)) : {},
+        status: 'queued',
+        ip: data.ip,
+        userAgent: data.userAgent
+      }
+    });
+    
+    console.log('[API EVENT] Evento criado com sucesso:', event.id);
+    
+    // Preparar dados para o CAPI do Meta
+    const userData = prepareCAPIUserData(data, session);
+    console.log('[API EVENT] Dados de usuário preparados para CAPI:', userData);
+    
+    const capiPayload = {
+      event_name: data.eventName,
+      event_time: Math.floor(Date.now() / 1000),
+      event_source_url: session.landingPage || '',
+      action_source: 'website',
+      event_id: event.id, // Usar o ID gerado pelo Prisma
+      user_data: userData,
+      custom_data: data.customData || {}
+    };
+    
+    // Enviar para o Meta CAPI
+    try {
+      console.log('[API EVENT] Enviando para Meta CAPI:', data.eventName);
+      const response = await sendToMetaCAPI(capiPayload);
+      
+      // Atualizar o status do evento
+      await prisma.trackingEvent.update({
+        where: { id: event.id },
+        data: {
+          status: 'success',
+          response: response ? JSON.parse(JSON.stringify(response)) : {}
+        }
+      });
+      console.log('[API EVENT] Evento atualizado com sucesso no banco:', event.id);
+    } catch (error) {
+      console.error('Erro ao enviar para Meta CAPI:', error);
+      
+      // Atualizar o status do evento com erro
+      await prisma.trackingEvent.update({
+        where: { id: event.id },
+        data: {
+          status: 'error',
+          error: error instanceof Error ? error.message : String(error)
+        }
+      });
+    }
+    
+    console.log('[API EVENT] Retornando sucesso:', event.id);
+    return NextResponse.json({ success: true, eventId: event.id });
+  } catch (error) {
+    console.error('[API EVENT] Erro ao processar evento de rastreamento:', error);
+    return NextResponse.json(
+      { error: 'Erro interno ao processar evento' },
+      { status: 500 }
+    );
+  }
+}
+
+interface TrackingSessionForCAPI {
+  id: string;
+  fbp?: string | null;
+  fbc?: string | null;
+  ip?: string | null;
+  userAgent?: string | null;
+  country?: string | null;
+  city?: string | null;
+  region?: string | null;
+  zip?: string | null;
+  lat?: number | null;
+  lon?: number | null;
+}
+
+function prepareCAPIUserData(data: TrackingEventRequest, session: TrackingSessionForCAPI) {
+  // Hash sensível dados para conformidade com CAPI
+  const sha256 = (input: string) => {
+    if (!input) return '';
+    return crypto.createHash('sha256').update(input).digest('hex');
+  };
+  
+  // Priorizar dados do cliente, mas usar dados da sessão como fallback
+  return {
+    em: data.customer?.email ? sha256(data.customer.email.toLowerCase()) : undefined,
+    ph: data.customer?.phone ? sha256(data.customer.phone) : undefined,
+    fn: data.customer?.firstName ? sha256(data.customer.firstName) : undefined,
+    ln: data.customer?.lastName ? sha256(data.customer.lastName) : undefined,
+    st: data.customer?.state ? sha256(data.customer.state) : (session.region ? sha256(session.region) : undefined),
+    ct: data.customer?.city ? sha256(data.customer.city) : (session.city ? sha256(session.city) : undefined),
+    zp: data.customer?.zipCode ? sha256(data.customer.zipCode) : (session.zip ? sha256(session.zip) : undefined),
+    country: data.customer?.country ? sha256(data.customer.country) : (session.country ? sha256(session.country) : undefined),
+    external_id: data.customer?.externalId ? sha256(data.customer.externalId) : undefined,
+    fbp: session.fbp || undefined,
+    fbc: session.fbc || undefined,
+    client_ip_address: (session.ip || data.ip || '') === '' ? undefined : (session.ip || data.ip || ''),
+    client_user_agent: session.userAgent || data.userAgent
+  };
+}
+
+interface MetaEventPayload {
+  event_name: string;
+  event_time: number;
+  event_source_url: string;
+  action_source: string;
+  event_id: string;
+  user_data: Record<string, string | undefined>;
+  custom_data: Record<string, unknown>;
+}
+
+interface MetaApiResponse {
+  events_received?: number;
+  messages?: string[];
+  fbtrace_id?: string;
+  error?: {
+    message: string;
+    type: string;
+    code: number;
+    error_subcode?: number;
+  };
+}
+
+async function sendToMetaCAPI(payload: MetaEventPayload): Promise<MetaApiResponse> {
+  // Verificar se as variáveis de ambiente estão definidas
+  if (!process.env.META_PIXEL_ID || !process.env.META_CAPI_TOKEN) {
+    console.warn('[META CAPI] Configurações do Meta CAPI não definidas. Evento será registrado apenas localmente.');
+    // Retornar uma resposta simulada para não interromper o fluxo
+    return {
+      events_received: 0,
+      messages: ['Configurações do Meta CAPI não definidas']
+    };
+  }
+  
+  try {
+    const pixelId = process.env.META_PIXEL_ID;
+    const accessToken = process.env.META_CAPI_TOKEN;
+    
+    const url = `https://graph.facebook.com/v23.0/${pixelId}/events?access_token=${accessToken}`;
+    
+    const response = await fetch(url, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({
+        data: [payload]
+      })
+    });
+    
+    if (!response.ok) {
+      const errorText = await response.text();
+      console.error(`[META CAPI] Erro na resposta: ${response.status} ${response.statusText}`, errorText);
+    }
+    
+    return response.json();
+  } catch (error) {
+    console.error('[META CAPI] Erro ao enviar evento:', error);
+    // Retornar uma resposta de erro para que o sistema continue funcionando
+    return {
+      error: {
+        message: error instanceof Error ? error.message : String(error),
+        type: 'api_error',
+        code: 500
+      }
+    };
+  }
+}

@@ -230,7 +230,8 @@ model ExternalWebhookLog {
 }
 
 model TrackingSession {
-  id          String   @id @default(cuid()) // tracking_id
+  id          String   @id @default(cuid())
+  sessionId   String   @unique
   utmSource   String?
   utmMedium   String?
   utmCampaign String?
@@ -240,13 +241,13 @@ model TrackingSession {
   fbp         String?
   fbc         String?
   landingPage String?
-  ip          String? // do api.ipify.org
-  country     String? // do ip-api.com
-  region      String? // do ip-api.com .regionName
-  city        String? // do ip-api.com
-  zip         String? // do ip-api.com .zip
-  lat         Float? // do ip-api.com .lat
-  lon         Float? // do ip-api.com .lon
+  ip          String?
+  country     String?
+  region      String?
+  city        String?
+  zip         String?
+  lat         Float?
+  lon         Float?
   userAgent   String?
   createdAt   DateTime @default(now())
 

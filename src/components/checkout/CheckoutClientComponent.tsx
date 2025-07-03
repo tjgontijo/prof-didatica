@@ -17,7 +17,7 @@ import FormPix from '@/components/checkout/FormPix';
 import ProductHeader from '@/components/checkout/ProductHeader';
 import { cleanPhone } from '@/lib/phone';
 import Image from 'next/image';
-import { useInitiateCheckout } from '@/modules/tracking_front/hooks/useInitiateCheckout';
+import { useInitiateCheckout } from '@/modules/tracking/hooks/useInitiateCheckout';
 
 
 type OrderDraftPayload = {
