@@ -1,19 +1,81 @@
 'use client';
 
-import React from 'react';
+import React, { useEffect } from 'react';
 import Link from 'next/link';
 import { FaCheckCircle, FaWhatsapp } from 'react-icons/fa';
 import Image from 'next/image';
+import { usePurchase } from '@/modules/tracking/hooks/usePurchase';
 
 interface PaymentSuccessProps {
   orderNumber: string;
   customerName: string;
   accessLink?: string;
   whatsappLink?: string;
+  // Dados necessários para o evento Purchase
+  transactionId: string;
+  orderValue?: number;
+  products?: Array<{
+    id: string;
+    name: string;
+    price: number;
+    quantity: number;
+    category?: string;
+  }>;
+  customerEmail?: string;
+  customerPhone?: string;
 }
 
-const PaymentSuccess: React.FC<PaymentSuccessProps> = ({ orderNumber, customerName }) => {
+const PaymentSuccess: React.FC<PaymentSuccessProps> = ({
+  orderNumber,
+  customerName,
+  transactionId,
+  orderValue = 0,
+  products = [],
+  customerEmail,
+  customerPhone,
+}) => {
   const firstName = customerName.split(' ')[0];
+  const purchase = usePurchase();
+  
+  // Disparar o evento Purchase quando o componente for montado
+  useEffect(() => {
+    // Verificar se já disparamos o evento para evitar duplicação
+    const storageKey = `purchaseEventFired_${transactionId}`;
+    const alreadyFired = localStorage.getItem(storageKey);
+    
+    if (alreadyFired) {
+      console.log('[Tracking] Evento Purchase já foi disparado para esta transação');
+      return;
+    }
+    
+    // Preparar os dados do evento Purchase
+    const purchaseData = {
+      value: orderValue,
+      currency: 'BRL',
+      content_ids: products.map(product => product.id),
+      content_type: 'product',
+      contents: products.map(product => ({
+        id: product.id,
+        quantity: product.quantity,
+        item_price: product.price,
+      })),
+      num_items: products.reduce((total, product) => total + product.quantity, 0),
+      transaction_id: transactionId,
+      customer: {
+        email: customerEmail,
+        phone: customerPhone,
+        firstName: firstName,
+        lastName: customerName.split(' ').slice(1).join(' '),
+      },
+    };
+    
+    // Disparar o evento Purchase
+    purchase(purchaseData);
+    
+    // Marcar como disparado para evitar duplicação
+    localStorage.setItem(storageKey, 'true');
+  }, [transactionId, orderValue, products, customerEmail, customerPhone, customerName, firstName, purchase]);
+  
 
   return (
     <div className="min-h-screen bg-[#FFF9F5] font-sans text-[#333]">

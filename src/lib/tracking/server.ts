@@ -121,6 +121,9 @@ export async function trackServerEvent(payload: MetaEventPayload, trackingId: st
 async function sendToMetaCAPI(payload: MetaEventPayload): Promise<MetaApiResponse> {
   console.log('[META CAPI] Iniciando envio para Meta:', payload.event_name);
   
+  // Log detalhado do payload para depuração
+  console.log('[META CAPI] Payload completo:', JSON.stringify(payload, null, 2));
+  
   // Verificar se as variáveis de ambiente estão definidas
   if (!process.env.META_PIXEL_ID || !process.env.META_CAPI_TOKEN) {
     console.warn('[META CAPI] Configurações do Meta CAPI não definidas. Evento será registrado apenas localmente.');
@@ -137,23 +140,73 @@ async function sendToMetaCAPI(payload: MetaEventPayload): Promise<MetaApiRespons
     
     const url = `https://graph.facebook.com/v23.0/${pixelId}/events?access_token=${accessToken}`;
     
+    // Remover campos undefined ou null do payload para evitar erros
+    const cleanPayload = JSON.parse(JSON.stringify(payload));
+    
+    // Verificar campos obrigatórios para o evento Purchase
+    if (cleanPayload.event_name === 'Purchase') {
+      if (!cleanPayload.custom_data?.value) {
+        console.warn('[META CAPI] Evento Purchase sem valor definido. Isso causará erro 400.');
+      }
+      
+      // Garantir que action_source esteja definido
+      if (!cleanPayload.action_source) {
+        cleanPayload.action_source = 'website';
+        console.warn('[META CAPI] action_source não definido, definindo como "website"');
+      }
+    }
+    
+    const requestBody = JSON.stringify({
+      data: [cleanPayload]
+    });
+    
+    console.log('[META CAPI] Enviando request para Meta:', requestBody);
+    
     const response = await fetch(url, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json'
       },
-      body: JSON.stringify({
-        data: [payload]
-      })
+      body: requestBody
     });
     
-    if (!response.ok) {
-      const errorText = await response.text();
-      console.error(`[META CAPI] Erro na resposta: ${response.status} ${response.statusText}`, errorText);
-      throw new Error(`Erro ao enviar para Meta CAPI: ${response.status} ${response.statusText}`);
+    const responseData = await response.text();
+    let parsedResponse;
+    
+    try {
+      parsedResponse = JSON.parse(responseData);
+    } catch {
+      // Erro ao parsear a resposta JSON
+      console.error('[META CAPI] Erro ao parsear resposta:', responseData);
+      parsedResponse = { error: { message: 'Erro ao parsear resposta', type: 'parse_error', code: 500 } };
     }
     
-    return response.json();
+    if (!response.ok) {
+      console.error(`[META CAPI] Erro na resposta: ${response.status} ${response.statusText}`, responseData);
+      
+      // Extrair detalhes do erro da resposta da Meta
+      if (parsedResponse && parsedResponse.error) {
+        return {
+          error: {
+            message: parsedResponse.error.message || `Erro ${response.status}`,
+            type: parsedResponse.error.type || 'api_error',
+            code: parsedResponse.error.code || response.status,
+            error_subcode: parsedResponse.error.error_subcode
+          }
+        };
+      }
+      
+      return {
+        error: {
+          message: `Erro ao enviar para Meta CAPI: ${response.status} ${response.statusText}`,
+          type: 'api_error',
+          code: response.status
+        }
+      };
+    }
+    
+    console.log('[META CAPI] Resposta da API:', responseData);
+    return parsedResponse;
   } catch (error) {
     console.error('[META CAPI] Erro ao enviar evento:', error);
     // Retornar uma resposta de erro para que o sistema continue funcionando

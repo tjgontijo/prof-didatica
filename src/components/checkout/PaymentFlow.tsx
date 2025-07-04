@@ -12,6 +12,17 @@ interface PaymentFlowProps {
   transactionId: string;
   customerName: string;
   orderNumber: string;
+  // Dados adicionais para o evento Purchase
+  orderValue: number;
+  products: Array<{
+    id: string;
+    name: string;
+    price: number;
+    quantity: number;
+    category?: string;
+  }>;
+  customerEmail?: string;
+  customerPhone?: string;
 }
 
 export default function PaymentFlow({
@@ -19,6 +30,10 @@ export default function PaymentFlow({
   transactionId,
   customerName,
   orderNumber,
+  orderValue,
+  products,
+  customerEmail,
+  customerPhone,
 }: PaymentFlowProps) {
   const { status, error } = usePaymentStatus(transactionId);
 
@@ -39,7 +54,17 @@ export default function PaymentFlow({
     }
 
     if (status === 'approved') {
-      return <PaymentSuccess orderNumber={orderNumber} customerName={customerName} />;
+      return (
+        <PaymentSuccess
+          orderNumber={orderNumber}
+          customerName={customerName}
+          transactionId={transactionId}
+          orderValue={orderValue}
+          products={products}
+          customerEmail={customerEmail}
+          customerPhone={customerPhone}
+        />
+      );
     }
 
     if (status === 'pending') {

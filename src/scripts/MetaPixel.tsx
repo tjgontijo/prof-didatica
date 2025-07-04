@@ -80,12 +80,7 @@ function MetaPixelContent() {
       // ID externo
       external_id: data.externalId,
       
-      // Endereço IP do cliente (importante para Advanced Matching)
-      client_ip_address: data.ip,
-      
-      // User Agent do cliente (importante para Advanced Matching)
-      client_user_agent: data.userAgent || navigator.userAgent,     
-      
+
     };
     
     // Remover campos undefined

@@ -18,18 +18,20 @@ import ProductHeader from '@/components/checkout/ProductHeader';
 import { cleanPhone } from '@/lib/phone';
 import Image from 'next/image';
 import { useInitiateCheckout } from '@/modules/tracking/hooks/useInitiateCheckout';
-
+import { useAddPaymentInfo, prepareAddPaymentInfoData } from '@/modules/tracking/hooks/useAddPaymentInfo';
+import { getOrCreateSessionId } from '@/modules/tracking/utils/externalId';
 
 type OrderDraftPayload = {
   productId: string;
   checkoutId: string;
-  customerName?: string;
-  customerEmail?: string;
-  customerPhone?: string;
-  orderBumps?: Array<{
+  customerName: string;
+  customerEmail: string;
+  customerPhone: string;
+  trackingSessionId?: string;
+  orderBumps: {
     productId: string;
     quantity: number;
-  }>;
+  }[];
 };
 
 type OrderUpdatePayload = {
@@ -43,8 +45,6 @@ interface CheckoutClientComponentProps {
   orderBumps: OrderBump[];
   checkoutId: string;
 }
-
-
 
 export default function CheckoutClientComponent({
   product,
@@ -81,21 +81,37 @@ export default function CheckoutClientComponent({
   }, [orderBumps]);
 
   const initiateCheckout = useInitiateCheckout();
+  const addPaymentInfo = useAddPaymentInfo();
 
   useEffect(() => {
-  const storageKey = `initiateCheckoutFired_${checkoutId}`;
-  if (typeof window === 'undefined') return;
-  if (localStorage.getItem(storageKey) === 'true') return;
+    if (typeof window === 'undefined') return;
 
-  initiateCheckout({
-    content_ids: [product.id],
-    content_type: product.category,
-    currency: 'BRL',
-    value: product.price
-  });
+    // Garantir que temos uma sessão de tracking válida antes de disparar o evento
+    const sessionId = getOrCreateSessionId();
+    if (!sessionId) {
+      console.warn('Não foi possível criar sessão de tracking para InitiateCheckout');
+      return;
+    }
 
-  localStorage.setItem(storageKey, 'true');
-  }, [initiateCheckout, product.id, product.price, product.category, checkoutId]);
+    // Verificar se o evento já foi disparado nesta sessão
+    const storageKey = `initiateCheckoutFired_${sessionId}`;
+    const alreadyFired = localStorage.getItem(storageKey);
+    
+    // Só disparar o evento se ainda não foi disparado nesta sessão
+    if (!alreadyFired) {
+      // Disparar evento InitiateCheckout
+      initiateCheckout({
+        value: product.price,
+        currency: 'BRL',
+        content_ids: [product.id],
+        content_type: 'product',
+      });
+
+      // Marcar que o evento foi disparado
+      localStorage.setItem(storageKey, 'true');
+      console.log('Evento InitiateCheckout disparado com sucesso');
+    }
+  }, [initiateCheckout, product.id, product.price]);
 
   const handleToggleOrderBump = useCallback((id: string) => {
     setOrderBumpsSelecionados((prev) => {
@@ -136,21 +152,26 @@ export default function CheckoutClientComponent({
   }, []);
   
   const createOrder = useCallback(
-    async (data: CustomerFormValues, phoneNormalized: string) => {
+    async (customerData: CustomerFormValues, phoneNormalized: string) => {
       setIsCreatingOrder(true);
       try {        
+        // Obter ou criar o ID da sessão de tracking
+        const trackingSessionId = getOrCreateSessionId();
+        
         const payload: OrderDraftPayload = {
           productId: product.id,
           checkoutId,
-          customerName: data.name,
-          customerEmail: data.email,
+          customerName: customerData.name,
+          customerEmail: customerData.email,
           customerPhone: phoneNormalized,
+          // Adicionar o ID da sessão de tracking
+          trackingSessionId,
           orderBumps: orderBumpsSelecionados
             .filter((bump) => bump.selected)
             .map((bump) => ({
               productId: bump.productId,
               quantity: 1,
-            }))
+            })),
         };
                 
         const response = await fetch('/api/orders', {
@@ -241,6 +262,38 @@ export default function CheckoutClientComponent({
         } else {
           await updateOrder(currentOrderId, data, phoneNormalized);
         }
+        
+        // Disparar evento AddPaymentInfo
+        const totalValue = product.price + 
+          orderBumpsSelecionados
+            .filter(bump => bump.selected)
+            .reduce((acc, bump) => acc + bump.specialPrice, 0);
+            
+        const products = [
+          {
+            id: product.id,
+            price: product.price,
+            quantity: 1
+          },
+          ...orderBumpsSelecionados
+            .filter(bump => bump.selected)
+            .map(bump => ({
+              id: bump.productId,
+              price: bump.specialPrice,
+              quantity: 1
+            }))
+        ];
+        
+        // Disparar evento AddPaymentInfo
+        addPaymentInfo(prepareAddPaymentInfoData(
+          totalValue,
+          products,
+          {
+            name: data.name,
+            email: data.email,
+            phone: phoneNormalized
+          }
+        ));
 
         // Pequeno timeout para garantir que o estado foi atualizado
         setTimeout(() => {
@@ -254,7 +307,7 @@ export default function CheckoutClientComponent({
         );
       }
     },
-    [orderId, createOrder, updateOrder, setOrderId],
+    [orderId, createOrder, updateOrder, setOrderId, addPaymentInfo, orderBumpsSelecionados, product.id, product.price],
   );
  
   const selectedOrderBumps = useMemo(() => {

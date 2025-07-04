@@ -5,7 +5,8 @@ import { webhookRateLimit } from '@/lib/rate-limit';
 
 export const dynamic = 'force-dynamic';
 
-const PaymentIdSchema = z.string().cuid('ID de pagamento inválido');
+// Aceitar qualquer string como ID de pagamento, já que o MercadoPago usa IDs numéricos
+const PaymentIdSchema = z.string().min(1, 'ID de pagamento não pode estar vazio');
 
 export async function GET(req: NextRequest) {
   try {

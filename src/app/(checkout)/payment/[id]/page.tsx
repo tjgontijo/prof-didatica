@@ -23,7 +23,16 @@ export default async function Page({ params }: PageProps) {
   }
 
   // extraímos do objeto retornado o nome do cliente e número do pedido
-  const { customerName, orderNumber } = pixData;
+  const { customerName, orderNumber, amount, order } = pixData;
+  
+  // Preparar os produtos para o evento Purchase
+  const products = order?.orderItems?.map(item => ({
+    id: item.productId,
+    name: `Produto ${item.productId}`, // Nome genérico, idealmente buscaríamos o nome real
+    price: item.priceAtTime,
+    quantity: item.quantity,
+    category: item.isOrderBump ? 'order_bump' : (item.isUpsell ? 'upsell' : 'main_product')
+  })) || [];
 
   // renderizamos o client component que vai gerenciar o SSE e trocar as telas
   return (
@@ -32,6 +41,10 @@ export default async function Page({ params }: PageProps) {
       transactionId={id}
       customerName={customerName}
       orderNumber={orderNumber}
+      orderValue={amount || 0}
+      products={products}
+      customerEmail={order?.customer?.email}
+      customerPhone={order?.customer?.phone}
     />
   );
 }
