@@ -23,6 +23,7 @@ interface PaymentSuccessProps {
   }>;
   customerEmail?: string;
   customerPhone?: string;
+  eventId?: string;
 }
 
 const PaymentSuccess: React.FC<PaymentSuccessProps> = ({
@@ -33,6 +34,7 @@ const PaymentSuccess: React.FC<PaymentSuccessProps> = ({
   products = [],
   customerEmail,
   customerPhone,
+  eventId,
 }) => {
   const firstName = customerName.split(' ')[0];
   const purchase = usePurchase();
@@ -61,6 +63,7 @@ const PaymentSuccess: React.FC<PaymentSuccessProps> = ({
       })),
       num_items: products.reduce((total, product) => total + product.quantity, 0),
       transaction_id: transactionId,
+      eventId,
       customer: {
         email: customerEmail,
         phone: customerPhone,
@@ -74,7 +77,7 @@ const PaymentSuccess: React.FC<PaymentSuccessProps> = ({
     
     // Marcar como disparado para evitar duplicação
     localStorage.setItem(storageKey, 'true');
-  }, [transactionId, orderValue, products, customerEmail, customerPhone, customerName, firstName, purchase]);
+  }, [transactionId, orderValue, products, customerEmail, customerPhone, customerName, firstName, purchase, eventId]);
   
 
   return (

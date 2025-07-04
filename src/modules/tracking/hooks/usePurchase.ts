@@ -1,7 +1,6 @@
 'use client'
 
 import { useCallback } from 'react';
-import cuid from 'cuid';
 import { getStoredSessionId } from '../utils/storage';
 
 /**
@@ -36,6 +35,7 @@ export interface PurchaseData {
   
   // Dados da transação
   transaction_id?: string;        // ID único da transação
+  eventId?: string;              // ID do evento para deduplicar no Meta
   
   // Dados do cliente (serão hashados antes do envio)
   customer?: {
@@ -56,8 +56,8 @@ export interface PurchaseData {
  */
 export function usePurchase() {
   return useCallback((purchaseData: PurchaseData) => {
-    // Gerar um ID único para o evento (para deduplicação)
-    const eventId = cuid();
+    // Usar o eventId fornecido ou gerar um novo
+    const eventId = purchaseData.eventId;
     
     // Garantir valores padrão
     const data: PurchaseData = {

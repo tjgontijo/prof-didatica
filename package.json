@@ -14,6 +14,7 @@
     "@heroicons/react": "^2.2.0",
     "@hookform/resolvers": "^5.1.1",
     "@mercadopago/sdk-react": "^1.0.3",
+<<<<<<< Updated upstream
     "@nivo/bar": "^0.99.0",
     "@nivo/core": "^0.99.0",
     "@nivo/funnel": "^0.99.0",
@@ -21,6 +22,10 @@
     "@nivo/line": "^0.99.0",
     "@nivo/pie": "^0.99.0",
     "@nivo/tooltip": "^0.99.0",
+=======
+    "@nivo/core": "^0.99.0",
+    "@nivo/funnel": "^0.99.0",
+>>>>>>> Stashed changes
     "@prisma/client": "^6.11.1",
     "@radix-ui/react-select": "^2.2.5",
     "@tanstack/react-table": "^8.21.3",
@@ -28,6 +33,7 @@
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",
     "cuid": "^3.0.0",
+    "d3-shape": "^3.2.0",
     "date-fns": "^4.1.0",
     "logger": "^0.0.1",
     "lucide-react": "^0.525.0",
