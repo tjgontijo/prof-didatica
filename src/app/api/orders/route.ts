@@ -1,367 +1,250 @@
-import { NextRequest, NextResponse } from 'next/server';
-import { z } from 'zod';
-import { prisma } from '@/lib/prisma';
-import { Prisma } from '@prisma/client';
-import cuid from 'cuid';
+import { NextRequest, NextResponse } from 'next/server'
+import { z } from 'zod'
+import { prisma } from '@/lib/prisma'
+import { Prisma } from '@prisma/client'
+import cuid from 'cuid'
+import { OrderStatus } from '@prisma/client'
+import { validateBrazilianPhone, cleanPhone } from '@/lib/phone'
+import { orderRateLimit } from '@/lib/rate-limit'
+import { getCachedProduct } from '@/lib/cache'
 
-// Definir OrderStatus para compatibilidade
-import { OrderStatus } from '@prisma/client';
-import { validateBrazilianPhone, cleanPhone } from '@/lib/phone';
-import { orderRateLimit } from '@/lib/rate-limit';
-import { getCachedProduct } from '@/lib/cache';
+// 1) Schemas DRY
+const nameSchema = z.string().min(2).max(100)
+const emailSchema = z.string().email()
+const phoneSchema = z
+  .string()
+  .min(10, 'Telefone deve ter pelo menos 10 digitos')
+  .max(15, 'Telefone deve ter no maximo 15 digitos')
+  .refine(validateBrazilianPhone, 'Telefone deve ser um numero brasileiro valido')
+  .transform(cleanPhone)
 
-// Interface para o payload de tracking
-interface TrackingEventPayload {
-  trackingSessionId: string;
-  eventName: string;
-  eventId: string;
-  customData: {
-    value: number;
-    currency: string;
-    content_ids?: string[];
-    content_type?: string;
-    contents?: Array<{
-      id: string;
-      quantity: number;
-      item_price?: number;
-    }>;
-    customer?: {
-      email?: string;
-      phone?: string;
-      firstName?: string;
-      lastName?: string;
-      [key: string]: string | undefined;
-    };
-    [key: string]: unknown;
-  };
+// 2) Helper unificado de resposta JSON
+function json(body: unknown, status = 200) {
+  return NextResponse.json(body, { status })
 }
 
-// Função para enviar evento para o Meta CAPI via API interna
-async function sendTrackingEvent(payload: TrackingEventPayload) {
-  try {
-    const response = await fetch(`${process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000'}/api/tracking/event`, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({ payload }),
-    });
-    
-    if (!response.ok) {
-      console.error(`[Tracking] Erro ao enviar evento para API: ${response.status}`);
-      return false;
-    }
-    
-    return true;
-  } catch (error) {
-    console.error('[Tracking] Erro ao enviar evento:', error);
-    return false;
-  }
-};
-
-// Schema para validação forte dos dados recebidos
+// 3) Validação de criacao (POST)
 const orderSchema = z.object({
   productId: z.string().cuid(),
   checkoutId: z.string().cuid(),
-  // Aceita tanto os campos antigos quanto os novos
-  customerName: z.string().min(2).max(100).optional(),
-  customerEmail: z.string().email().optional(),
-  customerPhone: z
-    .string()
-    .min(10, 'Telefone deve ter pelo menos 10 dígitos')
-    .max(15, 'Telefone deve ter no máximo 15 dígitos')
-    .refine(validateBrazilianPhone, 'Telefone deve ser um número brasileiro válido')
-    .transform(cleanPhone)
-    .optional(), // Limpa o telefone após validação
-
-  // Novos campos
-  name: z.string().min(2).max(100).optional(),
-  email: z.string().email().optional(),
-  phone: z
-    .string()
-    .min(10, 'Telefone deve ter pelo menos 10 dígitos')
-    .max(15, 'Telefone deve ter no máximo 15 dígitos')
-    .refine(validateBrazilianPhone, 'Telefone deve ser um número brasileiro válido')
-    .transform(cleanPhone)
-    .optional(),
+  customerName: nameSchema.optional(),
+  customerEmail: emailSchema.optional(),
+  customerPhone: phoneSchema.optional(),
+  name: nameSchema.optional(),
+  email: emailSchema.optional(),
+  phone: phoneSchema.optional(),
   orderBumps: z
     .array(
       z.object({
         productId: z.string().cuid(),
         quantity: z.number().min(1).max(10),
-      }),
+      })
     )
-    .default([]), // Mudamos de .optional() para .default([]) para garantir que sempre seja um array
+    .default([]),
   quantity: z.number().min(1).max(10).default(1),
-  
-  // ID da sessão de rastreamento
   trackingSessionId: z.string().cuid().optional(),
-});
+})
 
-// Schema para validação parcial (PATCH)
+// 4) Validação de atualização (PATCH)
 const patchOrderSchema = z.object({
   id: z.string().cuid(),
-  customerName: z.string().min(2).max(100).optional(),
-  customerEmail: z.string().email().optional(),
-  customerPhone: z
-    .string()
-    .min(10, 'Telefone deve ter pelo menos 10 dígitos')
-    .max(15, 'Telefone deve ter no máximo 15 dígitos')
-    .refine(validateBrazilianPhone, 'Telefone deve ser um número brasileiro válido')
-    .transform(cleanPhone)
-    .optional(),
+  customerName: nameSchema.optional(),
+  customerEmail: emailSchema.optional(),
+  customerPhone: phoneSchema.optional(),
   status: z.nativeEnum(OrderStatus).optional(),
-});
+})
 
-// GET /api/orders - Lista pedidos (com paginação e filtro opcional)
-export async function GET(request: NextRequest) {
-  const { searchParams } = new URL(request.url);
-  const page = parseInt(searchParams.get('page') || '1', 10);
-  const pageSize = parseInt(searchParams.get('pageSize') || '20', 10);
-  const email = searchParams.get('email') || undefined;
-
-  const where = email
-    ? {
-        customer: {
-          email: email,
-        },
-      }
-    : {};
-
-  const [orders, total] = await Promise.all([
-    prisma.order.findMany({
-      where,
-      include: { orderItems: true, payment: true, customer: true },
-      skip: (page - 1) * pageSize,
-      take: pageSize,
-      orderBy: { createdAt: 'desc' },
-    }),
-    prisma.order.count({ where }),
-  ]);
-
-  return NextResponse.json({ orders, total, page, pageSize });
+// 5) Tratamento de erros centralizado
+function handleError(e: unknown) {
+  if (e instanceof z.ZodError) return json({ success: false, error: e.errors }, 422)
+  const msg = e instanceof Error ? e.message : 'Erro inesperado'
+  const status = msg === 'Erro inesperado' ? 500 : 400
+  return json({ success: false, error: msg }, status)
 }
 
-// DELETE /api/orders?id=xxx - Deleta pedido por ID (soft delete se possível)
-export async function DELETE(request: NextRequest) {
-  const { searchParams } = new URL(request.url);
-  const id = searchParams.get('id');
-  if (!id) {
-    return NextResponse.json(
-      { success: false, error: 'ID do pedido não informado.' },
-      { status: 400 },
-    );
-  }
-  try {
-    // Soft delete: atualizar um campo deletedAt (se existir)
-    // Caso não exista, faz hard delete
-    const deleted = await prisma.order.delete({ where: { id } });
-    return NextResponse.json({ success: true, deleted });
-  } catch (error) {
-    if (error instanceof Error) {
-      return NextResponse.json({ success: false, error: error.message }, { status: 400 });
+// 6) Interface de evento
+interface TrackingEventPayload {
+  trackingSessionId: string
+  eventName: string
+  eventId: string
+  customData: {
+    value: number
+    currency: string
+    content_ids?: string[]
+    content_type?: string
+    contents?: Array<{
+      id: string
+      quantity: number
+      item_price?: number
+    }>
+    customer?: {
+      email?: string
+      phone?: string
+      firstName?: string
+      lastName?: string
+      [key: string]: string | undefined
     }
-    return NextResponse.json({ success: false, error: 'Erro inesperado.' }, { status: 500 });
+    [key: string]: unknown
   }
 }
 
+// 7) Envio ao Meta CAPI (sem logs)
+async function sendTrackingEvent(payload: TrackingEventPayload): Promise<boolean> {
+  try {
+    const response = await fetch(
+      `${process.env.APP_URL || 'http://localhost:3000'}/api/tracking/event`,
+      {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ payload }),
+      }
+    )
+    return response.ok
+  } catch {
+    return false
+  }
+}
+
+// GET  /api/orders
+export async function GET(request: NextRequest) {
+  try {
+    const { searchParams } = new URL(request.url)
+    const page = parseInt(searchParams.get('page') ?? '1', 10)
+    const pageSize = Math.min(parseInt(searchParams.get('pageSize') ?? '20', 10), 100)
+    const email = searchParams.get('email') ?? undefined
+
+    const where = email ? { customer: { email } } : {}
+
+    const [orders, total] = await Promise.all([
+      prisma.order.findMany({
+        where,
+        include: { orderItems: true, payment: true, customer: true },
+        skip: (page - 1) * pageSize,
+        take: pageSize,
+        orderBy: { createdAt: 'desc' },
+      }),
+      prisma.order.count({ where }),
+    ])
+
+    return json({ orders, total, page, pageSize })
+  } catch (e) {
+    return handleError(e)
+  }
+}
+
+// POST /api/orders
 export async function POST(request: NextRequest) {
   try {
-    // 1. Verificar rate limiting
-    const rateLimitResult = await orderRateLimit(request);
+    const rateLimitResult = await orderRateLimit(request)
     if (!rateLimitResult.success) {
-      return NextResponse.json(
+      return json(
         {
           success: false,
           error: 'Muitas tentativas. Tente novamente em alguns minutos.',
           retryAfter: Math.ceil((rateLimitResult.resetTime - Date.now()) / 1000),
         },
-        {
-          status: 429,
-          headers: {
-            'X-RateLimit-Limit': rateLimitResult.limit.toString(),
-            'X-RateLimit-Remaining': rateLimitResult.remaining.toString(),
-            'X-RateLimit-Reset': rateLimitResult.resetTime.toString(),
-          },
-        },
-      );
+        429
+      )
     }
 
-    const body = await request.json();
-    console.log('[POST /api/orders] Payload recebido:', JSON.stringify(body));
-    const data = orderSchema.parse(body);
-    
-    // Log dos order bumps recebidos
-    console.log(`[POST /api/orders] Order bumps recebidos: ${data.orderBumps?.length || 0}`, 
-      data.orderBumps?.length ? JSON.stringify(data.orderBumps) : 'Nenhum');
+    const body = await request.json()
+    const data = orderSchema.parse(body)
 
-    // Normalizar os campos para compatibilidade com ambos os formatos
-    const customerName = data.name || data.customerName;
-    const customerEmail = data.email || data.customerEmail;
-    const customerPhone = data.phone || data.customerPhone;
-
-    // Verificar se temos os dados necessários
-    if (!customerName || !customerEmail || !customerPhone) {
+    // 8) Merge único de dados do cliente
+    const customer = {
+      name: data.name ?? data.customerName!,
+      email: data.email ?? data.customerEmail!,
+      phone: data.phone ?? data.customerPhone!,
+    }
+    if (!customer.name || !customer.email || !customer.phone) {
       throw new Error(
-        'Dados do cliente incompletos. Forneça name/customerName, email/customerEmail e phone/customerPhone.',
-      );
+        'Dados do cliente incompletos. Forneça name/customerName, email/customerEmail e phone/customerPhone.'
+      )
     }
 
-    // Usar transação para garantir consistência
     const result = await prisma.$transaction(async (tx: Prisma.TransactionClient) => {
-      // Buscar ou criar customer (com tratamento de concorrência)
-      // Primeiro verificamos se existe cliente com o mesmo email ou telefone
-      let customer = await tx.customer.findFirst({
-        where: {
-          OR: [{ email: customerEmail }, { phone: customerPhone }],
-        },
-      });
-
-      if (!customer) {
+      // findOrCreateCustomer
+      let cust = await tx.customer.findFirst({
+        where: { OR: [{ email: customer.email }, { phone: customer.phone }] },
+      })
+      if (!cust) {
         try {
-          // Tentar criar novo customer
-          customer = await tx.customer.create({
-            data: {
-              name: customerName,
-              email: customerEmail,
-              phone: customerPhone,
-            },
-          });
-        } catch (error: unknown) {
-          // Se falhar por duplicata (race condition), buscar o existente novamente
+          cust = await tx.customer.create({ data: customer })
+        } catch (err: unknown) {
           if (
-            error instanceof Error &&
-            'code' in error &&
-            (error as { code: string }).code === 'P2002'
+            err instanceof Error &&
+            'code' in err &&
+            (typeof err === 'object' && err !== null && 'code' in err && (err as { code: string }).code === 'P2002')
           ) {
-            // Buscar por email ou telefone
-            customer = await tx.customer.findFirst({
-              where: {
-                OR: [{ email: customerEmail }, { phone: customerPhone }],
-              },
-            });
-
-            if (!customer) {
-              throw new Error('Erro ao criar/buscar customer');
-            }
+            cust = await tx.customer.findFirst({
+              where: { OR: [{ email: customer.email }, { phone: customer.phone }] },
+            })
+            if (!cust) throw new Error('Erro ao criar/buscar customer')
           } else {
-            throw error;
+            throw err
           }
         }
       } else {
-        // Se encontramos um cliente existente, atualizamos os dados para garantir que estejam corretos
-        customer = await tx.customer.update({
-          where: { id: customer.id },
-          data: {
-            name: customerName,
-            // Não atualizamos email e telefone para evitar conflitos com outros registros
-          },
-        });
+        cust = await tx.customer.update({
+          where: { id: cust.id },
+          data: { name: customer.name },
+        })
       }
 
-      // Buscar preços dos produtos usando cache
-      const mainProduct = await getCachedProduct(data.productId);
-
+      // produto principal
+      const mainProduct = await getCachedProduct(data.productId)
       if (!mainProduct || !mainProduct.isActive) {
-        throw new Error('Produto principal não encontrado ou inativo');
+        throw new Error('Produto principal nao encontrado ou inativo')
       }
 
-      // Garantir que orderBumps é sempre um array (mesmo vazio)
-      const orderBumps = data.orderBumps || [];
-      console.log(`[POST /api/orders] Processando ${orderBumps.length} order bumps`);
-      
-      let orderBumpProducts: Array<{ id: string; price: number; name: string }> = [];
-      if (orderBumps.length > 0) {
-        // Buscar order bumps com cache
-        try {
-          orderBumpProducts = await Promise.all(
-            orderBumps.map(async (bump) => {
-              console.log(`[POST /api/orders] Buscando produto para order bump: ${bump.productId}`);
-              const product = await getCachedProduct(bump.productId);
-              if (!product || !product.isActive) {
-                throw new Error(`Order bump ${bump.productId} não encontrado ou inativo`);
-              }
-              console.log(`[POST /api/orders] Produto para order bump encontrado: ${product.name}`);
-              return product;
-            }),
-          );
-          console.log(`[POST /api/orders] Total de produtos para order bumps encontrados: ${orderBumpProducts.length}`);
-        } catch (error) {
-          console.error('[POST /api/orders] Erro ao processar order bumps:', error);
-          throw error;
-        }
-      }
+      // order bumps
+      const bumps = data.orderBumps
+      const bumpProducts = await Promise.all(
+        bumps.map(async b => {
+          const p = await getCachedProduct(b.productId)
+          if (!p || !p.isActive) throw new Error(`Order bump ${b.productId} invalido`)
+          return p
+        })
+      )
 
-      // Preparar os itens do pedido
-      const orderItemsToCreate = [
-        // Item principal
+      // itens do pedido
+      const items = [
         {
           productId: data.productId,
           quantity: data.quantity,
           priceAtTime: mainProduct.price,
           isOrderBump: false,
         },
-      ];
-
-      // Adicionar order bumps (se existirem)
-      if (orderBumps.length > 0) {
-        const orderBumpItems = orderBumps.map((bump) => {
-          const product = orderBumpProducts.find((p) => p.id === bump.productId);
-          if (!product) {
-            console.error(`[POST /api/orders] Produto não encontrado para order bump: ${bump.productId}`);
-            throw new Error(`Produto não encontrado para order bump: ${bump.productId}`);
-          }
-          
-          console.log(`[POST /api/orders] Adicionando order bump: ${product.name} (${bump.productId}) - Quantidade: ${bump.quantity}`);
+        ...bumps.map(b => {
+          const p = bumpProducts.find(x => x.id === b.productId)!
           return {
-            productId: bump.productId,
-            quantity: bump.quantity,
-            priceAtTime: product.price,
+            productId: b.productId,
+            quantity: b.quantity,
+            priceAtTime: p.price,
             isOrderBump: true,
-          };
-        });
-        
-        // Adicionar os order bumps à lista de items
-        orderItemsToCreate.push(...orderBumpItems);
-      }
-
-      console.log(`[POST /api/orders] Total de itens a serem criados: ${orderItemsToCreate.length}`);
-
-      // Buscar a sessão de tracking pelo sessionId (se fornecido)
-      let trackingSessionDbId: string | undefined = undefined;
-      
-      if (data.trackingSessionId) {
-        try {
-          // Buscar a sessão pelo campo sessionId (conforme visto na API de tracking)
-          const trackingSession = await tx.trackingSession.findFirst({
-            where: { sessionId: data.trackingSessionId },
-            select: { id: true }
-          });
-          
-          if (trackingSession) {
-            // Usar o ID interno da sessão no banco de dados (não o sessionId)
-            trackingSessionDbId = trackingSession.id;
-            console.log(`[POST /api/orders] Sessão de tracking encontrada: ${trackingSessionDbId}`);
-          } else {
-            console.log(`[POST /api/orders] Aviso: Sessão de tracking não encontrada para sessionId: ${data.trackingSessionId}`);
           }
-        } catch (error) {
-          console.error(`[POST /api/orders] Erro ao buscar sessão de tracking:`, error);
-          // Não falhar o pedido se não encontrar a sessão
-        }
+        }),
+      ]
+
+      // trackingSessionId unico
+      let trackingSessionDbId: string | undefined
+      if (data.trackingSessionId) {
+        const session = await tx.trackingSession.findUnique({
+          where: { sessionId: data.trackingSessionId },
+          select: { id: true },
+        })
+        if (session) trackingSessionDbId = session.id
       }
-      
-      // Criação do pedido principal
+
+      // criar order
       const order = await tx.order.create({
         data: {
           productId: data.productId,
           checkoutId: data.checkoutId,
-          customerId: customer.id,
-          paidAmount: 0, // Inicialmente 0, só será preenchido após pagamento
-          trackingSessionId: trackingSessionDbId, // Usar o ID interno da sessão, não o sessionId
-          orderItems: {
-            create: orderItemsToCreate,
-          },
+          customerId: cust.id,
+          paidAmount: 0,
+          trackingSessionId: trackingSessionDbId,
+          orderItems: { create: items },
           statusHistory: {
             create: {
               previousStatus: null,
@@ -370,126 +253,72 @@ export async function POST(request: NextRequest) {
             },
           },
         },
-        include: {
-          orderItems: true,
-          statusHistory: true,
-          customer: true,
-        },
-      });
-      
-      // Verificar se todos os itens foram criados
-      console.log(`[POST /api/orders] Pedido criado com ${order.orderItems.length} itens`);
+        include: { orderItems: true, statusHistory: true, customer: true },
+      })
 
-      return order;
-    });
+      return order
+    })
 
-    // Log de sucesso e detalhar os itens criados
-    const orderItems = result.orderItems || [];
-    const mainItems = orderItems.filter(item => !item.isOrderBump);
-    const orderBumpItems = orderItems.filter(item => item.isOrderBump);
-    
-    console.log(`[POST /api/orders] Pedido ${result.id} criado com sucesso!`);
-    console.log(`[POST /api/orders] - Produto principal: ${mainItems.length}`);
-    console.log(`[POST /api/orders] - Order bumps: ${orderBumpItems.length}`);
-    
-    if (orderBumpItems.length === 0 && data.orderBumps?.length > 0) {
-      console.warn(`[POST /api/orders] ALERTA: Nenhum order bump foi criado, apesar de ${data.orderBumps.length} terem sido enviados!`);
-    }
-    
-    // Disparar evento AddPaymentInfo no backend
+    // evento AddPaymentInfo
     if (data.trackingSessionId) {
-      try {
-        // Calcular o valor total do pedido
-        const mainItemValue = mainItems.reduce((acc, item) => acc + (item.priceAtTime * item.quantity), 0);
-        const orderBumpValue = orderBumpItems.reduce((acc, item) => acc + (item.priceAtTime * item.quantity), 0);
-        const totalValue = mainItemValue + orderBumpValue;
-        
-        // Preparar os dados para o evento AddPaymentInfo
-        const eventId = cuid();
-        const trackingPayload = {
-          trackingSessionId: data.trackingSessionId,
-          eventName: 'AddPaymentInfo',
-          eventId,
-          customData: {
-            value: totalValue,
-            currency: 'BRL',
-            content_ids: orderItems.map(item => item.productId),
-            content_type: 'product',
-            contents: orderItems.map(item => ({
-              id: item.productId,
-              quantity: item.quantity,
-              item_price: item.priceAtTime
-            })),
-            customer: {
-              email: result.customer.email,
-              phone: result.customer.phone,
-              firstName: result.customer.name.split(' ')[0].toLowerCase(),
-              lastName: result.customer.name.split(' ').slice(1).join(' ').toLowerCase()
-            }
-          }
-        };
-        
-        // Enviar evento para a API de tracking
-        await sendTrackingEvent(trackingPayload);
-        console.log(`[POST /api/orders] Evento AddPaymentInfo enviado com sucesso. EventId: ${eventId}`);
-      } catch (trackingError) {
-        console.error('[POST /api/orders] Erro ao enviar evento AddPaymentInfo:', trackingError);
-        // Não falhar a criação do pedido se o tracking falhar
-      }
-    } else {
-      console.warn('[POST /api/orders] Não foi possível enviar evento AddPaymentInfo: trackingSessionId não fornecido');
+      const mainVal = result.orderItems
+        .filter(i => !i.isOrderBump)
+        .reduce((sum, i) => sum + i.priceAtTime * i.quantity, 0)
+      const bumpVal = result.orderItems
+        .filter(i => i.isOrderBump)
+        .reduce((sum, i) => sum + i.priceAtTime * i.quantity, 0)
+      const total = mainVal + bumpVal
+      const eventId = cuid()
+      await sendTrackingEvent({
+        trackingSessionId: data.trackingSessionId,
+        eventName: 'AddPaymentInfo',
+        eventId,
+        customData: {
+          value: total,
+          currency: 'BRL',
+          content_ids: result.orderItems.map(i => i.productId),
+          content_type: 'product',
+          contents: result.orderItems.map(i => ({
+            id: i.productId,
+            quantity: i.quantity,
+            item_price: i.priceAtTime,
+          })),
+          customer: {
+            email: result.customer.email,
+            phone: result.customer.phone,
+            firstName: result.customer.name.split(' ')[0].toLowerCase(),
+            lastName: result.customer.name.split(' ').slice(1).join(' ').toLowerCase(),
+          },
+        },
+      })
     }
-    
-    return NextResponse.json(
-      {
-        success: true,
-        order: result,
-      },
-      { status: 201 },
-    );
-  } catch (error) {
-    if (error instanceof z.ZodError) {
-      return NextResponse.json({ success: false, error: error.errors }, { status: 422 });
-    }
-    if (error instanceof Error) {
-      console.error('Erro ao criar pedido:', error.message);
-      return NextResponse.json({ success: false, error: error.message }, { status: 400 });
-    }
-    console.error('Erro desconhecido:', error);
-    return NextResponse.json({ success: false, error: 'Erro inesperado.' }, { status: 500 });
+
+    return json({ success: true, order: result }, 201)
+  } catch (e) {
+    return handleError(e)
   }
 }
 
-/**
- * PATCH /api/orders?id=xxx - Atualiza dados do pedido e registra histórico
- */
+// PATCH /api/orders
 export async function PATCH(request: NextRequest) {
-  const { searchParams } = new URL(request.url);
-  const id = searchParams.get('id');
-  if (!id) {
-    return NextResponse.json(
-      { success: false, error: 'ID do pedido não informado.' },
-      { status: 400 },
-    );
-  }
-  try {
-    const body = await request.json();
-    const data = patchOrderSchema.parse({ id, ...body });
-    const existing = await prisma.order.findUnique({ where: { id } });
-    if (!existing) {
-      return NextResponse.json(
-        { success: false, error: 'Pedido não encontrado.' },
-        { status: 404 },
-      );
-    }
-    const updateData: Prisma.OrderUpdateInput = {};
-    if (data.status) {
-      updateData.status = data.status;
-      updateData.statusUpdatedAt = new Date();
-    }
-    const updatedOrder = await prisma.order.update({ where: { id }, data: updateData });
+  const { searchParams } = new URL(request.url)
+  const id = searchParams.get('id')
+  if (!id) return json({ success: false, error: 'ID do pedido nao informado.' }, 400)
 
-    // Atualiza os dados do cliente se necessário
+  try {
+    const body = await request.json()
+    const data = patchOrderSchema.parse({ id, ...body })
+    const existing = await prisma.order.findUnique({ where: { id } })
+    if (!existing) return json({ success: false, error: 'Pedido nao encontrado.' }, 404)
+
+    const updateData: Prisma.OrderUpdateInput = {}
+    if (data.status) {
+      updateData.status = data.status
+      updateData.statusUpdatedAt = new Date()
+    }
+
+    const updated = await prisma.order.update({ where: { id }, data: updateData })
+
     if (data.customerName || data.customerEmail || data.customerPhone) {
       await prisma.customer.update({
         where: { id: existing.customerId },
@@ -498,8 +327,9 @@ export async function PATCH(request: NextRequest) {
           email: data.customerEmail,
           phone: data.customerPhone,
         },
-      });
+      })
     }
+
     if (data.status && existing.status !== data.status) {
       await prisma.orderStatusHistory.create({
         data: {
@@ -508,17 +338,29 @@ export async function PATCH(request: NextRequest) {
           newStatus: data.status,
           notes: `Status alterado para ${data.status}`,
         },
-      });
+      })
     }
-    return NextResponse.json({ success: true, order: updatedOrder });
-  } catch (error) {
-    if (error instanceof z.ZodError) {
-      return NextResponse.json({ success: false, error: error.errors }, { status: 422 });
-    }
-    console.error(error);
-    return NextResponse.json(
-      { success: false, error: error instanceof Error ? error.message : 'Erro inesperado' },
-      { status: 400 },
-    );
+
+    return json({ success: true, order: updated })
+  } catch (e) {
+    return handleError(e)
+  }
+}
+
+// DELETE /api/orders
+export async function DELETE(request: NextRequest) {
+  const { searchParams } = new URL(request.url)
+  const id = searchParams.get('id')
+  if (!id) return json({ success: false, error: 'ID do pedido nao informado.' }, 400)
+
+  try {
+    // soft delete (se tiver campo deletedAt)
+    const deleted = await prisma.order.update({
+      where: { id },
+      data: { deletedAt: new Date() },
+    })
+    return json({ success: true, deleted })
+  } catch (e) {
+    return handleError(e)
   }
 }

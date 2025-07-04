@@ -60,10 +60,17 @@ export function registerSSEClient(
     });
 }
 
+export interface SSEPayload {
+  status: PaymentStatus;
+  timestamp: string;
+  eventId?: string;
+  [key: string]: unknown;
+}
+
 /**
  * Envia um evento de status para todos os clients daquele paymentId
  */
-export function broadcastSSE(rawPaymentId: unknown, rawStatus: unknown) {
+export function broadcastSSE(rawPaymentId: unknown, rawStatus: unknown, additionalData: Record<string, unknown> = {}) {
   const paymentId = PaymentIdSchema.parse(rawPaymentId);
   const status = PaymentStatusSchema.parse(rawStatus);
   const conns = connections.get(paymentId);
@@ -72,7 +79,11 @@ export function broadcastSSE(rawPaymentId: unknown, rawStatus: unknown) {
   }
 
   const encoder = new TextEncoder();
-  const payload = JSON.stringify({ status });
+  const payload = JSON.stringify({
+    status,
+    timestamp: new Date().toISOString(),
+    ...additionalData
+  } as SSEPayload);
   const message = encoder.encode(`event: status\n` + `data: ${payload}\n\n`);
 
   for (const conn of conns) {

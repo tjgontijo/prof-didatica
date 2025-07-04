@@ -10,6 +10,7 @@ export type PaymentStatus = 'pending' | 'approved' | 'rejected' | 'cancelled';
 export function usePaymentStatus(transactionId: string) {
   const [status, setStatus] = useState<PaymentStatus>('pending');
   const [error, setError] = useState<string | null>(null);
+  const [eventId, setEventId] = useState<string | undefined>(undefined);
   const retryCountRef = useRef(0);
   const maxRetries = 5;
 
@@ -32,6 +33,11 @@ export function usePaymentStatus(transactionId: string) {
           const data = JSON.parse(e.data);
           const newStatus = data.status;
           setStatus(newStatus);
+          
+          // Capturar o eventId se estiver presente
+          if (data.eventId) {
+            setEventId(data.eventId);
+          }
 
           // Se for estado final, fecha conexão e marca conclusão
           if (newStatus !== 'pending') {
@@ -73,5 +79,5 @@ export function usePaymentStatus(transactionId: string) {
     };
   }, [transactionId]); // Apenas reconecta quando transactionId muda
 
-  return { status, error };
+  return { status, error, eventId };
 }

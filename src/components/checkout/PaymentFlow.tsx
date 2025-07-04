@@ -35,7 +35,7 @@ export default function PaymentFlow({
   customerEmail,
   customerPhone,
 }: PaymentFlowProps) {
-  const { status, error } = usePaymentStatus(transactionId);
+  const { status, error, eventId } = usePaymentStatus(transactionId);
 
   const statusMessages: Record<'rejected' | 'cancelled', string> = {
     rejected:
@@ -63,6 +63,7 @@ export default function PaymentFlow({
           products={products}
           customerEmail={customerEmail}
           customerPhone={customerPhone}
+          eventId={eventId}
         />
       );
     }
