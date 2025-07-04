@@ -17,6 +17,7 @@
 <<<<<<< Updated upstream
 <<<<<<< Updated upstream
 <<<<<<< Updated upstream
+<<<<<<< Updated upstream
     "@nivo/bar": "^0.99.0",
     "@nivo/core": "^0.99.0",
     "@nivo/funnel": "^0.99.0",
@@ -24,6 +25,10 @@
     "@nivo/line": "^0.99.0",
     "@nivo/pie": "^0.99.0",
     "@nivo/tooltip": "^0.99.0",
+=======
+    "@nivo/core": "^0.99.0",
+    "@nivo/funnel": "^0.99.0",
+>>>>>>> Stashed changes
 =======
     "@nivo/core": "^0.99.0",
     "@nivo/funnel": "^0.99.0",
