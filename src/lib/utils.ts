@@ -1,12 +1,10 @@
-/**
- * Utilitários gerais para a aplicação
- */
+import { clsx, type ClassValue } from "clsx"
+import { twMerge } from "tailwind-merge"
 
-/**
- * Gera um ID CUID simples
- * Baseado na implementação do CUID mas simplificado
- * @returns string CUID
- */
+export function cn(...inputs: ClassValue[]) {
+  return twMerge(clsx(inputs))
+}
+
 export function generateCuid(): string {
   const timestamp = Date.now().toString(36);
   const random = Math.random().toString(36).substring(2, 10);
