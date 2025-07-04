@@ -4,7 +4,8 @@ import { z } from 'zod';
 /**
  * Schemas Zod para validar IDs e status
  */
-const PaymentIdSchema = z.string().cuid();
+// Aceitar qualquer string como ID de pagamento, já que o MercadoPago usa IDs numéricos
+const PaymentIdSchema = z.string().min(1, 'ID de pagamento não pode estar vazio');
 export type PaymentId = z.infer<typeof PaymentIdSchema>;
 
 const PaymentStatusSchema = z.enum(['pending', 'approved', 'rejected', 'cancelled']);

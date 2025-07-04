@@ -46,13 +46,15 @@ export interface TrackingData {
 }
 
 export type AdvancedMatchingData = {
-  city?: string
-  region?: string
-  zip?: string
-  country?: string
-  clientIpAddress?: string
-  clientUserAgent?: string
-  externalId?: string
-  fbp?: string
-  fbc?: string
-}
+  em?: string;      // Email
+  fn?: string;      // First Name
+  ln?: string;      // Last Name
+  ph?: string;      // Phone
+  external_id?: string; // External ID
+  ge?: 'f' | 'm'; // Gender
+  db?: string;      // Date of Birth (YYYYMMDD)
+  ct?: string;      // City
+  st?: string;      // State (2-letter code)
+  zp?: string;      // Zip Code
+  country?: string; // Country (2-letter code)
+};

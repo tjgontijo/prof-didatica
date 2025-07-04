@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useMemo } from 'react';
-import { ProdutoInfo, OrderBump } from '../checkout/types';
+import { ProdutoInfo, OrderBump } from './types';
 
 type OrderDetailsProps = {
   produto: ProdutoInfo;

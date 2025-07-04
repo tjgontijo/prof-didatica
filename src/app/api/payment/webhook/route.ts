@@ -204,41 +204,98 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
               lastName
             });
             
+            // Normalizar dados do cliente antes de enviar para o Meta
+            const normalize = {
+              // Remove espaços, acentos e converte para minúsculas
+              text: (str: string | null | undefined): string => {
+                if (!str) return '';
+                return str.toLowerCase()
+                  .normalize('NFD')
+                  .replace(/[\u0300-\u036f]/g, '') // remove acentos
+                  .replace(/\s/g, '') // remove espaços
+                  .replace(/[^a-z0-9]/g, ''); // remove caracteres especiais
+              },
+              
+              // Formata telefone: só dígitos, começando com 55 (BR)
+              phone: (phone: string | null | undefined): string => {
+                if (!phone) return '';
+                const digits = phone.replace(/[^0-9]/g, '');
+                // Adiciona código do país (55) se não existir
+                if (digits.length > 0 && !digits.startsWith('55')) {
+                  return `55${digits}`;
+                }
+                return digits;
+              },
+              
+              // Formata país para ISO-3166 minúsculo
+              country: (country: string | null | undefined): string => {
+                if (!country) return '';
+                // Se for Brasil ou Brazil, retorna 'br'
+                if (/^bra[sz]il$/i.test(country.trim())) {
+                  return 'br';
+                }
+                return country.toLowerCase().trim().substring(0, 2);
+              }
+            };
+            
+            // Preparar dados do cliente com hash para advanced matching
+            const normalizedPhone = normalize.phone(customerPhone);
+            const normalizedFirstName = normalize.text(firstName);
+            const normalizedLastName = normalize.text(lastName);
+            const normalizedCountry = normalize.country(orderWithItems.trackingSession.country);
+            const normalizedCity = normalize.text(orderWithItems.trackingSession.city);
+            const normalizedRegion = normalize.text(orderWithItems.trackingSession.region);
+            
+            console.log('[PURCHASE EVENT] Dados do cliente normalizados:', {
+              email: customerEmail?.toLowerCase(),
+              phone: normalizedPhone,
+              firstName: normalizedFirstName,
+              lastName: normalizedLastName,
+              country: normalizedCountry,
+              city: normalizedCity,
+              region: normalizedRegion
+            });
+            
             // Preparar dados do evento de compra
             const purchaseEvent = {
               event_name: 'Purchase',
               event_id: eventId,
               event_time: Math.floor(Date.now() / 1000),
               event_source_url: orderWithItems.trackingSession.landingPage || undefined,
+              action_source: 'website', // Definir action_source diretamente no objeto principal
               user_data: {
                 client_ip_address: orderWithItems.trackingSession.ip || undefined,
                 client_user_agent: orderWithItems.trackingSession.userAgent || undefined,
                 fbp: orderWithItems.trackingSession.fbp || undefined,
                 fbc: orderWithItems.trackingSession.fbc || undefined,
-                external_id: orderWithItems.trackingSession.id,
+                external_id: hashValue(orderWithItems.trackingSession.id),
                 // Dados do cliente para advanced matching com hash SHA256
-                em: hashValue(customerEmail),
-                ph: hashValue(customerPhone),
-                fn: hashValue(firstName),
-                ln: hashValue(lastName),
-                country: orderWithItems.trackingSession.country || undefined,
-                ct: orderWithItems.trackingSession.city || undefined,
-                st: orderWithItems.trackingSession.region || undefined,
+                em: customerEmail ? hashValue(customerEmail.toLowerCase()) : undefined,
+                ph: normalizedPhone ? hashValue(normalizedPhone) : undefined,
+                fn: normalizedFirstName ? hashValue(normalizedFirstName) : undefined,
+                ln: normalizedLastName ? hashValue(normalizedLastName) : undefined,
+                country: normalizedCountry ? hashValue(normalizedCountry) : undefined,
+                ct: normalizedCity ? hashValue(normalizedCity) : undefined,
+                st: normalizedRegion ? hashValue(normalizedRegion) : undefined,
               },
               custom_data: {
                 currency: 'BRL',
-                value: Number(paymentInfo.transaction_amount),
+                value: Number(paymentInfo.transaction_amount), // Valor monetário obrigatório para Purchase
                 content_ids: orderWithItems.orderItems.map((item: { productId: string }) => item.productId),
                 content_name: orderWithItems.orderItems.map((item: { product?: { name?: string } }) => item.product?.name || '').join(', '),
                 content_type: 'product',
                 order_id: orderWithItems.id,
                 status: 'completed',
+                num_items: orderWithItems.orderItems.length
               },
             };
             
+            // Remover campos undefined ou null para evitar erros na API
+            const cleanPayload = JSON.parse(JSON.stringify(purchaseEvent));
+            
             // Enviar evento para o Meta CAPI
             try {
-              await trackServerEvent({...purchaseEvent, action_source: 'website'}, orderWithItems.trackingSession.id);
+              await trackServerEvent(cleanPayload, orderWithItems.trackingSession.id);
               console.log(`Evento Purchase enviado para o Meta CAPI: ${eventId}`);
             } catch (error) {
               console.error('Erro ao enviar evento Purchase para o Meta CAPI:', error);
@@ -285,8 +342,38 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
       });
 
       // 8. Broadcast SSE para quem estiver conectado
-
-      broadcastSSE(payment.id, status);
+      try {
+        // Buscar o pagamento no banco para obter o ID interno
+        console.log('[WEBHOOK] Enviando SSE para clientes:', { 
+          paymentId: payment.id,
+          status 
+        });
+        
+        // Mapear status do MercadoPago para os status aceitos pelo SSE
+        let sseStatus: 'pending' | 'approved' | 'rejected' | 'cancelled';
+        switch (status) {
+          case 'approved':
+            sseStatus = 'approved';
+            break;
+          case 'rejected':
+          case 'in_process':
+          case 'in_mediation':
+            sseStatus = 'rejected';
+            break;
+          case 'cancelled':
+            sseStatus = 'cancelled';
+            break;
+          default:
+            sseStatus = 'pending';
+        }
+        
+        // Usar o ID interno do pagamento para o broadcast, pois é o que o frontend está usando na URL
+        // O frontend usa o ID da URL como transactionId, que é o ID interno do pagamento
+        broadcastSSE(payment.id, sseStatus);
+        console.log('[WEBHOOK] SSE enviado com sucesso');
+      } catch (error) {
+        console.error('[WEBHOOK] Erro ao enviar SSE:', error);
+      }
 
       // Pagamento processado com sucesso
 

@@ -2,12 +2,62 @@ import { NextRequest, NextResponse } from 'next/server';
 import { z } from 'zod';
 import { prisma } from '@/lib/prisma';
 import { Prisma } from '@prisma/client';
+import cuid from 'cuid';
 
 // Definir OrderStatus para compatibilidade
 import { OrderStatus } from '@prisma/client';
 import { validateBrazilianPhone, cleanPhone } from '@/lib/phone';
 import { orderRateLimit } from '@/lib/rate-limit';
 import { getCachedProduct } from '@/lib/cache';
+
+// Interface para o payload de tracking
+interface TrackingEventPayload {
+  trackingSessionId: string;
+  eventName: string;
+  eventId: string;
+  customData: {
+    value: number;
+    currency: string;
+    content_ids?: string[];
+    content_type?: string;
+    contents?: Array<{
+      id: string;
+      quantity: number;
+      item_price?: number;
+    }>;
+    customer?: {
+      email?: string;
+      phone?: string;
+      firstName?: string;
+      lastName?: string;
+      [key: string]: string | undefined;
+    };
+    [key: string]: unknown;
+  };
+}
+
+// Função para enviar evento para o Meta CAPI via API interna
+async function sendTrackingEvent(payload: TrackingEventPayload) {
+  try {
+    const response = await fetch(`${process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000'}/api/tracking/event`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({ payload }),
+    });
+    
+    if (!response.ok) {
+      console.error(`[Tracking] Erro ao enviar evento para API: ${response.status}`);
+      return false;
+    }
+    
+    return true;
+  } catch (error) {
+    console.error('[Tracking] Erro ao enviar evento:', error);
+    return false;
+  }
+};
 
 // Schema para validação forte dos dados recebidos
 const orderSchema = z.object({
@@ -277,6 +327,30 @@ export async function POST(request: NextRequest) {
 
       console.log(`[POST /api/orders] Total de itens a serem criados: ${orderItemsToCreate.length}`);
 
+      // Buscar a sessão de tracking pelo sessionId (se fornecido)
+      let trackingSessionDbId: string | undefined = undefined;
+      
+      if (data.trackingSessionId) {
+        try {
+          // Buscar a sessão pelo campo sessionId (conforme visto na API de tracking)
+          const trackingSession = await tx.trackingSession.findFirst({
+            where: { sessionId: data.trackingSessionId },
+            select: { id: true }
+          });
+          
+          if (trackingSession) {
+            // Usar o ID interno da sessão no banco de dados (não o sessionId)
+            trackingSessionDbId = trackingSession.id;
+            console.log(`[POST /api/orders] Sessão de tracking encontrada: ${trackingSessionDbId}`);
+          } else {
+            console.log(`[POST /api/orders] Aviso: Sessão de tracking não encontrada para sessionId: ${data.trackingSessionId}`);
+          }
+        } catch (error) {
+          console.error(`[POST /api/orders] Erro ao buscar sessão de tracking:`, error);
+          // Não falhar o pedido se não encontrar a sessão
+        }
+      }
+      
       // Criação do pedido principal
       const order = await tx.order.create({
         data: {
@@ -284,7 +358,7 @@ export async function POST(request: NextRequest) {
           checkoutId: data.checkoutId,
           customerId: customer.id,
           paidAmount: 0, // Inicialmente 0, só será preenchido após pagamento
-          trackingSessionId: data.trackingSessionId || undefined, // Relacionando com a sessão de rastreamento
+          trackingSessionId: trackingSessionDbId, // Usar o ID interno da sessão, não o sessionId
           orderItems: {
             create: orderItemsToCreate,
           },
@@ -320,6 +394,50 @@ export async function POST(request: NextRequest) {
     
     if (orderBumpItems.length === 0 && data.orderBumps?.length > 0) {
       console.warn(`[POST /api/orders] ALERTA: Nenhum order bump foi criado, apesar de ${data.orderBumps.length} terem sido enviados!`);
+    }
+    
+    // Disparar evento AddPaymentInfo no backend
+    if (data.trackingSessionId) {
+      try {
+        // Calcular o valor total do pedido
+        const mainItemValue = mainItems.reduce((acc, item) => acc + (item.priceAtTime * item.quantity), 0);
+        const orderBumpValue = orderBumpItems.reduce((acc, item) => acc + (item.priceAtTime * item.quantity), 0);
+        const totalValue = mainItemValue + orderBumpValue;
+        
+        // Preparar os dados para o evento AddPaymentInfo
+        const eventId = cuid();
+        const trackingPayload = {
+          trackingSessionId: data.trackingSessionId,
+          eventName: 'AddPaymentInfo',
+          eventId,
+          customData: {
+            value: totalValue,
+            currency: 'BRL',
+            content_ids: orderItems.map(item => item.productId),
+            content_type: 'product',
+            contents: orderItems.map(item => ({
+              id: item.productId,
+              quantity: item.quantity,
+              item_price: item.priceAtTime
+            })),
+            customer: {
+              email: result.customer.email,
+              phone: result.customer.phone,
+              firstName: result.customer.name.split(' ')[0].toLowerCase(),
+              lastName: result.customer.name.split(' ').slice(1).join(' ').toLowerCase()
+            }
+          }
+        };
+        
+        // Enviar evento para a API de tracking
+        await sendTrackingEvent(trackingPayload);
+        console.log(`[POST /api/orders] Evento AddPaymentInfo enviado com sucesso. EventId: ${eventId}`);
+      } catch (trackingError) {
+        console.error('[POST /api/orders] Erro ao enviar evento AddPaymentInfo:', trackingError);
+        // Não falhar a criação do pedido se o tracking falhar
+      }
+    } else {
+      console.warn('[POST /api/orders] Não foi possível enviar evento AddPaymentInfo: trackingSessionId não fornecido');
     }
     
     return NextResponse.json(

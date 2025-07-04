@@ -84,16 +84,11 @@ export default function MetaPixel() {
         // Criar objeto de advanced matching apenas com dados válidos
         const advancedMatching: AdvancedMatchingData = {}
         
-        if (tracking.city) advancedMatching.city = tracking.city.toLowerCase()
-        if (tracking.region) advancedMatching.region = tracking.region.toLowerCase()
-        if (tracking.zip) advancedMatching.zip = String(tracking.zip).replace(/[^0-9]/g, '').substring(0, 5)
-        if (tracking.country) advancedMatching.country = tracking.country.toLowerCase()
-        if (tracking.ip) advancedMatching.clientIpAddress = tracking.ip
-        
-        if (tracking.userAgent) advancedMatching.clientUserAgent = tracking.userAgent
-
-        if (tracking.fbp) advancedMatching.fbp = tracking.fbp
-        if (tracking.fbc) advancedMatching.fbc = tracking.fbc
+        if (tracking.city) advancedMatching.ct = tracking.city.toLowerCase().replace(/\s/g, '');
+        if (tracking.region) advancedMatching.st = tracking.region.toLowerCase();
+        if (tracking.zip) advancedMatching.zp = String(tracking.zip).replace(/[^0-9]/g, '');
+        if (tracking.country) advancedMatching.country = tracking.country.toLowerCase();
+        if (tracking.sessionId) advancedMatching.external_id = tracking.sessionId;
         
         console.log('[Meta Pixel] Inicializando com ID:', META_PIXEL_ID)
         console.log('[Meta Pixel] Advanced matching:', advancedMatching)
