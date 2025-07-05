@@ -48,13 +48,16 @@ export const getCheckoutIdBySlug = cache(async (slug: string) => {
     
     if (!checkout) {
       console.error(`Checkout não encontrado para produto com slug: ${slug}`);
+      console.timeEnd(`Buscando checkout para produto com slug: ${slug}`);
       return null;
     }
     
     console.log(`Checkout encontrado: ${checkout.id} para produto: ${checkout.product.name} (${checkout.product.id})`);
+    console.timeEnd(`Buscando checkout para produto com slug: ${slug}`);
     return checkout.id;
   } catch (error) {
     console.error(`Erro ao buscar checkout para slug ${slug}:`, error);
+    console.timeEnd(`Buscando checkout para produto com slug: ${slug}`);
     return null;
   }
 });
