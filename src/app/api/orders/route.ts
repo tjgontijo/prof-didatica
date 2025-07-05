@@ -92,7 +92,7 @@ interface TrackingEventPayload {
 async function sendTrackingEvent(payload: TrackingEventPayload): Promise<boolean> {
   try {
     const response = await fetch(
-      `${process.env.APP_URL || 'http://localhost:3000'}/api/tracking/event`,
+      `${process.env.APP_URL}/api/tracking/event`,
       {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
