@@ -6,6 +6,7 @@
     "dev": "next dev",
     "build": "next build",
     "start": "next start -p 3001",
+    "start0": "next start -p 3000",
     "lint": "next lint",
     "format": "prettier --write \"src/**/*.{js,jsx,ts,tsx,json,css,md}\"",
     "seed": "ts-node --project prisma/tsconfig.json -r tsconfig-paths/register prisma/seed.ts"
