@@ -1,0 +1,278 @@
+type PrismaWebhook = {
+  id: string;
+  url: string;
+  secret?: string | null;
+  active: boolean;
+  events: string[];
+  createdAt: Date;
+  updatedAt: Date;
+};
+
+type OrderStatus = 'DRAFT' | 'PENDING' | 'PAID' | 'COMPLETED' | 'CANCELLED';
+import { z } from 'zod';
+
+// ========================
+// Core Webhook Types
+// ========================
+
+export interface WebhookWithSecret extends PrismaWebhook {
+  secret?: string | null;
+  headers?: Record<string, string>;
+}
+
+export interface WebhookPayload<T = unknown> {
+  event: string;
+  data: T;
+  timestamp: string;
+  signature?: string;
+}
+
+export interface WebhookResponse {
+  status?: number;
+  statusText?: string;
+  headers?: Record<string, string>;
+  error?: string;
+  success: boolean;
+}
+
+// ========================
+// Event Data Types
+// ========================
+
+export interface CustomerData {
+  id: string;
+  name: string;
+  email: string;
+  phone: string;
+}
+
+export interface OrderItemData {
+  id: string;
+  productId: string;
+  name: string;
+  quantity: number;
+  price: number;
+  isOrderBump: boolean;
+  isUpsell: boolean;
+  googleDriveUrl: string | null;
+}
+
+export interface PaymentRawData {
+  mercadoPagoId: string;
+  pixCopyPaste: string;
+  qrCodeBase64: string;
+  ticket_url: string;
+  expiresAt: string;
+  mercadoPagoResponse?: Record<string, unknown>;
+}
+
+export interface PaymentPixData {
+  mercadoPagoId?: string;
+  pixCopyPaste?: string;
+  qrCodeBase64?: string;
+  ticket_url?: string;
+  expiresAt?: string;
+}
+
+export interface PaymentData {
+  id: string;
+  method: string;
+  status: string;
+  amount: number;
+  pix?: PaymentPixData;
+}
+
+// Interface para dados de rastreamento
+export interface TrackingData {
+  utm_source?: string;
+  utm_medium?: string;
+  utm_campaign?: string;
+  utm_content?: string;
+  utm_term?: string;
+  multiFbc?: string;
+  lead?: Record<string, unknown>;
+}
+
+export interface OrderEventData {
+  id: string;
+  checkoutId: string;
+  customer: CustomerData;
+  items: OrderItemData[];
+  status: OrderStatus;
+  totalItems: number;
+  totalValue: number;
+  createdAt: string;
+  updatedAt: string;
+  payment?: PaymentData;
+  tracking?: TrackingData; // Dados de rastreamento opcionais
+}
+
+// ========================
+// Specific Event Types
+// ========================
+
+export interface OrderCreatedEvent {
+  event: 'order.created';
+  data: OrderEventData;
+}
+
+export interface OrderPaidEvent {
+  event: 'order.paid';
+  data: OrderEventData & {
+    paymentId: string;
+    paidAt: string;
+    paymentMethod: string;
+  };
+}
+
+export interface CartReminderEvent {
+  event: 'cart.reminder';
+  data: {
+    orderId: string;
+    customer: CustomerData;
+    items: OrderItemData[];
+    createdAt: string;
+    updatedAt: string;
+  };
+}
+
+export type WebhookEvent = OrderCreatedEvent | OrderPaidEvent | CartReminderEvent;
+
+// ========================
+// Prisma Query Types
+// ========================
+
+export interface OrderWithRelationsForEvent {
+  id: string;
+  checkoutId: string;
+  status: OrderStatus;
+  createdAt: Date;
+  updatedAt: Date;
+  customer: {
+    id: string;
+    name: string;
+    email: string;
+    phone: string | null;
+  };
+  orderItems: Array<{
+    id: string;
+    productId: string;
+    quantity: number;
+    isOrderBump: boolean | null;
+    isUpsell: boolean | null;
+    product: {
+      id: string;
+      name: string;
+      price: number;
+      googleDriveUrl: string | null;
+    } | null;
+  }>;
+  payment?: {
+    id: string;
+    method: string;
+    status: string;
+    amount: number;
+    paidAt: Date | null;
+    rawData: PaymentRawData | null;
+  } | null;
+  trackingData?: Record<string, unknown> | null;
+}
+
+export interface WebhookLogCreateInput {
+  webhookId: string;
+  event: string;
+  payload: string;
+  response: string | null;
+  statusCode: number | null;
+  success: boolean;
+}
+
+// ========================
+// Validation Schemas
+// ========================
+
+export const CustomerDataSchema = z.object({
+  id: z.string().cuid(),
+  name: z.string().min(1),
+  email: z.string().email(),
+  phone: z.string().min(1),
+});
+
+export const OrderItemDataSchema = z.object({
+  id: z.string().cuid(),
+  productId: z.string().cuid(),
+  name: z.string().min(1),
+  quantity: z.number().min(1),
+  price: z.number().min(0),
+  isOrderBump: z.boolean(),
+  isUpsell: z.boolean(),
+  googleDriveUrl: z.string().nullable(),
+});
+
+// Schema para validação dos dados de rastreamento
+export const TrackingDataSchema = z.object({
+  utm_source: z.string().optional(),
+  utm_medium: z.string().optional(),
+  utm_campaign: z.string().optional(),
+  utm_content: z.string().optional(),
+  utm_term: z.string().optional(),
+  multiFbc: z.string().optional(),
+  lead: z.record(z.any()).optional(),
+}).optional();
+
+export const OrderEventDataSchema = z.object({
+  id: z.string().cuid(),
+  checkoutId: z.string().cuid(),
+  customer: CustomerDataSchema,
+  items: z.array(OrderItemDataSchema).min(1, 'Deve conter pelo menos um item'),
+  status: z.enum(['DRAFT', 'PENDING', 'PAID', 'COMPLETED', 'CANCELLED']),
+  totalItems: z.number().min(0),
+  totalValue: z.number().min(0),
+  createdAt: z.string().datetime(),
+  updatedAt: z.string().datetime(),
+  payment: z
+    .object({
+      id: z.string().cuid(),
+      method: z.string(),
+      status: z.string(),
+      amount: z.number().min(0),
+      pix: z
+        .object({
+          mercadoPagoId: z.string().optional(),
+          pixCopyPaste: z.string().optional(),
+          qrCodeBase64: z.string().optional(),
+          ticket_url: z.string().optional(),
+          expiresAt: z.string().datetime().optional(),
+        })
+        .optional(),
+    })
+    .optional(),
+  tracking: TrackingDataSchema,
+});
+
+// ========================
+// Utility Functions
+// ========================
+
+export function validateWebhookPayload<T>(payload: unknown, schema: z.ZodSchema<T>): T {
+  return schema.parse(payload);
+}
+
+export function normalizeOrderItem(item: Partial<OrderItemData>): OrderItemData {
+  return {
+    id: item.id || '',
+    productId: item.productId || '',
+    name: item.name || '',
+    quantity: item.quantity || 0,
+    price: item.price || 0,
+    isOrderBump: !!item.isOrderBump,
+    isUpsell: !!item.isUpsell,
+    googleDriveUrl: item.googleDriveUrl || '',
+  };
+}
+
+export interface WebhookDispatchOptions {
+  delay?: number;
+  maxRetries?: number;
+  priority?: number;
+}
