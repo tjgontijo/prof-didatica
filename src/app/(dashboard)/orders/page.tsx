@@ -1,5 +1,3 @@
-<<<<<<< Updated upstream
-=======
 'use client';
 
 import { useEffect, useState } from 'react';
@@ -311,4 +309,4 @@ export default function OrdersPage() {
     </div>
   );
 }
->>>>>>> Stashed changes
+
