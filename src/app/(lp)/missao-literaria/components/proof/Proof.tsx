@@ -5,7 +5,7 @@ export default function Proof() {
     <section className="mb-20 text-center">
       <div className="bg-white rounded-lg shadow-md p-6 md:p-8">
         <h2 className="text-xl md:text-2xl font-bold text-[#1D3557] mb-4">
-          Professores como você já estão transformando suas salas de aula
+          Professores como você já estão transformando suas aulas
         </h2>
         
         <p className="text-lg text-gray-700 mb-6">
@@ -25,7 +25,7 @@ export default function Proof() {
         </div>
         
         <p className="mt-6 text-lg text-[#457B9D] font-medium">
-          Resultados comprovados por centenas de professores. Veja abaixo se esse material pode ser útil para você:
+          Resultados comprovados por centenas de professores.
         </p>
       </div>
     </section>
