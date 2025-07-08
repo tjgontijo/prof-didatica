@@ -7,14 +7,23 @@ interface CtaButtonProps {
 }
 
 export default function CtaButton({ paymentLink, text, className = '' }: CtaButtonProps) {
-  // Função para pré-carregar o link de checkout quando o mouse passar sobre o botão
-  // ou quando o usuário tocar no botão (dispositivos móveis)
+
   const handleMouseEnter = () => {
-    // Usamos requestIdleCallback para executar o prefetch apenas quando o navegador estiver ocioso
-    // Isso evita que o prefetch afete a experiência do usuário
-    if ('requestIdleCallback' in window) {
-      (window as any).requestIdleCallback(() => {
-        // Verifica se já existe um link de prefetch para este URL
+    if ('requestIdleCallback' in window) {      
+      type IdleCallbackHandle = number;
+      type IdleCallbackOptions = {
+        timeout: number;
+      };
+      type IdleCallbackFn = (deadline: {
+        didTimeout: boolean;
+        timeRemaining: () => number;
+      }) => void;
+      
+      interface WindowWithRequestIdleCallback {
+        requestIdleCallback: (callback: IdleCallbackFn, options?: IdleCallbackOptions) => IdleCallbackHandle;
+      }
+      
+      ((window as unknown) as WindowWithRequestIdleCallback).requestIdleCallback((_deadline) => {        
         const existingPrefetch = document.querySelector(`link[rel="prefetch"][href="${paymentLink}"]`);
         if (!existingPrefetch) {
           const linkPrefetch = document.createElement('link');
@@ -24,8 +33,7 @@ export default function CtaButton({ paymentLink, text, className = '' }: CtaButt
           document.head.appendChild(linkPrefetch);
         }
       });
-    } else {
-      // Fallback para navegadores que não suportam requestIdleCallback
+    } else {      
       setTimeout(() => {
         const existingPrefetch = document.querySelector(`link[rel="prefetch"][href="${paymentLink}"]`);
         if (!existingPrefetch) {
@@ -35,7 +43,7 @@ export default function CtaButton({ paymentLink, text, className = '' }: CtaButt
           linkPrefetch.as = 'document';
           document.head.appendChild(linkPrefetch);
         }
-      }, 200); // Pequeno atraso para não bloquear a renderização
+      }, 200);
     }
   };
 
