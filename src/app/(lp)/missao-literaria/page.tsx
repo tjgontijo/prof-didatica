@@ -1,4 +1,3 @@
-import { Suspense } from 'react';
 import Header from './components/header/Header';
 import Hero from './components/hero/Hero';
 import Problem from './components/problem/Problem';
