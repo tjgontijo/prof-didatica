@@ -55,9 +55,20 @@ export default function Results() {
       </div>
       
       {/* Frase instigante para antecipar a seção de oferta */}
-      <p className="mt-10 text-center text-xl md:text-2xl font-bold text-[#1D3557]">
-        Chegou a hora de ter acesso ao <span className="text-[#e63946]">mesmo material</span> e transformar seus alunos em <span className="text-[#e63946]">leitores apaixonados!</span>
-      </p>
+      <div className="mt-12 mb-6 max-w-3xl mx-auto">
+        <div className="bg-gradient-to-r from-[#1D3557] to-[#457B9D] p-1 rounded-xl shadow-lg">
+          <div className="bg-white p-5 rounded-lg">
+            <p className="text-center text-xl md:text-2xl font-bold text-[#1D3557]">
+              Chegou a hora de ter acesso ao <span className="text-[#e63946] font-extrabold">mesmo material</span> e transformar seus alunos em <span className="text-[#e63946] font-extrabold">leitores apaixonados!</span>
+            </p>
+            <div className="flex justify-center mt-3">
+              <svg className="w-8 h-8 text-[#457B9D] animate-bounce" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg">
+                <path fillRule="evenodd" d="M15.707 4.293a1 1 0 010 1.414l-5 5a1 1 0 01-1.414 0l-5-5a1 1 0 011.414-1.414L10 8.586l4.293-4.293a1 1 0 011.414 0z" clipRule="evenodd"></path>
+              </svg>
+            </div>
+          </div>
+        </div>
+      </div>
     </section>
   );
 }
