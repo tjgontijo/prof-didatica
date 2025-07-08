@@ -1,5 +1,6 @@
 import Header from './components/header/Header';
 import Hero from './components/hero/Hero';
+import Proof from './components/proof/Proof';
 import Problem from './components/problem/Problem';
 import Solution from './components/solution/Solution';
 import Results from './components/results/Results';
@@ -19,6 +20,7 @@ export default function MissaoLiterariaPage() {
       <Header />
       <div className="px-4 md:px-6 lg:px-8 max-w-7xl mx-auto">
         <Hero />
+        <Proof />
         <Problem />
         <Solution />
         <Results />
