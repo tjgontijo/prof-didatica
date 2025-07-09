@@ -30,7 +30,7 @@ export default function Hero() {
         </h1>
       </div>
       
-      {/* Descrição do material */}
+      
       <div className="max-w-3xl mx-auto mb-6 text-center">
         <p className="text-lg md:text-xl text-[#1D3557] font-normal leading-relaxed">
           Você recebe imediatamente no WhatsApp <strong>20 fichas literárias</strong>,{' '}
