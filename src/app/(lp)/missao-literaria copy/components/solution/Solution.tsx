@@ -7,11 +7,25 @@ export default function Solution() {
         </div>
         <h2 className="text-2xl md:text-3xl  text-[#1D3557] p-6 bg-[#f8f9fa] rounded-lg shadow-md border-2 border-dashed border-[#a8dadc]">
           <span className="italic">
-            Aquele aluno mais difícil, agora pedindo pra contar o que leu, disputando pra ser o
-            próximo a apresentar o livro lido na semana. Um sonho, né?
+            Seus alunos pedindo pra contar o que leram, disputando pra ser o próximo a apresentar, e
+            você apenas acompanhando tudo com gratidão e leveza.
           </span>
           <span className="absolute -right-2 -bottom-2 text-3xl">💭</span>
         </h2>
+      </div>
+      <div className="flex flex-col gap-8 items-center mb-6">
+        <p className="text-gray-800 text-xl mb-4 leading-relaxed">
+          Aquele aluno que dizia que ler é chato, agora chega animado pra mostrar a ficha toda
+          preenchida.
+        </p>
+        <p className="text-gray-800 text-xl mb-4 leading-relaxed">
+          A turma inteira acompanhando a estante de leitura, comemorando cada livro colorido como
+          uma pequena conquista.
+        </p>
+        <p className="text-gray-800 text-xl mb-4 leading-relaxed">
+          E você, sem precisar montar tudo do zero, vendo a leitura acontecer com envolvimento real,
+          e sentindo orgulho por ter feito isso acontecer.
+        </p>
       </div>
       <div className="flex flex-col gap-8 items-center mb-6">
         <p className="text-gray-800 text-xl mb-4 leading-relaxed">
@@ -32,6 +46,23 @@ export default function Solution() {
           <div className="text-3xl text-[#457B9D] mr-2">🔍</div>
           <p className="font-bold text-lg text-[#1D3557] text-left">
             Ampliam vocabulário, interpretação e pensamento crítico
+          </p>
+        </div>
+      </div>
+      <div className="bg-gradient-to-r from-[#f8f9fa] to-[#e9ecef] p-5 rounded-lg border-l-4 border-[#6bbbed] shadow-md mb-4">
+        {' '}
+        <div className="flex flex-rol items-center space-y-3">
+          <div className="text-3xl text-[#457B9D] mr-2">✨</div>
+          <p className="font-bold text-lg text-[#1D3557] text-left">
+            Estimulam criatividade e imaginação com histórias envolventes
+          </p>
+        </div>
+      </div>
+      <div className="bg-gradient-to-r from-[#f8f9fa] to-[#e9ecef] p-5 rounded-lg border-l-4 border-[#6bbbed] shadow-md mb-4">
+        <div className="flex flex-rol items-center space-y-3">
+          <div className="text-3xl text-[#457B9D] mr-2">✏️</div>
+          <p className="font-bold text-lg text-[#1D3557] text-left">
+            Aprimoram a escrita de forma natural e conectada com o que leram
           </p>
         </div>
       </div>

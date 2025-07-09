@@ -31,10 +31,10 @@ export default function Hero() {
         <strong> 2 modelos de leiturômetro</strong>, <strong> 2 modelos de tabela</strong> para
         acompanhar o progresso dos alunos e um <strong>bônus especial</strong> que vou revelar no
         final dessa página.
-        <br /><br />
-        <span className="inline-block my-3 py-1 text-center italic font-medium text-[#1D3557] border-b-2 border-[#457B9D] pb-0.5">
-          Prático e direto: <span className="bg-yellow-50 px-1">imprima e use com seus alunos já na próxima aula!</span>
-        </span>
+        <br />
+        <div className="my-3 py-2 px-4 bg-yellow-100 rounded-lg inline-block font-semibold text-[#1D3557] border-l-4 border-[#457B9D] shadow-sm">
+          Prático e direto: imprima e use com seus alunos já na próxima aula!
+        </div>
         <br />
         Veja abaixo uma amostra do material:
       </h2>
