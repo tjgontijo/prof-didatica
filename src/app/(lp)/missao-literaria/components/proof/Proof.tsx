@@ -24,10 +24,6 @@ export default function Proof() {
             priority
           />
         </div>
-
-        <p className="mt-6 text-lg text-[#457B9D] font-medium">
-          Resultados comprovados por centenas de professores.
-        </p>
       </div>
     </section>
   );
