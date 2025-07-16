@@ -1,7 +1,7 @@
 #!/bin/bash
 
 echo "Removendo diretórios e arquivos desnecessários..."
-rm -rf .next package-lock.json node_modules/@prisma/client node_modules/.prisma prisma/migrations
+rm -rf .next package-lock.json node_modules/@prisma/client node_modules/.prisma prisma/migrations prisma/db
 
 echo "Limpando cache do npm..."
 npm cache clean --force
@@ -14,8 +14,5 @@ npx prisma migrate dev --name init
 
 echo "Gerando cliente do Prisma..."
 npx prisma generate
-
-##echo "Rodando seed do banco de dados..."
-##npx prisma db seed
 
 echo "Processo concluído!"
