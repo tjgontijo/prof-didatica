@@ -1,11 +1,13 @@
 -- CreateTable
 CREATE TABLE "AbResult" (
-    "id" INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,
+    "id" SERIAL NOT NULL,
     "testName" TEXT NOT NULL,
     "variant" TEXT NOT NULL,
     "event" TEXT NOT NULL,
     "visitorId" TEXT NOT NULL,
-    "createdAt" DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP
+    "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+
+    CONSTRAINT "AbResult_pkey" PRIMARY KEY ("id")
 );
 
 -- CreateIndex
