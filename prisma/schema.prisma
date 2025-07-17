@@ -1,25 +1,21 @@
-// This is your Prisma schema file,
-// learn more about it in the docs: https://pris.ly/d/prisma-schema
-
 generator client {
   provider = "prisma-client-js"
 }
 
 datasource db {
-  provider = "sqlite"
-  url      = env("DATABASE_URL")
+  provider  = "postgresql"
+  url       = env("DATABASE_URL")
+  directUrl = env("DIRECT_URL")
 }
-
-// Modelo para armazenar resultados de testes A/B
+        
 model AbResult {
   id         Int      @id @default(autoincrement())
-  testName   String   // Nome do teste (ex: "missaoLiteraria")
-  variant    String   // Variante (a, b, c)
-  event      String   // Tipo de evento (view, conversion)
-  visitorId  String   // ID do visitante (UUID)
+  testName   String
+  variant    String
+  event      String
+  visitorId  String
   createdAt  DateTime @default(now())
 
-  // Índices para consultas eficientes
   @@index([testName, variant])
   @@index([visitorId])
 }
