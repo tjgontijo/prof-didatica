@@ -9,23 +9,29 @@ datasource db {
 }
         
 model AbResult {
-  id         String   @id @default(cuid())
+  id         String   @id @default(uuid())
   testName   String
   variant    String
   event      String
   visitorId  String
+  utmSource  String?  
+  utmMedium  String?
+  utmCampaign String?
+  utmContent String?
+  utmTerm    String?
   createdAt  DateTime @default(now())
 
   @@index([testName, variant])
   @@index([visitorId])
+  @@index([utmSource, utmMedium, utmCampaign])
 }
 
-model User {
-  id        String   @id @default(cuid())
-  nome      String
+model Lead {
+  id        String   @id @default(uuid())
+  name      String
   phone     String
   messageId String
-  sessionId String
+  sessionId String   @default(uuid())
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
