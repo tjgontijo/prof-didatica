@@ -54,7 +54,7 @@ export function UtmPerformanceSection({ testName }: UtmPerformanceSectionProps) 
     return (
       <div className="bg-white rounded-lg shadow-sm border border-gray-100 overflow-hidden mb-8">
         <div className="border-b border-gray-100 px-6 py-4">
-          <h3 className="text-lg font-semibold text-gray-800">Desempenho por Origem</h3>
+          <h3 className="text-lg font-semibold text-gray-800">Análise de Conversões por Origem</h3>
         </div>
         <div className="p-6">
           <div className="p-4 bg-red-50 border border-red-200 rounded-md text-red-700 text-sm flex items-center">
@@ -71,27 +71,27 @@ export function UtmPerformanceSection({ testName }: UtmPerformanceSectionProps) 
   return (
     <div className="bg-white rounded-lg shadow-sm border border-gray-100 overflow-hidden mb-8">
       <div className="border-b border-gray-100 px-6 py-4">
-        <h3 className="text-lg font-semibold text-gray-800">Desempenho por Origem</h3>
+        <h3 className="text-lg font-semibold text-gray-800">Análise de Conversões por Origem</h3>
       </div>
       <div className="p-6">
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           <UtmPerformanceCard 
-            title="Por Fonte (utm_source)" 
+            title="Conversão por Fonte" 
             data={data?.source || null} 
             isLoading={isLoading} 
           />
           <UtmPerformanceCard 
-            title="Por Campanha (utm_campaign)" 
+            title="Conversão por Campanha" 
             data={data?.campaign || null} 
             isLoading={isLoading} 
           />
           <UtmPerformanceCard 
-            title="Por Meio (utm_medium)" 
+            title="Conversão por Meio" 
             data={data?.medium || null} 
             isLoading={isLoading} 
           />
           <UtmPerformanceCard 
-            title="Por Termo (utm_term)" 
+            title="Conversão por Termo" 
             data={data?.term || null} 
             isLoading={isLoading} 
           />
