@@ -6,7 +6,12 @@ const abEventSchema = z.object({
   testName: z.string().min(1, 'Nome do teste é obrigatório'),
   variant: z.string().min(1, 'Variante é obrigatória'),
   event: z.enum(['view', 'conversion'] as const),
-  visitorId: z.string().min(1, 'ID do visitante é obrigatório')
+  visitorId: z.string().min(1, 'ID do visitante é obrigatório'),
+  utmSource: z.string().optional(),
+  utmMedium: z.string().optional(),
+  utmCampaign: z.string().optional(),
+  utmContent: z.string().optional(),
+  utmTerm: z.string().optional()
 });
 
 type AbEventData = z.infer<typeof abEventSchema>;
@@ -50,7 +55,12 @@ export async function POST(request: NextRequest) {
         testName: eventData.testName,
         variant: eventData.variant,
         event: eventData.event,
-        visitorId: eventData.visitorId
+        visitorId: eventData.visitorId,
+        utmSource: eventData.utmSource,
+        utmMedium: eventData.utmMedium,
+        utmCampaign: eventData.utmCampaign,
+        utmContent: eventData.utmContent,
+        utmTerm: eventData.utmTerm
       }
     });
 
