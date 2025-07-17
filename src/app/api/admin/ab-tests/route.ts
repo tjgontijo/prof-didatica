@@ -4,11 +4,16 @@ import { abTests } from '@/lib/abTest';
 
 // Interface para o resultado do teste A/B
 interface AbResultType {
-  id: number;
+  id: string;
   testName: string;
   variant: string;
   event: string;
   visitorId: string;
+  utmSource: string | null;
+  utmMedium: string | null;
+  utmCampaign: string | null;
+  utmContent: string | null;
+  utmTerm: string | null;
   createdAt: Date;
 }
 
@@ -45,7 +50,7 @@ export async function GET(request: Request) {
   const results = await prisma.abResult.findMany({
     ...query,
     orderBy: { createdAt: 'desc' }
-  });
+  }) as unknown as AbResultType[];
 
   // Preparar dados para a visualização
   interface TestData {
@@ -104,7 +109,7 @@ export async function GET(request: Request) {
   });
 
   // Processar resultados
-  results.forEach((result: AbResultType) => {
+  results.forEach((result) => {
     const { variant, event, visitorId } = result;
     let { testName } = result;
     
