@@ -8,6 +8,7 @@ import { Filter } from '@/components/dashboard/Filter';
 import { MetricCards } from '@/components/dashboard/Cards';
 import { Funnel } from '@/components/dashboard/Funnel';
 import { VariantsPerformance } from '@/components/dashboard/VariantsPerformance';
+import { UtmPerformanceSection } from '@/components/dashboard/UtmPerformanceSection';
 import { DashboardData, TestData } from '@/components/dashboard/types';
 
 // Interface para última atualização
@@ -235,6 +236,9 @@ export default function DashboardClient() {
           <div key={testName} className="mb-8">
             {/* Gráfico de funil para o teste */}
             <Funnel data={testData.funnelData} />
+            
+            {/* Seção de desempenho por UTM */}
+            <UtmPerformanceSection testName={testName} />
             
             {/* Card do teste com métricas e variantes */}
             <TestCard testData={testData} />

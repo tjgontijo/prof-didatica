@@ -52,6 +52,16 @@ section {
   margin-right: auto;
 }
 
+/* Dashboard específico com largura total */
+.dashboard-container {
+  width: 100%;
+  max-width: none;
+  margin-left: auto;
+  margin-right: auto;
+  padding-left: 1.5rem;
+  padding-right: 1.5rem;
+}
+
 /* Animações para os botões */
 .link-item {
   transition: all 0.3s ease;

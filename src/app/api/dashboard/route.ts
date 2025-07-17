@@ -1,22 +1,34 @@
 import { NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
 import { abTests } from '@/lib/abTest';
-import { TestData, DashboardData } from '@/components/dashboard/types';
+
+// Interface para o resultado do teste A/B
+interface AbResultType {
+  id: string;
+  testName: string;
+  variant: string;
+  event: string;
+  visitorId: string;
+  utmSource: string | null;
+  utmMedium: string | null;
+  utmCampaign: string | null;
+  utmContent: string | null;
+  utmTerm: string | null;
+  createdAt: Date;
+}
 
 /**
  * Função para gerar cores para as variantes
  */
 function getVariantColor(variant: string): string {
-  // Mapeamento fixo de variantes para cores
-  const colorMap: Record<string, string> = {
-    a: '#4f46e5', // indigo
-    b: '#0891b2', // cyan
-    c: '#7c3aed', // violet
-    d: '#16a34a', // green
-    e: '#ea580c', // orange
+  const colors = {
+    a: '#4F46E5', // Indigo
+    b: '#7C3AED', // Violet
+    c: '#EC4899', // Pink
+    d: '#F59E0B', // Amber
   };
-
-  return colorMap[variant.toLowerCase()] || '#6b7280'; // gray como fallback
+  
+  return colors[variant as keyof typeof colors] || '#6B7280'; // Gray default
 }
 
 export async function GET(request: Request) {
@@ -38,9 +50,32 @@ export async function GET(request: Request) {
   const results = await prisma.abResult.findMany({
     ...query,
     orderBy: { createdAt: 'desc' }
-  });
+  }) as unknown as AbResultType[];
 
   // Preparar dados para a visualização
+  interface TestData {
+    name: string;
+    totalViews: number;
+    totalUniqueViews: number;
+    totalConversions: number;
+    conversionRate: number;
+    averageConversionRate: number;
+    winningVariant: string | null;
+    funnelData?: Array<{
+      id: string;
+      label: string;
+      value: number;
+      color?: string;
+    }>;
+    variants: Record<string, {
+      views: number;
+      conversions: number;
+      conversionRate: number;
+      color: string;
+      uniqueVisitors: Set<string> | number;
+    }>;
+  }
+
   const testsData: Record<string, TestData> = {};
   const uniqueVisitorsByTest: Record<string, Set<string>> = {};
   const uniqueVisitorsConverted: Record<string, Set<string>> = {};
@@ -52,113 +87,136 @@ export async function GET(request: Request) {
       totalViews: 0,
       totalUniqueViews: 0,
       totalConversions: 0,
+      conversionRate: 0,
       averageConversionRate: 0,
       variants: {},
-      winningVariant: null,
-      funnelData: []
+      winningVariant: null
     };
+    
     uniqueVisitorsByTest[testName] = new Set();
     uniqueVisitorsConverted[testName] = new Set();
+    
+    // Inicializar contadores para cada variante
+    Object.keys(abTests[testName].variants).forEach(variant => {
+      testsData[testName].variants[variant] = {
+        views: 0,
+        conversions: 0,
+        conversionRate: 0,
+        color: getVariantColor(variant),
+        uniqueVisitors: new Set()
+      };
+    });
   });
 
   // Processar resultados
-  results.forEach(result => {
-    const { testName, variant, event, visitorId } = result;
+  results.forEach((result) => {
+    const { variant, event, visitorId } = result;
+    let { testName } = result;
     
-    // Ignorar testes que não estão configurados
-    if (!testsData[testName]) return;
+    // Verificar se o testName está em formato kebab-case e convertê-lo para camelCase
+    if (testName.includes('-')) {
+      testName = testName.replace(/-([a-z])/g, (g) => g[1].toUpperCase());
+    }
     
-    // Inicializar dados da variante se necessário
+    // Verificar se o teste e a variante existem na estrutura
+    if (!testsData[testName]) {
+      testsData[testName] = {
+        name: abTests[testName]?.name || testName,
+        totalViews: 0,
+        totalUniqueViews: 0,
+        totalConversions: 0,
+        conversionRate: 0,
+        averageConversionRate: 0,
+        variants: {},
+        winningVariant: null
+      };
+      
+      uniqueVisitorsByTest[testName] = new Set();
+      uniqueVisitorsConverted[testName] = new Set();
+    }
+    
     if (!testsData[testName].variants[variant]) {
       testsData[testName].variants[variant] = {
         views: 0,
         conversions: 0,
         conversionRate: 0,
         color: getVariantColor(variant),
-        uniqueVisitors: 0
+        uniqueVisitors: new Set()
       };
     }
     
     // Incrementar contadores
     if (event === 'view') {
-      testsData[testName].totalViews++;
       testsData[testName].variants[variant].views++;
-      
-      // Rastrear visitantes únicos
+      testsData[testName].totalViews++;
+      // Garantir que uniqueVisitors é um Set antes de chamar add
+      const uniqueVisitors = testsData[testName].variants[variant].uniqueVisitors;
+      if (uniqueVisitors instanceof Set) {
+        uniqueVisitors.add(visitorId);
+      }
       uniqueVisitorsByTest[testName].add(visitorId);
-      
-      // Rastrear visitantes únicos por variante
-      const uniqueVisitorsByVariant = new Set<string>();
-      results
-        .filter(r => r.testName === testName && r.variant === variant)
-        .forEach(r => uniqueVisitorsByVariant.add(r.visitorId));
-      
-      testsData[testName].variants[variant].uniqueVisitors = uniqueVisitorsByVariant.size;
     } else if (event === 'conversion') {
-      testsData[testName].totalConversions++;
       testsData[testName].variants[variant].conversions++;
-      
-      // Rastrear conversões únicas
+      testsData[testName].totalConversions++;
       uniqueVisitorsConverted[testName].add(visitorId);
     }
   });
 
-  // Calcular taxas de conversão e determinar vencedor
+  // Calcular taxas de conversão e determinar variante vencedora
   Object.keys(testsData).forEach(testName => {
-    const testData = testsData[testName];
-    testData.totalUniqueViews = uniqueVisitorsByTest[testName].size;
-    
-    // Calcular taxa de conversão média
-    if (testData.totalViews > 0) {
-      testData.averageConversionRate = (testData.totalConversions / testData.totalViews) * 100;
-    }
-    
-    // Calcular taxas de conversão por variante
-    let highestRate = 0;
+    let highestRate = -1;
     let winningVariant = null;
     
-    Object.keys(testData.variants).forEach(variant => {
-      const variantData = testData.variants[variant];
+    testsData[testName].totalUniqueViews = uniqueVisitorsByTest[testName].size;
+    
+    // Calcular taxas para variantes
+    Object.keys(testsData[testName].variants).forEach(variant => {
+      const variantData = testsData[testName].variants[variant];
+      const { views, conversions } = variantData;
+      const rate = views > 0 ? (conversions / views) * 100 : 0;
       
-      if (variantData.views > 0) {
-        variantData.conversionRate = (variantData.conversions / variantData.views) * 100;
-        
-        // Determinar vencedor (variante com maior taxa de conversão)
-        if (variantData.conversionRate > highestRate && variantData.views >= 30) { // Mínimo de 30 visualizações para considerar
-          highestRate = variantData.conversionRate;
-          winningVariant = variant;
-        }
+      variantData.conversionRate = rate;
+      // Converter Set para número antes de atribuir
+      if (variantData.uniqueVisitors instanceof Set) {
+        variantData.uniqueVisitors = variantData.uniqueVisitors.size;
+      }
+
+      // Verificar se é a variante vencedora
+      if (views >= 100 && rate > highestRate) { // Mínimo de 100 visualizações para considerar
+        highestRate = rate;
+        winningVariant = variant;
       }
     });
-    
-    testData.winningVariant = winningVariant;
+
+    // Definir variante vencedora e calcular média geral
+    testsData[testName].winningVariant = winningVariant;
+    testsData[testName].averageConversionRate = 
+      testsData[testName].totalViews > 0 
+      ? (testsData[testName].totalConversions / testsData[testName].totalViews) * 100 
+      : 0;
     
     // Preparar dados para o gráfico de funil
-    const funnelData = [];
-    
-    // Adicionar visualizações ao funil
-    funnelData.push({
-      id: 'views',
-      label: 'Visualizações',
-      value: testData.totalViews,
-      color: '#4f46e5' // indigo
-    });
-    
-    // Adicionar conversões ao funil
-    funnelData.push({
-      id: 'conversions',
-      label: 'Conversões',
-      value: testData.totalConversions,
-      color: '#16a34a' // green
-    });
-    
-    testData.funnelData = funnelData;
+    testsData[testName].funnelData = [
+      {
+        id: 'visitors',
+        label: 'Visitantes',
+        value: testsData[testName].totalViews,
+        color: '#4F46E5'
+      },
+      {
+        id: 'uniqueVisitors',
+        label: 'Visitantes Únicos',
+        value: testsData[testName].totalUniqueViews,
+        color: '#7C3AED'
+      },
+      {
+        id: 'conversions',
+        label: 'Conversões',
+        value: testsData[testName].totalConversions,
+        color: '#EC4899'
+      }
+    ];
   });
 
-  // Retornar dados formatados
-  const dashboardData: DashboardData = {
-    testsData
-  };
-
-  return NextResponse.json(dashboardData);
+  return NextResponse.json({ testsData });
 }

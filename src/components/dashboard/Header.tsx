@@ -10,8 +10,8 @@ interface DashboardHeaderProps {
  */
 export function DashboardHeader({ title, subtitle }: DashboardHeaderProps): JSX.Element {
   return (
-    <div className="bg-gradient-to-r from-indigo-600 to-purple-600 text-white py-6 px-8 shadow-lg">
-      <div className="max-w-7xl mx-auto">
+    <div className="bg-gradient-to-r from-indigo-600 to-purple-600 text-white py-6 shadow-lg">
+      <div className="max-w-screen-2xl mx-auto px-4 sm:px-6 lg:px-8">
         <h1 className="text-3xl font-bold mb-1">{title}</h1>
         <p className="text-indigo-100">{subtitle}</p>
       </div>
