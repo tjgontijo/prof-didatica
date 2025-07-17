@@ -15,9 +15,6 @@ interface LastUpdateProps {
   timestamp: string;
 }
 
-/**
- * Componente para exibir a última atualização
- */
 function LastUpdate({ timestamp }: LastUpdateProps): JSX.Element {
   return (
     <div className="flex justify-end mb-4">
