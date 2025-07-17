@@ -19,18 +19,32 @@ export async function middleware(request: NextRequest) {
     const variantPath = activeTest.variants[variant]?.path;
     
     if (variantPath) {
-      return NextResponse.redirect(
-        new URL(variantPath, request.url)
-      );
+      // Criar nova URL para o redirecionamento
+      const redirectUrl = new URL(variantPath, request.url);
+      
+      // Preservar todos os parâmetros de consulta (UTMs, etc)
+      const searchParams = new URLSearchParams(request.nextUrl.search);
+      searchParams.forEach((value, key) => {
+        redirectUrl.searchParams.set(key, value);
+      });
+      
+      return NextResponse.redirect(redirectUrl);
     }
   }
   
   const variant = assignVariant(activeTest.split);
   const visitorId = crypto.randomUUID();
   
-  const response = NextResponse.redirect(
-    new URL(activeTest.variants[variant].path, request.url)
-  );
+  // Criar nova URL para o redirecionamento
+  const redirectUrl = new URL(activeTest.variants[variant].path, request.url);
+  
+  // Preservar todos os parâmetros de consulta (UTMs, etc)
+  const searchParams = new URLSearchParams(request.nextUrl.search);
+  searchParams.forEach((value, key) => {
+    redirectUrl.searchParams.set(key, value);
+  });
+  
+  const response = NextResponse.redirect(redirectUrl);
   
   response.cookies.set(activeTest.cookieName, variant, {
     maxAge: 60 * 60 * 24 * 30,
