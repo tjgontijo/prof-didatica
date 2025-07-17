@@ -1,0 +1,44 @@
+-- CreateTable
+CREATE TABLE "AbResult" (
+    "id" TEXT NOT NULL,
+    "testName" TEXT NOT NULL,
+    "variant" TEXT NOT NULL,
+    "event" TEXT NOT NULL,
+    "visitorId" TEXT NOT NULL,
+    "utmSource" TEXT,
+    "utmMedium" TEXT,
+    "utmCampaign" TEXT,
+    "utmContent" TEXT,
+    "utmTerm" TEXT,
+    "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+
+    CONSTRAINT "AbResult_pkey" PRIMARY KEY ("id")
+);
+
+-- CreateTable
+CREATE TABLE "Lead" (
+    "id" TEXT NOT NULL,
+    "name" TEXT NOT NULL,
+    "phone" TEXT NOT NULL,
+    "messageId" TEXT NOT NULL,
+    "sessionId" TEXT NOT NULL,
+    "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "updatedAt" TIMESTAMP(3) NOT NULL,
+
+    CONSTRAINT "Lead_pkey" PRIMARY KEY ("id")
+);
+
+-- CreateIndex
+CREATE INDEX "AbResult_testName_variant_idx" ON "AbResult"("testName", "variant");
+
+-- CreateIndex
+CREATE INDEX "AbResult_visitorId_idx" ON "AbResult"("visitorId");
+
+-- CreateIndex
+CREATE INDEX "AbResult_utmSource_utmMedium_utmCampaign_idx" ON "AbResult"("utmSource", "utmMedium", "utmCampaign");
+
+-- CreateIndex
+CREATE INDEX "Lead_phone_idx" ON "Lead"("phone");
+
+-- CreateIndex
+CREATE INDEX "Lead_sessionId_idx" ON "Lead"("sessionId");
