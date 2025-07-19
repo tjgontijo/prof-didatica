@@ -10,10 +10,11 @@ datasource db {
 
 model AbResult {
   id          String   @id @default(uuid())
+  visitorId   String
+  sessionId   String
   testName    String
   variant     String
   event       String
-  visitorId   String
   utmSource   String?
   utmMedium   String?
   utmCampaign String?
@@ -24,19 +25,7 @@ model AbResult {
 
   @@index([testName, variant])
   @@index([visitorId])
+  @@index([sessionId])
   @@index([utmSource, utmMedium, utmCampaign])
   @@index([fbclid])
-}
-
-model Lead {
-  id        String   @id @default(uuid())
-  name      String
-  phone     String
-  messageId String
-  sessionId String   @default(uuid())
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-
-  @@index([phone])
-  @@index([sessionId])
 }
