@@ -1,7 +1,8 @@
 'use client';
 
-import { useCallback, useEffect } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import { useAbTracking } from '@/hooks/useAbTracking';
+import { buildUrlWithTracking } from '@/services/trackingService';
 
 interface CtaButtonProps {
   paymentLink: string;
@@ -12,22 +13,40 @@ interface CtaButtonProps {
 
 export default function CtaButton({ paymentLink, text, className = '', onClick }: CtaButtonProps) {
   const { trackConversion } = useAbTracking('missao-literaria', 'b');
+  
+  // Estado para armazenar o link de pagamento com UTMs
+  const [finalPaymentLink, setFinalPaymentLink] = useState(paymentLink);
+  
+  // Função para obter os parâmetros UTM e fbclid do localStorage
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      try {
+        // Usar o serviço de rastreamento para construir o link com os parâmetros UTM
+        const linkWithTracking = buildUrlWithTracking(paymentLink);
+        setFinalPaymentLink(linkWithTracking);
+      } catch (error) {
+        console.error('Erro ao processar parâmetros de rastreamento:', error);
+        setFinalPaymentLink(paymentLink);
+      }
+    }
+  }, [paymentLink]);
+  
   const prefetchLink = useCallback(() => {
     try {
       const existingPrefetch = document.querySelector(
-        `link[rel="prefetch"][href="${paymentLink}"]`,
+        `link[rel="prefetch"][href="${finalPaymentLink}"]`,
       );
       if (!existingPrefetch) {
         const linkPrefetch = document.createElement('link');
         linkPrefetch.rel = 'prefetch';
-        linkPrefetch.href = paymentLink;
+        linkPrefetch.href = finalPaymentLink;
         linkPrefetch.as = 'document';
         document.head.appendChild(linkPrefetch);
       }
     } catch (error) {
       console.error('Erro ao pré-carregar o link:', error);
     }
-  }, [paymentLink]);
+  }, [finalPaymentLink]);
 
   useEffect(() => {
     const timer = setTimeout(() => {
@@ -49,13 +68,13 @@ export default function CtaButton({ paymentLink, text, className = '', onClick }
     
     // Redirecionar após um pequeno delay para garantir que o evento seja enviado
     setTimeout(() => {
-      window.location.href = paymentLink;
+      window.location.href = finalPaymentLink;
     }, 300);
   };
 
   return (
     <a
-      href={paymentLink}
+      href={finalPaymentLink}
       rel="noopener noreferrer"
       target="_blank"
       className={`block w-full bg-gradient-to-r from-[#457B9D] to-[#1D3557] hover:from-[#1D3557] hover:to-[#457B9D] text-white text-base sm:text-lg font-bold py-3 sm:py-4 px-6 sm:px-8 rounded-xl shadow-lg transform transition-all duration-300 hover:scale-[1.02] hover:shadow-xl relative overflow-hidden group text-center uppercase ${className}`}

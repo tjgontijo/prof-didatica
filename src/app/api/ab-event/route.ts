@@ -11,7 +11,8 @@ const abEventSchema = z.object({
   utmMedium: z.string().optional(),
   utmCampaign: z.string().optional(),
   utmContent: z.string().optional(),
-  utmTerm: z.string().optional()
+  utmTerm: z.string().optional(),
+  fbclid: z.string().optional()
 });
 
 type AbEventData = z.infer<typeof abEventSchema>;
@@ -60,7 +61,8 @@ export async function POST(request: NextRequest) {
         utmMedium: eventData.utmMedium,
         utmCampaign: eventData.utmCampaign,
         utmContent: eventData.utmContent,
-        utmTerm: eventData.utmTerm
+        utmTerm: eventData.utmTerm,
+        fbclid: eventData.fbclid
       }
     });
 

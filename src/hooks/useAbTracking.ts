@@ -1,5 +1,6 @@
-import { useRef } from 'react';
+import { useRef, useEffect } from 'react';
 import { AbEventType } from '@/lib/abTest';
+import { initTrackingSession, getTrackingSession } from '@/services/trackingService';
 
 interface AbTrackingOptions {
   disableAutoViewTracking?: boolean;
@@ -8,40 +9,14 @@ interface AbTrackingOptions {
 export function useAbTracking(testName: string, variant: string, _options?: AbTrackingOptions) {  
   const viewEventSent = useRef(false);
   
-  const getVisitorId = (): string => {
-    if (typeof document === 'undefined') return 'server';
-    
-    const cookies = document.cookie.split(';');
-    const visitorCookie = cookies.find(cookie => cookie.trim().startsWith('visitor-id='));
-    
-    if (visitorCookie) {
-      return visitorCookie.split('=')[1];
+  // Inicializar a sessão de rastreamento quando o hook é montado
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      // Inicializa ou recupera a sessão de rastreamento com os dados do teste
+      // Isso vai ler os cookies definidos pelo middleware e salvar no localStorage
+      initTrackingSession(testName, variant);
     }
-    
-    return 'unknown';
-  };
-  
-  const getUtmParams = () => {
-    if (typeof window === 'undefined') return {};
-    
-    const urlParams = new URLSearchParams(window.location.search);
-    const utmParams = {
-      utmSource: urlParams.get('utm_source') || undefined,
-      utmMedium: urlParams.get('utm_medium') || undefined,
-      utmCampaign: urlParams.get('utm_campaign') || undefined,
-      utmContent: urlParams.get('utm_content') || undefined,
-      utmTerm: urlParams.get('utm_term') || undefined
-    };
-    
-    // Se tiver fbclid e não tiver utm_source, assume que veio do Facebook
-    if (urlParams.get('fbclid') && !utmParams.utmSource) {
-      utmParams.utmSource = 'facebook';
-      utmParams.utmMedium = 'social';
-      utmParams.utmCampaign = 'facebook_ads';
-    }
-    
-    return utmParams;
-  };
+  }, [testName, variant]);
 
   const trackEvent = async (event: AbEventType): Promise<void> => {    
     if (event === 'view' && viewEventSent.current) {
@@ -51,13 +26,31 @@ export function useAbTracking(testName: string, variant: string, _options?: AbTr
     if (event === 'view') {
       viewEventSent.current = true;
     }
+    
     try {
-      const visitorId = getVisitorId();
-      const utmParams = getUtmParams();
+      // Obter a sessão de rastreamento do localStorage
+      const session = getTrackingSession();
+      
+      if (!session) {
+        console.error('Sessão de rastreamento não encontrada');
+        return;
+      }
       
       const normalizedTestName = testName.includes('-') 
         ? testName.replace(/-([a-z])/g, (g) => g[1].toUpperCase())
         : testName;
+      
+      // Extrair os dados relevantes da sessão
+      const {
+        sessionId,
+        visitorId,
+        utmSource,
+        utmMedium,
+        utmCampaign,
+        utmContent,
+        utmTerm,
+        fbclid
+      } = session;
       
       await fetch('/api/ab-event', {
         method: 'POST',
@@ -68,8 +61,14 @@ export function useAbTracking(testName: string, variant: string, _options?: AbTr
           testName: normalizedTestName,
           variant,
           event,
+          sessionId,
           visitorId,
-          ...utmParams
+          utmSource,
+          utmMedium,
+          utmCampaign,
+          utmContent,
+          utmTerm,
+          fbclid
         })
       });
     } catch (error) {

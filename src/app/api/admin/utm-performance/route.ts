@@ -107,12 +107,15 @@ export async function GET(request: Request) {
   }
   
   // Calcular taxas de conversão e transformar em arrays para facilitar a ordenação no frontend
-  const processUtmData = (data: Record<string, { views: number, conversions: number, rate: number }>) => {
+  const processUtmData = (data: Record<string, { views: number, conversions: number, rate: number }>, uniqueVisitors: Record<string, Set<string>>) => {
     return Object.entries(data).map(([name, stats]) => {
-      const rate = stats.views > 0 ? (stats.conversions / stats.views) * 100 : 0;
+      // Usar o número de visitantes únicos em vez do número total de visualizações
+      const uniqueVisitorCount = uniqueVisitors[name]?.size || 0;
+      const rate = uniqueVisitorCount > 0 ? (stats.conversions / uniqueVisitorCount) * 100 : 0;
       return {
         name,
         views: stats.views,
+        uniqueVisitors: uniqueVisitorCount,
         conversions: stats.conversions,
         rate: parseFloat(rate.toFixed(2))
       };
@@ -120,10 +123,10 @@ export async function GET(request: Request) {
   };
   
   const formattedData = {
-    source: processUtmData(utmData.source),
-    campaign: processUtmData(utmData.campaign),
-    medium: processUtmData(utmData.medium),
-    term: processUtmData(utmData.term)
+    source: processUtmData(utmData.source, uniqueVisitorsByUtmSource),
+    campaign: processUtmData(utmData.campaign, uniqueVisitorsByUtmCampaign),
+    medium: processUtmData(utmData.medium, uniqueVisitorsByUtmMedium),
+    term: processUtmData(utmData.term, uniqueVisitorsByUtmTerm)
   };
   
   return NextResponse.json(formattedData);

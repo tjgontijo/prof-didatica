@@ -7,6 +7,7 @@ import { Skeleton } from '../ui/skeleton';
 interface UtmItem {
   name: string;
   views: number;
+  uniqueVisitors: number;
   conversions: number;
   rate: number;
 }
@@ -86,10 +87,10 @@ export function UtmPerformanceCard({ title, data, isLoading }: UtmPerformanceCar
           <Table>
             <TableHeader>
               <TableRow className="bg-gray-50 hover:bg-gray-50">
-                <TableHead className="py-3 px-4 text-xs font-medium text-gray-600 uppercase tracking-wider w-[40%]">Nome</TableHead>
-                <TableHead className="py-3 px-2 text-xs font-medium text-gray-600 uppercase tracking-wider text-right w-[20%]">Visitantes</TableHead>
+                <TableHead className="py-3 px-4 text-xs font-medium text-gray-600 uppercase tracking-wider w-[35%]">Nome</TableHead>
+                <TableHead className="py-3 px-2 text-xs font-medium text-gray-600 uppercase tracking-wider text-right w-[20%]">Visitantes Únicos</TableHead>
                 <TableHead className="py-3 px-2 text-xs font-medium text-gray-600 uppercase tracking-wider text-right w-[20%]">Conversões</TableHead>
-                <TableHead className="py-3 px-4 text-xs font-medium text-gray-600 uppercase tracking-wider text-right w-[20%]">Taxa</TableHead>
+                <TableHead className="py-3 px-4 text-xs font-medium text-gray-600 uppercase tracking-wider text-right w-[25%]">Taxa</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
@@ -98,7 +99,7 @@ export function UtmPerformanceCard({ title, data, isLoading }: UtmPerformanceCar
                   <TableCell className="py-3 px-4 text-sm font-medium text-gray-800 max-w-[150px] truncate">
                     {item.name || 'Não definido'}
                   </TableCell>
-                  <TableCell className="py-3 px-2 text-sm text-gray-700 text-right">{formatNumber(item.views)}</TableCell>
+                  <TableCell className="py-3 px-2 text-sm text-gray-700 text-right">{formatNumber(item.uniqueVisitors)}</TableCell>
                   <TableCell className="py-3 px-2 text-sm text-gray-700 text-right">{formatNumber(item.conversions)}</TableCell>
                   <TableCell className="py-3 px-4 text-sm text-right">
                     <span 

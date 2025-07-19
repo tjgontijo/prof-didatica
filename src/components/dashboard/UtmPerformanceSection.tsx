@@ -6,6 +6,7 @@ import { UtmPerformanceCard } from './UtmPerformanceCard';
 interface UtmItem {
   name: string;
   views: number;
+  uniqueVisitors: number;
   conversions: number;
   rate: number;
 }
