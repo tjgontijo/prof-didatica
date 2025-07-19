@@ -7,23 +7,25 @@ datasource db {
   url       = env("DATABASE_URL")
   directUrl = env("DIRECT_URL")
 }
-        
+
 model AbResult {
-  id         String   @id @default(uuid())
-  testName   String
-  variant    String
-  event      String
-  visitorId  String
-  utmSource  String?  
-  utmMedium  String?
+  id          String   @id @default(uuid())
+  testName    String
+  variant     String
+  event       String
+  visitorId   String
+  utmSource   String?
+  utmMedium   String?
   utmCampaign String?
-  utmContent String?
-  utmTerm    String?
-  createdAt  DateTime @default(now())
+  utmContent  String?
+  utmTerm     String?
+  fbclid      String?
+  createdAt   DateTime @default(now())
 
   @@index([testName, variant])
   @@index([visitorId])
   @@index([utmSource, utmMedium, utmCampaign])
+  @@index([fbclid])
 }
 
 model Lead {
