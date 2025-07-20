@@ -2,21 +2,17 @@ import { FaCheck } from 'react-icons/fa';
 import OptimizedCountDown from '../countdown/OptimizedCountDown';
 import CtaButton from '../buttons/CtaButton';
 
-type Offer = {
-  originalPrice: number;
-  promotionalPrice: number;
-  discount: string;
-  paymentLink: string;
-};
+// Usando os tipos definidos na página principal
+interface OfferProps {
+  offerData: {
+    originalPrice: number;
+    promotionalPrice: number;
+    discount: string;
+    paymentLink: string;
+  };
+}
 
-const offerData: Offer = {
-  originalPrice: 17,
-  promotionalPrice: 12,
-  discount: '30% OFF',
-  paymentLink: 'https://seguro.profdidatica.com.br/r/HDJYH7SZJ6?promocode=ML30OFF'  
-};
-
-export default function Offer() {
+export default function Offer({ offerData }: OfferProps) {
   return (
     <section>
       <div className="bg-white rounded-lg shadow-lg py-16 px-8 mb-20 mt-8">

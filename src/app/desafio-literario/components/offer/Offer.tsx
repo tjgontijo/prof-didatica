@@ -3,43 +3,23 @@ import Image from 'next/image';
 import OptimizedCountDown from '../countdown/OptimizedCountDown';
 import CtaButton from '../buttons/CtaButton';
 
-type Offer = {
-  originalPrice: number;
-  promotionalPrice: number;
-  discount: string;
-  paymentLink: string;
-};
+// Usando os tipos definidos na página principal
+interface OfferProps {
+  offerData: {
+    originalPrice: number;
+    promotionalPrice: number;
+    discount: string;
+    paymentLink: string;
+  };
+  bonusData: Array<{
+    title: string;
+    description: string;
+    value: number;
+    imagePath: string;
+  }>;
+}
 
-type Bonus = {
-  title: string;
-  description: string;
-  value: number;
-  imagePath: string;
-};
-
-const offerData: Offer = {
-  originalPrice: 37,
-  promotionalPrice: 17,
-  discount: 'R$20 OFF',
-  paymentLink: 'https://seguro.profdidatica.com.br/r/NZL4JLXAYJ'  
-};
-
-const bonusData: Bonus[] = [
-  {
-    title: 'Produção de Frases e Texto',
-    description: 'Apostila com 50 páginas para produção textual, perfeita para complementar suas aulas e desenvolver a escrita criativa dos alunos.',
-    value: 27,
-    imagePath: '/images/products/producao_frases_texto/Producao_frases_texto.webp'
-  },
-  {
-    title: 'Textos para Missão Literária',
-    description: '40 Textos com fonte Irineu desenvolvidos exclusivamente para utilizar com o desafio',
-    value: 17,
-    imagePath: '/images/products/textos-para-missao-literaria/cover/textos_missao_literaria_cover.webp'
-  }
-];
-
-export default function Offer() {
+export default function Offer({ offerData, bonusData }: OfferProps) {
   return (
     <section>
       <div className="bg-white rounded-lg shadow-lg py-16 px-8 mb-20 mt-8">
