@@ -22,8 +22,7 @@ export default function MissaoLiterariaPage() {
         <Proof />        
         <Solution />
         <Offer />
-        <Results />
-        <Offer />
+        <Results />        
         <Faq />
       </div>
       <Footer />
