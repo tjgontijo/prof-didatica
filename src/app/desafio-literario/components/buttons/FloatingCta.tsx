@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { FaTag, FaClock, FaWhatsapp } from 'react-icons/fa';
+import { FaTag, FaClock } from 'react-icons/fa';
 
 interface FloatingCtaProps {
   paymentLink: string;
