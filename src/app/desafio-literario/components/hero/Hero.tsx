@@ -17,41 +17,32 @@ export default function Hero() {
     <section className="mt-8 mb-20">
       {/* Cabeçalho principal */}
       <div className="text-center mb-8">
-        <h1 className="text-2xl md:text-3xl font-black md:leading-relaxed leading-normal tracking-tight relative text-[#1D3557]">
-          <span className="relative z-10">
-            CONHEÇA O DESAFIO DE LEITURA QUE FEZ ALUNOS DO{" "}
-            <span className="text-[#457B9D] font-extrabold">FUNDAMENTAL 1</span> LEREM{" "}
-            <span className="bg-yellow-100 px-1 py-0.5 rounded text-[#1D3557] font-extrabold">
-              3X MAIS LIVROS E TEXTOS
-            </span>{" "}
-            JÁ NAS {" "}
-            <span className="underline decoration-[#a8dadc] decoration-4">PRIMEIRAS AULAS</span> SEM PRECISAR MONTAR NADA
-          </span>
+        <h1 className="text-2xl md:text-4xl font-black tracking-tight text-center text-[#457B9D] mb-4">
+          O DESAFIO QUE FAZ A LEITURA VIRAR FEBRE ENTRE OS ALUNOS
         </h1>
+        
+        <h2 className="text-xl md:text-2xl font-bold tracking-normal text-center bg-yellow-100 px-4 py-3 rounded-md text-[#1D3557] max-w-3xl mx-auto">
+          Pronto para imprimir, aplicar e ver até os mais desinteressados entrarem na disputa.
+        </h2>
       </div>
       
       
-      <div className="max-w-3xl mx-auto mb-6 text-center">
+      <div className="max-w-3xl mx-auto mb-8 text-center">
         <p className="text-lg md:text-xl text-[#1D3557] font-normal leading-relaxed">
-          Você recebe imediatamente no WhatsApp <strong>20 fichas literárias</strong>,{' '}
-          <strong>3 modelos de leiturômetro</strong>, <strong>2 modelos de tabela</strong> para
-          acompanhar o progresso dos alunos e um <strong>bônus especial</strong> que vou revelar no
-          final dessa página.
+          Receba imediatamente no seu WhatsApp um kit completo com <strong>20 fichas literárias</strong>,{" "}
+          <strong>3 modelos de leiturômetro</strong> e <strong>2 tabelas de acompanhamento</strong> que transformam a leitura em uma divertida competição entre os alunos.
         </p>
-      </div>
-      
-      {/* Destaque especial - design mais profissional */}
-      <div className="max-w-2xl mx-auto my-8">
-        <div className="bg-gradient-to-r from-[#f1faee] via-[#a8dadc]/30 to-[#f1faee] py-4 text-center">
-          <p className="text-[#1D3557] font-medium">
-            <em>Prático e direto:</em> <strong className="text-[#457B9D]">imprima e use com seus alunos já na próxima aula!</strong>
-          </p>
-        </div>
-      </div>
+        <p className="text-lg text-[#457B9D] font-medium mt-3">
+          + <strong>Dois bônus exclusivos!</strong>
+        </p>
+      </div>     
+
       
       {/* Texto introdutório para o carrossel */}
-      <div className="text-center mb-6">
-        <p className="text-lg text-[#1D3557]">Veja abaixo uma amostra do material:</p>
+      <div className="text-center mb-8">
+        <h3 className="text-xl font-bold text-[#457B9D] mb-2">VEJA O QUE ESTÁ INCLUINDO NO SEU KIT</h3>
+        <div className="h-1 w-24 bg-[#457B9D] mx-auto mb-4 rounded-full"></div>
+        <p className="text-lg text-[#1D3557] max-w-2xl mx-auto">Deslize para conhecer o material que já transformou as aulas de leitura de centenas de professores:</p>
       </div>
       
       {/* Carrossel de imagens */}
@@ -65,6 +56,20 @@ export default function Hero() {
         >
           <CarrosselMissaoLiteraria />
         </Suspense>
+              {/* Destaque especial - design mais profissional */}
+      <div className="max-w-2xl mx-auto my-8">
+        <div className="bg-gradient-to-r from-[#f1faee] via-[#a8dadc]/30 to-[#f1faee] py-6 px-4 rounded-lg border border-[#a8dadc] shadow-sm">
+          <p className="text-[#1D3557] font-medium text-center">
+            <span className="block mb-2 text-[#457B9D] font-bold">TRANSFORME A LEITURA EM UM JOGO DIVERTIDO!</span>
+            <strong className="text-[#1D3557] text-lg">Material completo pronto para imprimir</strong> - Sem precisar criar nada do zero
+          </p>
+          <div className="flex flex-wrap justify-center gap-3 mt-3">
+            <span className="bg-[#457B9D]/10 text-[#457B9D] text-sm font-medium py-1 px-3 rounded-full">Fácil de aplicar</span>
+            <span className="bg-[#457B9D]/10 text-[#457B9D] text-sm font-medium py-1 px-3 rounded-full">Resultados imediatos</span>
+            <span className="bg-[#457B9D]/10 text-[#457B9D] text-sm font-medium py-1 px-3 rounded-full">Testado por professores</span>
+          </div>
+        </div>
+      </div>
       </div>
     </section>
   );
