@@ -18,10 +18,10 @@ type Bonus = {
 };
 
 const offerData: Offer = {
-  originalPrice: 47,
-  promotionalPrice: 22,
-  discount: 'R$25 OFF',
-  paymentLink: 'https://seguro.profdidatica.com.br/r/HDJYH7SZJ6?promocode=ML30OFF'  
+  originalPrice: 37,
+  promotionalPrice: 17,
+  discount: 'R$20 OFF',
+  paymentLink: 'https://seguro.profdidatica.com.br/r/NZL4JLXAYJ'  
 };
 
 const bonusData: Bonus[] = [
