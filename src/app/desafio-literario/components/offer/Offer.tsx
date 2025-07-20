@@ -19,8 +19,8 @@ type Bonus = {
 
 const offerData: Offer = {
   originalPrice: 47,
-  promotionalPrice: 27,
-  discount: 'R$20 OFF',
+  promotionalPrice: 22,
+  discount: 'R$25 OFF',
   paymentLink: 'https://seguro.profdidatica.com.br/r/HDJYH7SZJ6?promocode=ML30OFF'  
 };
 
@@ -81,9 +81,9 @@ export default function Offer() {
             </span>
           </li>
 
-          <div className="mt-6 mb-4">
-            <span className="text-[#457B9D] font-bold text-xl">
-              + Você também receberá <span className="bg-yellow-200 px-2 py-1 rounded-md text-[#1D3557]">dois Bônus Exclusivos:</span>
+          <div className="mt-6 mb-4 text-center">
+            <span className="text-[#457B9D] font-bold text-xl ">
+              + Você também receberá <br /> <span className="bg-yellow-200 px-2 py-1 rounded-md text-[#1D3557]">Dois Bônus Exclusivos</span>
             </span>
           </div>
 
@@ -117,20 +117,27 @@ export default function Offer() {
         </ul>
         <div className="text-center mb-6">
           <div className="bg-[#f1faee] p-4 rounded-lg mb-8 mt-6">
-            <div className="flex flex-col md:flex-row justify-center items-center gap-4">
-              <div className="text-center md:text-right">
-                <p className="font-bold text-lg text-[#1D3557]">Valor do Desafio:</p>
-                <p className="font-bold text-lg text-[#1D3557]">Valor dos Bônus:</p>
-                <p className="font-bold text-xl text-[#1D3557] mt-2">Valor Total:</p>
-              </div>
-              <div className="text-center md:text-left">
+            <div className="flex flex-col justify-center items-center gap-4">
+              {/* Valor do Desafio row */}
+              <div className="flex w-full justify-between items-center">
+                <p className="font-bold text-lg text-[#1D3557]">Desafio Literário:</p>
                 <p className="font-bold text-lg text-[#1D3557]"><span className="line-through text-gray-500">R${offerData.originalPrice}</span></p>
+              </div>
+              
+              {/* Valor dos Bônus row */}
+              <div className="flex w-full justify-between items-center">
+                <p className="font-bold text-lg text-[#1D3557]">Bônus:</p>
                 <p className="font-bold text-lg text-[#1D3557]"><span className="line-through text-gray-500">R${bonusData.reduce((acc, bonus) => acc + bonus.value, 0)}</span></p>
-                <p className="font-bold text-xl text-[#1D3557] mt-2"><span className="line-through text-gray-500">R${offerData.originalPrice + bonusData.reduce((acc, bonus) => acc + bonus.value, 0)}</span></p>
+              </div>
+              
+              {/* Valor Total row */}
+              <div className="flex w-full justify-between items-center pt-2 border-t border-[#a8dadc]">
+                <p className="font-bold text-xl text-[#1D3557]">Valor Total:</p>
+                <p className="font-bold text-xl text-[#1D3557]"><span className="line-through text-gray-500">R${offerData.originalPrice + bonusData.reduce((acc, bonus) => acc + bonus.value, 0)}</span></p>
               </div>
             </div>
             <p className="text-md text-gray-600 mt-4 italic text-center">
-              Um projeto validado por professores, aplicado com sucesso em mais de 15 mil alunos, agora disponível com valor promocional.
+              Um projeto validado por professores, aplicado com sucesso em mais de 15 mil alunos, agora disponível com condição especial de volta as férias.
             </p>
           </div>
           <div className="relative inline-block bg-[#f1faee] p-6 rounded-lg border-2 border-[#457B9D] mt-4">
@@ -148,15 +155,15 @@ export default function Offer() {
             </div>
           </div>
           <p className="text-sm text-[#E63946] font-bold mt-4">
-            Economize R${(offerData.originalPrice + bonusData.reduce((acc, bonus) => acc + bonus.value, 0)) - offerData.promotionalPrice} ao adquirir agora!
+            Ao total está economizado R${(offerData.originalPrice + bonusData.reduce((acc, bonus) => acc + bonus.value, 0)) - offerData.promotionalPrice} ao adquirir agora!
           </p>
         </div>
 
         <CtaButton 
           paymentLink={offerData.paymentLink}
-          text="Quero Meus Alunos Apaixonados por Leitura"
+          text="COMPRAR COM DESCONTO"
         />
-        <OptimizedCountDown estoqueInicial={11} estoqueTotal={30} />
+        <OptimizedCountDown estoqueInicial={25} estoqueTotal={100} />
       </div>
     </section>
   );
