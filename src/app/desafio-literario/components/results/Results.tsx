@@ -1,4 +1,6 @@
 import Image from 'next/image';
+import CtaButton from '../buttons/CtaButton';
+import { FaArrowRight } from 'react-icons/fa';
 
 export default function Results() {
   return (
@@ -6,34 +8,7 @@ export default function Results() {
       <h2 className="text-2xl md:text-3xl font-bold text-[#1D3557] mb-8 border-b-2 border-[#a8dadc] pb-3 uppercase text-center">
         Resultados comprovados
       </h2>
-      <div className="bg-[#f8f9fa] p-6 rounded-lg mb-8">
-        <div className="space-y-5">
-          <div className="flex gap-3 items-center">
-            <div className="text-xl min-w-[30px]">✅</div>
-            <p className="text-xl text-gray-800 mb-4">
-              <strong>94,57%</strong> dos professores que aplicaram o Projeto Missão Literária
-              relatam que seus alunos passaram a ler mais, inclusive aqueles que diziam não gostar
-              de ler.
-            </p>
-          </div>
-          <div className="flex gap-3 items-center">
-            <div className="text-xl min-w-[30px]">📈</div>
-            <p className="text-xl text-gray-800 mb-4">
-              O número médio de livros lidos por turma <strong>mais do que triplicou</strong> em
-              apenas um mês após a aplicação do Projeto Missão Literária.
-            </p>
-          </div>
-          <div className="flex gap-3 items-center">
-            <div className="text-xl min-w-[30px]">🏆</div>
-            <p className="text-xl text-gray-800 mb-4">
-              Uma metodologia prática e testada com sucesso por mais de{' '}
-              <strong>8 mil professores</strong>.
-            </p>
-          </div>
-        </div>
-      </div>
-
-      <h3 className="font-bold text-xl text-gray-800 mb-6 text-center border-b border-[#a8dadc] pb-3">
+      <h3 className="font-bold text-xl text-gray-800 mb-6 text-center pb-3">
         💬 Veja o que estão dizendo:
       </h3>
 
@@ -81,6 +56,23 @@ export default function Results() {
                   clipRule="evenodd"
                 ></path>
               </svg>
+            </div>
+            
+            {/* CTA Button */}
+            <div className="mt-8 max-w-md mx-auto">
+              <div className="relative">
+                <CtaButton 
+                  paymentLink="https://seguro.profdidatica.com.br/r/HDJYH7SZJ6?promocode=ML30OFF"
+                  text="QUERO TRANSFORMAR MEUS ALUNOS EM LEITORES"
+                  className="shadow-[0_0_15px_rgba(70,123,157,0.5)] border-2 border-white"
+                />
+                <div className="absolute -top-3 -right-3 bg-[#e63946] text-white text-xs font-bold py-1 px-3 rounded-full shadow-md transform rotate-3">
+                  OFERTA ESPECIAL
+                </div>
+              </div>
+              <p className="text-center text-sm text-[#457B9D] mt-3 font-medium flex items-center justify-center gap-1">
+                Receba agora mesmo no WhatsApp<FaArrowRight className="ml-1" />
+              </p>
             </div>
           </div>
         </div>
