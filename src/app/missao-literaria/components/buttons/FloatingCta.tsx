@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { FaTag, FaClock, FaWhatsapp } from 'react-icons/fa';
+import { FaTag, FaClock } from 'react-icons/fa';
 
 interface FloatingCtaProps {
   paymentLink: string;
@@ -81,9 +81,7 @@ export default function FloatingCta({ paymentLink }: FloatingCtaProps) {
           className="block w-full md:max-w-xs bg-gradient-to-r from-[#457B9D] to-[#1D3557] hover:from-[#1D3557] hover:to-[#457B9D] text-white text-base sm:text-lg font-bold py-3 sm:py-4 px-6 sm:px-8 rounded-xl shadow-lg transform transition-all duration-300 hover:scale-[1.02] hover:shadow-xl relative overflow-hidden group text-center uppercase"
         >
           <div className="absolute inset-0 bg-white/20 rounded-xl opacity-0 group-hover:opacity-100 transition-opacity"></div>
-          <span className="relative flex items-center justify-center gap-2">
-            <FaWhatsapp className="text-xl" /> COMPRAR COM DESCONTO
-          </span>
+          <span className="relative flex items-center justify-center gap-2">COMPRAR COM DESCONTO</span>
         </a>
       </div>
     </div>
