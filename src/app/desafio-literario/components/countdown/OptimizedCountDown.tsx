@@ -22,7 +22,7 @@ export default function OptimizedCountDown({
 
   // Inicializa com valores
   const [state, setState] = useState({
-    tempo: 10 * 60,
+    tempo: 20 * 60,
     estoque: estoqueInicial,
   });
 
