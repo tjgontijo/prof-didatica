@@ -19,13 +19,13 @@ export default function Hero() {
       <div className="text-center mb-8">
         <h1 className="text-2xl md:text-3xl font-black md:leading-relaxed leading-normal tracking-tight relative text-[#1D3557]">
           <span className="relative z-10">
-            CONHEÇA O DESAFIO DE LEITURA QUE FEZ ALUNOS DO{' '}
-            <span className="text-[#457B9D] font-extrabold">FUNDAMENTAL 1</span> LEREM{' '}
+            CONHEÇA O DESAFIO DE LEITURA QUE FEZ ALUNOS DO{" "}
+            <span className="text-[#457B9D] font-extrabold">FUNDAMENTAL 1</span> LEREM{" "}
             <span className="bg-yellow-100 px-1 py-0.5 rounded text-[#1D3557] font-extrabold">
               3X MAIS LIVROS E TEXTOS
-            </span>{' '}
-            JÁ NAS PRIMEIRAS{' '}
-            <span className="underline decoration-[#a8dadc] decoration-4">SEMANAS</span> SEM QUE VOCÊ TENHA QUE MONTAR NADA
+            </span>{" "}
+            JÁ NAS {" "}
+            <span className="underline decoration-[#a8dadc] decoration-4">PRIMEIRAS AULAS</span> SEM PRECISAR MONTAR NADA
           </span>
         </h1>
       </div>
