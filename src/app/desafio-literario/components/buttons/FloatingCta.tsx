@@ -20,7 +20,7 @@ export default function FloatingCta({ paymentLink }: FloatingCtaProps) {
       const clientHeight = document.documentElement.clientHeight;
       const scrollPercentage = (scrollTop / (scrollHeight - clientHeight)) * 100;
       
-      if (scrollPercentage > 40) {
+      if (scrollPercentage > 63) {
         setIsVisible(true);
         setHasBeenActivated(true);
       }
@@ -82,7 +82,7 @@ export default function FloatingCta({ paymentLink }: FloatingCtaProps) {
         >
           <div className="absolute inset-0 bg-white/20 rounded-xl opacity-0 group-hover:opacity-100 transition-opacity"></div>
           <span className="relative flex items-center justify-center gap-2">
-            <FaWhatsapp className="text-xl" /> RECEBER NO WHATSAPP
+            COMPRAR COM DESCONTO
           </span>
         </a>
       </div>
