@@ -1,0 +1,10 @@
+{
+  "useInstantPixel": false,
+  "apiURL": "https://api.profdidatica.com.br",
+  "origin": "src",
+  "sendViewContent": false,
+  "sendAddToWishlist": false,
+  "sendAddToCart": false,
+  "sendScrolls": false,
+  "sendTimer_1min": false
+}

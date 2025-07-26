@@ -1,8 +1,9 @@
 import type { Metadata } from 'next';
 import './globals.css';
 import { Inter } from 'next/font/google';
-import { UtmifyScripts } from '@/scripts/utmifyScripts';
+//import { UtmifyScripts } from '@/scripts/utmifyScripts';
 import { ClarityScript } from '@/scripts/clarityScripts';
+import Script from 'next/script';
 
 const inter = Inter({
   subsets: ['latin'],
@@ -25,7 +26,18 @@ export default function RootLayout({
       <head>
         {process.env.NODE_ENV === 'production' && (
           <>
-            <UtmifyScripts />
+            {/* <UtmifyScripts /> */}
+            <Script id="config-init" strategy="beforeInteractive">
+              {`
+                window.__config__ = {};
+              `}
+            </Script>
+
+            <Script
+              src="/scripts/pixel-tracking.js"
+              strategy="afterInteractive"
+            />
+
             <ClarityScript />
           </>
         )}
