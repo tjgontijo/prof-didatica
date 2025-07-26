@@ -1,0 +1,112 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Teste da API de Eventos</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        textarea {
+            width: 100%;
+            height: 200px;
+            margin-bottom: 10px;
+            font-family: monospace;
+        }
+        button {
+            padding: 10px 15px;
+            background-color: #4CAF50;
+            color: white;
+            border: none;
+            cursor: pointer;
+            margin-right: 10px;
+        }
+        #response {
+            margin-top: 20px;
+            padding: 10px;
+            border: 1px solid #ddd;
+            background-color: #f9f9f9;
+            white-space: pre-wrap;
+        }
+    </style>
+</head>
+<body>
+    <h1>Teste da API de Eventos</h1>
+    
+    <h2>Endpoint</h2>
+    <input type="text" id="apiUrl" value="https://api.profdidatica.com.br/events/send" style="width: 100%;">
+    
+    <h2>Payload</h2>
+    <textarea id="payload">{
+  "userId": "53b9ffa0-02ae-4e18-8389-b79268362d6c",
+  "contentName": "MISSAOLITERARIA",
+  "contentId": "",
+  "eventType": "PageView",
+  "eventId": "5754ff8b-7af1-4856-9423-4499ace4873d",
+  "URL": "http://profdidatica.com.br/missao-literaria?utm_source=facebook&utm_medium=cpc&fbclid=123",
+  "price": null,
+  "currency": "BRL",
+  "fbc": "fb.0.1753569688566.123",
+  "fbp": "fb.0.1753569104331.611839643145769310",
+  "fn": null,
+  "ln": null,
+  "em": null,
+  "ph": null
+}</textarea>
+    
+    <div>
+        <button id="sendRequest">Enviar Requisição</button>
+        <button id="clearResponse">Limpar Resposta</button>
+    </div>
+    
+    <h2>Resposta</h2>
+    <div id="response">A resposta da API aparecerá aqui...</div>
+
+    <script>
+        document.getElementById('sendRequest').addEventListener('click', async () => {
+            const apiUrl = document.getElementById('apiUrl').value;
+            const payloadText = document.getElementById('payload').value;
+            const responseElement = document.getElementById('response');
+            
+            try {
+                // Validar o JSON
+                const payload = JSON.parse(payloadText);
+                
+                responseElement.innerHTML = 'Enviando requisição...';
+                
+                // Enviar a requisição
+                const response = await fetch(apiUrl, {
+                    method: 'POST',
+                    credentials: 'include',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: payloadText
+                });
+                
+                // Obter a resposta como texto
+                const responseText = await response.text();
+                
+                // Tentar converter para JSON para exibição formatada
+                try {
+                    const jsonResponse = JSON.parse(responseText);
+                    responseElement.innerHTML = `Status: ${response.status} ${response.statusText}\n\nResposta:\n${JSON.stringify(jsonResponse, null, 2)}`;
+                } catch (e) {
+                    // Se não for JSON, exibir como texto
+                    responseElement.innerHTML = `Status: ${response.status} ${response.statusText}\n\nResposta:\n${responseText}`;
+                }
+            } catch (error) {
+                responseElement.innerHTML = `Erro: ${error.message}`;
+            }
+        });
+        
+        document.getElementById('clearResponse').addEventListener('click', () => {
+            document.getElementById('response').innerHTML = 'A resposta da API aparecerá aqui...';
+        });
+    </script>
+</body>
+</html>
