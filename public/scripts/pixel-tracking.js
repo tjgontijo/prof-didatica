@@ -121,7 +121,28 @@
     
         try {
             const URL = window.location.href;
-            const payload = { userId, contentName, contentId, eventType, eventId, URL,
+            // Garantir que contentName e contentId estejam sempre presentes, mesmo para evento Init
+            const finalContentName = contentName || config.productName || detectProduct()?.toUpperCase() || "";
+            const finalContentId = contentId || config.productID || "";
+            
+            // Extrair parâmetros UTM e fbclid se ainda não foram extraídos
+            if (Object.keys(globalUtmParams).length === 0 && globalFbclid === null) {
+                extractUrlParameters();
+            }
+            
+            // Criar objeto com parâmetros UTM
+            const utmData = {};
+            Object.entries(globalUtmParams).forEach(([key, value]) => {
+                utmData[key] = value;
+            });
+            
+            const payload = { 
+                userId, 
+                contentName: finalContentName, 
+                contentId: finalContentId, 
+                eventType, 
+                eventId, 
+                URL,
                 price: data.value || null,
                 currency: data.currency || 'BRL',
                 fbc: data.fbc || userData.fbc || null,
@@ -130,6 +151,8 @@
                 ln: userData.ln || getCookie('ln') || null,
                 em: userData.em || getCookie('em') || null,
                 ph: userData.ph || getCookie('ph') || null,
+                fbclid: globalFbclid || null,
+                ...utmData // Incluir todos os parâmetros UTM
             };
             
             // Log do payload para depuração
@@ -507,10 +530,12 @@
         }
     }
     
-    function setButtonsURLs() {
-        if (!config.isProduct) return;
-        
-        // Obter os parâmetros UTM e fbclid da URL atual
+    // Variáveis globais para armazenar os parâmetros UTM e fbclid
+    let globalUtmParams = {};
+    let globalFbclid = null;
+    
+    // Função para extrair parâmetros UTM e fbclid da URL
+    function extractUrlParameters() {
         const currentUrl = new URL(window.location.href);
         const utmParams = {};
         const fbclid = currentUrl.searchParams.get('fbclid');
@@ -522,8 +547,21 @@
             }
         });
         
+        // Armazenar globalmente
+        globalUtmParams = utmParams;
+        globalFbclid = fbclid;
+        
         console.log('Parâmetros UTM detectados:', utmParams);
         console.log('fbclid detectado:', fbclid);
+        
+        return { utmParams, fbclid };
+    }
+    
+    function setButtonsURLs() {
+        if (!config.isProduct) return;
+        
+        // Obter os parâmetros UTM e fbclid da URL atual
+        const { utmParams, fbclid } = extractUrlParameters();
         
         const buttons = Array.from(document.querySelectorAll('a[href]'))
         .filter(link => {
@@ -594,6 +632,8 @@
     
                     try {
                         const url = new URL(link.href);
+                        
+                        // Adicionar userId como origem
                         if (url.searchParams.has(config.origin)) {
                             if (url.searchParams.get(config.origin) !== userId) {
                                 url.searchParams.set(config.origin, userId);
@@ -601,6 +641,17 @@
                         } else {
                             url.searchParams.append(config.origin, userId);
                         }
+                        
+                        // Adicionar todos os parâmetros UTM
+                        Object.entries(utmParams).forEach(([key, value]) => {
+                            url.searchParams.set(key, value);
+                        });
+                        
+                        // Adicionar fbclid se existir
+                        if (fbclid) {
+                            url.searchParams.set('fbclid', fbclid);
+                        }
+                        
                         link.href = url.toString();
                     } catch (e) {
                         console.warn('Link inválido:', link.href);
@@ -656,6 +707,9 @@
         
         console.log('Inicializando script com configuração:', config);
         console.log('Produto detectado:', detectProduct());
+        
+        // Extrair parâmetros UTM e fbclid logo no início
+        extractUrlParameters();
         
         // Inicializar o Meta Pixel
         !function(f,b,e,v,n,t,s) {
