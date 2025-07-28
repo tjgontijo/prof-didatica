@@ -17,7 +17,8 @@ type Offer = {
   paymentLink: string;
 };
 
-const PAYMENT_LINK = 'https://seguro.profdidatica.com.br/r/HDJYH7SZJ6?promocode=ML30OFF';
+//const PAYMENT_LINK = 'https://seguro.profdidatica.com.br/r/HDJYH7SZJ6?promocode=ML30OFF';
+const PAYMENT_LINK = 'https://checkout.profdidatica.com.br/checkout/184695113:1';
 const CHECKOUT_DOMAIN = 'seguro.profdidatica.com.br';
 
 const offerData: Offer = {
@@ -37,7 +38,7 @@ export default function MissaoLiterariaPage() {
         <Proof />
         <Solution />
         <Offer offerData={offerData} />
-        <Results paymentLink={PAYMENT_LINK} />        
+        <Results paymentLink={PAYMENT_LINK} />
         <Faq />
       </div>
       <Footer />
