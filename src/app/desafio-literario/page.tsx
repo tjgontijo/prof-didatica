@@ -40,14 +40,14 @@ const bonusData: Bonus[] = [
     imagePath: '/images/products/producao_frases_texto/Producao_frases_texto.webp'
   },
   {
-    title: 'Textos para Missão Literária',
+    title: 'Histórias para Desafio Literário',
     description: '40 Textos com fonte Irineu desenvolvidos exclusivamente para utilizar com o desafio',
     value: 17,
     imagePath: '/images/products/textos-para-missao-literaria/cover/textos_missao_literaria_cover.webp'
   }
 ];
 
-export default function MissaoLiterariaPage() {
+export default function DesafioLiterarioPage() {
   return (
     <main className="bg-[#f1faee]">
       <Header />

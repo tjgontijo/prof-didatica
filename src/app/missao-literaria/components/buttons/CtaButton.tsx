@@ -7,12 +7,24 @@ interface CtaButtonProps {
   onClick?: () => void;
 }
 
-export default function CtaButton({ paymentLink, text, className = '', onClick }: CtaButtonProps) {
-  const handleClick = () => {
-    // Garantir que os parâmetros UTM e fbclid sejam preservados
-    if (onClick) {
-      onClick(); 
+export default function CtaButton({
+  paymentLink,
+  text,
+  className = '',
+  onClick,
+}: CtaButtonProps) {
+  const handleClick = (e: React.MouseEvent<HTMLAnchorElement>) => {
+    if (onClick) onClick();
+
+    // Fallback manual caso target="_blank" não funcione
+    const newTab = window.open(paymentLink, '_blank', 'noopener,noreferrer');
+    if (!newTab || newTab.closed || typeof newTab.closed === 'undefined') {
+      // Caso a nova aba seja bloqueada, abre na mesma aba
+      window.location.href = paymentLink;
     }
+
+    // Previne o comportamento padrão do <a> se for forçado via JS
+    e.preventDefault();
   };
 
   return (
