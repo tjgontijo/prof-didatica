@@ -17,7 +17,6 @@ type Offer = {
 };
 
 const PAYMENT_LINK = 'https://seguro.profdidatica.com.br/r/HDJYH7SZJ6';
-//const PAYMENT_LINK = 'https://checkout.profdidatica.com.br/checkout/184695113:1';
 
 const offerData: Offer = {
   originalPrice: 18,
