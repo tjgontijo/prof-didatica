@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { FaTag, FaClock } from 'react-icons/fa';
+import Link from 'next/link';
 
 interface FloatingCtaProps {
   paymentLink: string;
@@ -74,7 +75,7 @@ export default function FloatingCta({ paymentLink }: FloatingCtaProps) {
             <span>Oferta por tempo limitado</span>
           </div>
         </div>
-        <a
+        <Link
           href={paymentLink}
           rel="noopener noreferrer"
           target="_blank"
@@ -82,7 +83,7 @@ export default function FloatingCta({ paymentLink }: FloatingCtaProps) {
         >
           <div className="absolute inset-0 bg-white/20 rounded-xl opacity-0 group-hover:opacity-100 transition-opacity"></div>
           <span className="relative flex items-center justify-center gap-2">COMPRAR COM DESCONTO</span>
-        </a>
+        </Link>
       </div>
     </div>
   );
