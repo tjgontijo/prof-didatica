@@ -52,9 +52,9 @@ const bonusData: Bonus[] = [
 export default function MissaoLiterariaPage() {
   return (
     <main className="bg-[#f1faee]">
-      <CheckoutPreload checkoutDomain={CHECKOUT_DOMAIN} paymentLink={PAYMENT_LINK} />
+      <CheckoutPreload checkoutDomain={CHECKOUT_DOMAIN} />
       <Header />
-      <div className="px-4 md:px-6 lg:px-8 max-w-7xl mx-auto">
+      <div className="px-4 md:px-6 lg:px-8 max-w-screen-2xl mx-auto">
         <Hero />
         <Proof />        
         <Solution />

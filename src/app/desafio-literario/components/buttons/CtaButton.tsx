@@ -1,6 +1,7 @@
 'use client';
 
 import { useCallback, useEffect } from 'react';
+import Link from 'next/link';
 
 interface CtaButtonProps {
   paymentLink: string;
@@ -36,20 +37,14 @@ export default function CtaButton({ paymentLink, text, className = '', onClick }
     return () => clearTimeout(timer);
   }, [prefetchLink]);
 
-  const handleClick = (e: React.MouseEvent<HTMLAnchorElement>) => {    
+  const handleClick = () => {    
     if (onClick) {
-      e.preventDefault();
       onClick();
-      
-      // Redirecionar após executar o callback
-      setTimeout(() => {
-        window.location.href = paymentLink;
-      }, 100);
     }
   };
 
   return (
-    <a
+    <Link
       href={paymentLink}
       rel="noopener noreferrer"
       target="_blank"
@@ -60,6 +55,6 @@ export default function CtaButton({ paymentLink, text, className = '', onClick }
     >
       <div className="absolute inset-0 bg-white/20 rounded-xl opacity-0 group-hover:opacity-100 transition-opacity"></div>
       <span className="relative">{text}</span>
-    </a>
+    </Link>
   );
 }
