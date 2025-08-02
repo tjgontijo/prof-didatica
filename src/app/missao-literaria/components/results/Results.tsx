@@ -1,5 +1,4 @@
 import Image from 'next/image';
-import Link from 'next/link';
 
 interface ResultsProps {
   paymentLink: string;
@@ -93,7 +92,7 @@ export default function Results({ paymentLink }: ResultsProps) {
       
       {/* Botão CTA */}
       <div className="mt-10 text-center">
-        <Link
+        <a
           href={paymentLink}
           rel="noopener noreferrer"
           target="_blank"
@@ -101,7 +100,7 @@ export default function Results({ paymentLink }: ResultsProps) {
         >
           <div className="absolute inset-0 bg-white/20 rounded-xl opacity-0 group-hover:opacity-100 transition-opacity"></div>
           <span className="relative">QUERO TRANSFORMAR MEUS ALUNOS EM LEITORES</span>
-        </Link>
+        </a>
       </div>
     </section>
   );
