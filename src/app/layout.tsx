@@ -28,7 +28,7 @@ export default function RootLayout({
           <>
             {/* <UtmifyScripts /> */}
             <ClarityScript />
-            <Elev8TrackingScript pixelId="574376145156309" />
+            <Elev8TrackingScript pixelId="7968324796552425" />
           </>
         )}
       </head>
