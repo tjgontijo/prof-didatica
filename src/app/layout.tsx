@@ -3,7 +3,7 @@ import './globals.css';
 import { Inter } from 'next/font/google';
 import { UtmifyScripts } from '@/scripts/utmifyScripts';
 import { ClarityScript } from '@/scripts/clarityScripts';
-//import Script from 'next/script';
+import { Elev8TrackingScript } from '@/scripts/Elev8TrackingScript';
 
 const inter = Inter({
   subsets: ['latin'],
@@ -27,18 +27,8 @@ export default function RootLayout({
         {process.env.NODE_ENV === 'production' && (
           <>
             <UtmifyScripts />
-            {/* <Script id="config-init" strategy="beforeInteractive">
-              {`
-                window.__config__ = {};
-              `}
-            </Script>
-
-            <Script
-              src="/scripts/pixel-tracking.js"
-              strategy="afterInteractive"
-            /> */}
-
             <ClarityScript />
+            <Elev8TrackingScript pixelId="574376145156309" />
           </>
         )}
       </head>
