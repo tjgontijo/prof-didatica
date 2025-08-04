@@ -1,9 +1,9 @@
 import type { Metadata } from 'next';
 import './globals.css';
 import { Inter } from 'next/font/google';
-//import { UtmifyScripts } from '@/scripts/utmifyScripts';
+import { UtmifyScripts } from '@/scripts/utmifyScripts';
 import { ClarityScript } from '@/scripts/clarityScripts';
-import { Elev8TrackingScript } from '@/scripts/Elev8TrackingScript';
+//import { Elev8TrackingScript } from '@/scripts/Elev8TrackingScript';
 
 const inter = Inter({
   subsets: ['latin'],
@@ -26,9 +26,9 @@ export default function RootLayout({
       <head>
         {process.env.NODE_ENV === 'production' && (
           <>
-            {/* <UtmifyScripts /> */}
+            <UtmifyScripts />
             <ClarityScript />
-            <Elev8TrackingScript pixelId="7968324796552425" />
+            {/* <Elev8TrackingScript pixelId="7968324796552425" /> */}
           </>
         )}
       </head>
