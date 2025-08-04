@@ -13,8 +13,27 @@ export const Elev8TrackingScript = ({ pixelId }: Elev8TrackingScriptProps) => {
       return;
     }
 
+    // Adiciona configuração global para habilitar o Facebook Pixel
+    const enablePixelConfig = () => {
+      // Adiciona um script para habilitar o Pixel antes do carregamento do script principal
+      const configScript = document.createElement('script');
+      configScript.id = 'elev8-config-script';
+      configScript.innerHTML = `
+        window.__elev8Config = {
+          enablePixel: true,
+          enableCAPI: true,
+          debug: true
+        };
+      `;
+      document.head.appendChild(configScript);
+      console.log('Configuração do Elev8 adicionada com Pixel habilitado');
+    };
+
     // Função para garantir que o script seja carregado apenas uma vez
     const loadElev8TrackingScript = () => {
+      // Configura o Pixel primeiro
+      enablePixelConfig();
+      
       // Cria o elemento script
       const script = document.createElement('script');
       script.id = 'elev8-tracking-script';
@@ -61,6 +80,11 @@ export const Elev8TrackingScript = ({ pixelId }: Elev8TrackingScriptProps) => {
 // Adiciona a declaração de tipo para a propriedade trackingDebug no objeto window
 declare global {
   interface Window {
+    __elev8Config?: {
+      enablePixel: boolean;
+      enableCAPI: boolean;
+      debug: boolean;
+    };
     trackingDebug?: {
       getUTMParams: () => Record<string, string>;
       getOriginalUTMParams: () => Record<string, string>;
