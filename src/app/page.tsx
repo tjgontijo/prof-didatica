@@ -12,7 +12,7 @@ export default function Home() {
           width={100}
           height={40}
           className="py-1"
-          style={{ height: 'auto' }} // Adicionando height: auto para manter a proporção
+          style={{ height: 'auto' }}
         />
       </header>
 
