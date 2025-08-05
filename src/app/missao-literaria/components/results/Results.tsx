@@ -89,13 +89,13 @@ export default function Results({ paymentLink }: ResultsProps) {
           </div>
         </div>
       </div>
-      
+
       {/* Botão CTA */}
       <div className="mt-10 text-center">
         <a
           href={paymentLink}
           rel="noopener noreferrer"
-          target="_blank"
+          role="button"
           className="inline-block bg-gradient-to-r from-[#457B9D] to-[#1D3557] hover:from-[#1D3557] hover:to-[#457B9D] text-white text-lg font-bold py-4 px-8 rounded-xl shadow-lg transform transition-all duration-300 hover:scale-[1.02] hover:shadow-xl relative overflow-hidden group uppercase"
         >
           <div className="absolute inset-0 bg-white/20 rounded-xl opacity-0 group-hover:opacity-100 transition-opacity"></div>

@@ -1,6 +1,6 @@
 import { FaCheck } from 'react-icons/fa';
 import OptimizedCountDown from '../countdown/OptimizedCountDown';
-import CtaButton from '../buttons/CtaButton';
+import CtaButton from '@/components/buttons/CtaButton';
 
 // Usando os tipos definidos na página principal
 interface OfferProps {
@@ -74,7 +74,7 @@ export default function Offer({ offerData }: OfferProps) {
             <span className="font-medium text-[#1D3557] text-left">
               Apostila com 50 páginas para produção textual, perfeita para complementar suas aulas e desenvolver a escrita criativa dos alunos.
             </span>
-          </li>         
+          </li>
         </ul>
         <div className="text-center mb-6">
           <p className="text-md text-gray-600 mt-2 italic mb-8">
@@ -93,7 +93,7 @@ export default function Offer({ offerData }: OfferProps) {
           </p>
         </div>
 
-        <CtaButton 
+        <CtaButton
           paymentLink={offerData.paymentLink}
           text="Quero Meus Alunos Apaixonados por Leitura"
         />

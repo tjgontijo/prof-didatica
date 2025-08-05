@@ -1,7 +1,7 @@
 import { FaCheck } from 'react-icons/fa';
 import Image from 'next/image';
 import OptimizedCountDown from '../countdown/OptimizedCountDown';
-import CtaButton from '../buttons/CtaButton';
+import CtaButton from '@/components/buttons/CtaButton';
 
 // Usando os tipos definidos na página principal
 interface OfferProps {
@@ -71,7 +71,7 @@ export default function Offer({ offerData, bonusData }: OfferProps) {
             <li key={index} className="flex flex-col md:flex-row items-start gap-4 p-4 rounded-lg bg-[#a8dadc]/20 border border-[#a8dadc]">
               <div className="w-full md:w-1/4 flex-shrink-0">
                 <div className="relative w-full aspect-[3/4] rounded-md overflow-hidden shadow-md">
-                  <Image 
+                  <Image
                     src={bonus.imagePath}
                     alt={bonus.title}
                     fill
@@ -93,7 +93,7 @@ export default function Offer({ offerData, bonusData }: OfferProps) {
                 </div>
               </div>
             </li>
-          ))}                
+          ))}
         </ul>
         <div className="text-center mb-6">
           <div className="bg-[#f1faee] p-4 rounded-lg mb-8 mt-6">
@@ -103,13 +103,13 @@ export default function Offer({ offerData, bonusData }: OfferProps) {
                 <p className="font-bold text-lg text-[#1D3557]">Desafio Literário:</p>
                 <p className="font-bold text-lg text-[#1D3557]"><span className="line-through text-gray-500">R${offerData.originalPrice}</span></p>
               </div>
-              
+
               {/* Valor dos Bônus row */}
               <div className="flex w-full justify-between items-center">
                 <p className="font-bold text-lg text-[#1D3557]">Bônus:</p>
                 <p className="font-bold text-lg text-[#1D3557]"><span className="line-through text-gray-500">R${bonusData.reduce((acc, bonus) => acc + bonus.value, 0)}</span></p>
               </div>
-              
+
               {/* Valor Total row */}
               <div className="flex w-full justify-between items-center pt-2 border-t border-[#a8dadc]">
                 <p className="font-bold text-xl text-[#1D3557]">Valor Total:</p>
@@ -139,7 +139,7 @@ export default function Offer({ offerData, bonusData }: OfferProps) {
           </p>
         </div>
 
-        <CtaButton 
+        <CtaButton
           paymentLink={offerData.paymentLink}
           text="COMPRAR COM DESCONTO"
         />

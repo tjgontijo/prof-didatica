@@ -19,25 +19,25 @@ export default function FloatingCta({ paymentLink }: FloatingCtaProps) {
       const scrollHeight = document.documentElement.scrollHeight;
       const clientHeight = document.documentElement.clientHeight;
       const scrollPercentage = (scrollTop / (scrollHeight - clientHeight)) * 100;
-      
+
       if (scrollPercentage > 63) {
         setIsVisible(true);
         setHasBeenActivated(true);
       }
     };
-    
+
     // Executar verificação inicial
     initialCheck();
   }, []);
 
   // Monitorar o scroll para atualizar o estado do botão
-  useEffect(() => {    
-    const handleScroll = () => {      
+  useEffect(() => {
+    const handleScroll = () => {
       const scrollTop = window.scrollY;
       const scrollHeight = document.documentElement.scrollHeight;
       const clientHeight = document.documentElement.clientHeight;
       const scrollPercentage = (scrollTop / (scrollHeight - clientHeight)) * 100;
-      
+
       // Uma vez que o usuário rola até 63% da página, ativamos o botão
       if (scrollPercentage > 63) {
         setIsVisible(true);
@@ -48,7 +48,7 @@ export default function FloatingCta({ paymentLink }: FloatingCtaProps) {
       }
       // Se hasBeenActivated for true, o botão permanece visível
     };
-    
+
     window.addEventListener('scroll', handleScroll);
 
     // Verificar a posição inicial do scroll
@@ -77,7 +77,15 @@ export default function FloatingCta({ paymentLink }: FloatingCtaProps) {
         <a
           href={paymentLink}
           rel="noopener noreferrer"
-          target="_blank"
+          onClick={async (e) => {
+            e.preventDefault();
+            try {
+              window.location.href = paymentLink;
+            } catch (error) {
+              console.error('Erro ao navegar:', error);
+              window.location.href = paymentLink;
+            }
+          }}
           className="block w-full md:max-w-xs bg-gradient-to-r from-[#457B9D] to-[#1D3557] hover:from-[#1D3557] hover:to-[#457B9D] text-white text-base sm:text-lg font-bold py-3 sm:py-4 px-6 sm:px-8 rounded-xl shadow-lg transform transition-all duration-300 hover:scale-[1.02] hover:shadow-xl relative overflow-hidden group text-center uppercase"
         >
           <div className="absolute inset-0 bg-white/20 rounded-xl opacity-0 group-hover:opacity-100 transition-opacity"></div>
