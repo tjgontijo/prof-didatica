@@ -6,7 +6,7 @@ import Results from './components/results/Results';
 import Offer from './components/offer/Offer';
 import Faq from './components/faq/Faq';
 import Footer from './components/footer/Footer';
-import FloatingCta from './components/buttons/FloatingCta';
+import FloatingCta from '@/components/buttons/FloatingCta';
 
 // Tipos centralizados
 type Offer = {
@@ -53,10 +53,10 @@ export default function DesafioLiterarioPage() {
       <Header />
       <div className="px-4 md:px-6 lg:px-8 max-w-screen-2xl mx-auto">
         <Hero />
-        <Proof />        
+        <Proof />
         <Solution />
         <Offer offerData={offerData} bonusData={bonusData} />
-        <Results paymentLink={PAYMENT_LINK} />        
+        <Results paymentLink={PAYMENT_LINK} />
         <Faq />
       </div>
       <Footer />
