@@ -6,7 +6,7 @@ import Results from './components/results/Results';
 import Offer from './components/offer/Offer';
 import Faq from './components/faq/Faq';
 import Footer from './components/footer/Footer';
-import FloatingCta from './components/buttons/FloatingCta';
+import FloatingCta from '@/components/buttons/FloatingCta';
 import CheckoutPreload from './components/CheckoutPreload';
 
 // Tipos centralizados

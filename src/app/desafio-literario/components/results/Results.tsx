@@ -1,5 +1,5 @@
 import Image from 'next/image';
-import CtaButton from '../buttons/CtaButton';
+import CtaButton from '@/components/buttons/CtaButton';
 import { FaArrowRight } from 'react-icons/fa';
 
 interface ResultsProps {
@@ -61,11 +61,11 @@ export default function Results({ paymentLink }: ResultsProps) {
                 ></path>
               </svg>
             </div>
-            
+
             {/* CTA Button */}
             <div className="mt-8 max-w-md mx-auto">
               <div className="relative">
-                <CtaButton 
+                <CtaButton
                   paymentLink={paymentLink}
                   text="QUERO TRANSFORMAR MEUS ALUNOS EM LEITORES"
                   className="shadow-[0_0_15px_rgba(70,123,157,0.5)] border-2 border-white"
