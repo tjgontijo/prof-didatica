@@ -6,8 +6,7 @@ import Results from './components/results/Results';
 import Offer from './components/offer/Offer';
 import Faq from './components/faq/Faq';
 import Footer from './components/footer/Footer';
-import FloatingCta from '@/components/buttons/FloatingCta';
-import CheckoutPreload from './components/CheckoutPreload';
+import FloatingCta from './components/buttons/FloatingCta';
 
 // Tipos centralizados
 type Offer = {
@@ -18,8 +17,6 @@ type Offer = {
 };
 
 const PAYMENT_LINK = 'https://seguro.profdidatica.com.br/r/HDJYH7SZJ6';
-//const PAYMENT_LINK = 'https://checkout.profdidatica.com.br/checkout/184695113:1';
-const CHECKOUT_DOMAIN = 'seguro.profdidatica.com.br';
 
 const offerData: Offer = {
   originalPrice: 18,
@@ -31,9 +28,8 @@ const offerData: Offer = {
 export default function MissaoLiterariaPage() {
   return (
     <main className="bg-[#f1faee]">
-      <CheckoutPreload checkoutDomain={CHECKOUT_DOMAIN} paymentLink={PAYMENT_LINK} />
       <Header />
-      <div className="px-4 md:px-6 lg:px-8 max-w-7xl mx-auto">
+      <div className="px-4 md:px-6 lg:px-8 max-w-screen-2xl mx-auto">
         <Hero />
         <Proof />
         <Solution />

@@ -6,8 +6,7 @@ import Results from './components/results/Results';
 import Offer from './components/offer/Offer';
 import Faq from './components/faq/Faq';
 import Footer from './components/footer/Footer';
-import FloatingCta from '@/components/buttons/FloatingCta';
-import CheckoutPreload from './components/CheckoutPreload';
+import FloatingCta from './components/buttons/FloatingCta';
 
 // Tipos centralizados
 type Offer = {
@@ -25,7 +24,6 @@ type Bonus = {
 };
 
 const PAYMENT_LINK = 'https://seguro.profdidatica.com.br/r/NZL4JLXAYJ';
-const CHECKOUT_DOMAIN = 'seguro.profdidatica.com.br';
 
 const offerData: Offer = {
   originalPrice: 37,
@@ -42,24 +40,23 @@ const bonusData: Bonus[] = [
     imagePath: '/images/products/producao_frases_texto/Producao_frases_texto.webp'
   },
   {
-    title: 'Textos para Missão Literária',
+    title: 'Histórias para Desafio Literário',
     description: '40 Textos com fonte Irineu desenvolvidos exclusivamente para utilizar com o desafio',
     value: 17,
     imagePath: '/images/products/textos-para-missao-literaria/cover/textos_missao_literaria_cover.webp'
   }
 ];
 
-export default function MissaoLiterariaPage() {
+export default function DesafioLiterarioPage() {
   return (
     <main className="bg-[#f1faee]">
-      <CheckoutPreload checkoutDomain={CHECKOUT_DOMAIN} paymentLink={PAYMENT_LINK} />
       <Header />
-      <div className="px-4 md:px-6 lg:px-8 max-w-7xl mx-auto">
+      <div className="px-4 md:px-6 lg:px-8 max-w-screen-2xl mx-auto">
         <Hero />
-        <Proof />
+        <Proof />        
         <Solution />
         <Offer offerData={offerData} bonusData={bonusData} />
-        <Results paymentLink={PAYMENT_LINK} />
+        <Results paymentLink={PAYMENT_LINK} />        
         <Faq />
       </div>
       <Footer />
