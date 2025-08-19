@@ -20,7 +20,7 @@ const PAYMENT_LINK = 'https://pay.kiwify.com.br/cdHgTZl';
 
 const offerData: Offer = {
   originalPrice: 18,
-  promotionalPrice: '12',
+  promotionalPrice: 12,
   discount: '33% OFF',
   paymentLink: PAYMENT_LINK
 };
