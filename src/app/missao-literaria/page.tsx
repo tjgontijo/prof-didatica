@@ -16,7 +16,7 @@ type Offer = {
   paymentLink: string;
 };
 
-const PAYMENT_LINK = 'https://pay.kiwify.com.br/cdHgTZl';
+const PAYMENT_LINK = 'https://seguro.profdidatica.com.br/r/HDJYH7SZJ6';
 
 const offerData: Offer = {
   originalPrice: 18,
