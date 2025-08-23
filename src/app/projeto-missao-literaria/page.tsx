@@ -2,6 +2,8 @@
 
 import Script from 'next/script';
 
+//const paymentLink = 'https://seguro.profdidatica.com.br/r/D6B9TPX140';
+
 export default function ProjetoMissaoLiterariaPage() {
   return (
     <main className="min-h-screen flex flex-col items-center justify-between bg-[#f1faee] pt-16 md:pt-24">
@@ -14,6 +16,8 @@ export default function ProjetoMissaoLiterariaPage() {
         }}
       />
 
+      
+
       {/* VTurb Player */}
       <section className="w-full max-w-2xl mx-auto px-4 mb-8 flex flex-col items-center">
         <div className="w-full">
@@ -21,7 +25,7 @@ export default function ProjetoMissaoLiterariaPage() {
           <div
             className="rounded-lg overflow-hidden"
             dangerouslySetInnerHTML={{
-              __html: `<vturb-smartplayer id="vid-68a8ddd5bebeb7dd804da09b" style="display: block; margin: 0 auto; width: 100%; max-width: 720px; border-radius: 8px; overflow: hidden;"></vturb-smartplayer>`
+              __html: `<vturb-smartplayer id="vid-68aa1110166658ec24757a22" style="display: block; margin: 0 auto; width: 100%; max-width: 400px; border-radius: 8px; overflow: hidden;"></vturb-smartplayer>`
             }}
           />
           
@@ -30,7 +34,7 @@ export default function ProjetoMissaoLiterariaPage() {
             id="vturb-player-script"
             strategy="afterInteractive"
             dangerouslySetInnerHTML={{
-              __html: `var s=document.createElement("script"); s.src="https://scripts.converteai.net/1eb34a82-3ae7-47c1-aa35-02f2cc9b474e/players/68a8ddd5bebeb7dd804da09b/v4/player.js", s.async=!0,document.head.appendChild(s);`
+              __html: `var s=document.createElement("script"); s.src="https://scripts.converteai.net/1eb34a82-3ae7-47c1-aa35-02f2cc9b474e/players/68aa1110166658ec24757a22/v4/player.js", s.async=!0,document.head.appendChild(s);`
             }}
           /> 
         </div>
