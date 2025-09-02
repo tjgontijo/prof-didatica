@@ -1,19 +1,23 @@
 import Header from './components/header/Header';
 import Hero from './components/hero/Hero';
-import Proof from './components/proof/Proof';
-import Solution from './components/solution/Solution';
+import Demo from './components/demo/Demo';
+import Benefits from './components/benefits/Benefits';
+import CtaUrgency from './components/cta-urgency/CtaUrgency';
+import Fit from './components/fit/Fit';
+import WhatsIncluded from './components/whats-included/WhatsIncluded';
+import Bonuses from './components/bonuses/Bonuses';
 import Results from './components/results/Results';
-import Offer from './components/offer/Offer';
+import Plans from './components/plans/Plans';
 import Faq from './components/faq/Faq';
 import Footer from './components/footer/Footer';
-import FloatingCta from '@/components/buttons/FloatingCta';
 
 // Tipos centralizados
-type Offer = {
+type PlansType = {
   originalPrice: number;
   promotionalPrice: number;
   discount: string;
   paymentLink: string;
+  basicPaymentLink: string;
 };
 
 type Bonus = {
@@ -25,11 +29,12 @@ type Bonus = {
 
 const PAYMENT_LINK = 'https://seguro.profdidatica.com.br/r/NZL4JLXAYJ';
 
-const offerData: Offer = {
-  originalPrice: 27,
-  promotionalPrice: 12,
-  discount: 'R$15 OFF',
-  paymentLink: PAYMENT_LINK
+const offerData: PlansType = {
+  originalPrice: 88,
+  promotionalPrice: 20,
+  discount: 'R$68 OFF',
+  paymentLink: PAYMENT_LINK,
+  basicPaymentLink: 'https://seguro.profdidatica.com.br/r/BASICO12'
 };
 
 const bonusData: Bonus[] = [
@@ -41,7 +46,7 @@ const bonusData: Bonus[] = [
   },
   {
     title: 'Histórias para Desafio Literário',
-    description: '40 Historinhas escritas exclusivamente para utilizar com o desafio',
+    description: '40 Textos com fonte Irineu desenvolvidos exclusivamente para utilizar com o desafio',
     value: 17,
     imagePath: '/images/products/textos-para-missao-literaria/cover/textos_missao_literaria_cover.webp'
   }
@@ -53,14 +58,17 @@ export default function DesafioLiterarioPage() {
       <Header />
       <div className="px-4 md:px-6 lg:px-8 max-w-screen-2xl mx-auto">
         <Hero />
-        <Proof />
-        <Solution />
-        <Offer offerData={offerData} bonusData={bonusData} />
-        <Results paymentLink={PAYMENT_LINK} />
+        <Demo />
+        <Benefits />
+        <CtaUrgency />
+        <Fit />
+        <WhatsIncluded />
+        <Bonuses />
+        <Plans offerData={offerData} bonusData={bonusData} />
+        <Results paymentLink={offerData.paymentLink} />
         <Faq />
       </div>
       <Footer />
-      <FloatingCta paymentLink={PAYMENT_LINK} />
     </main>
   );
 }
