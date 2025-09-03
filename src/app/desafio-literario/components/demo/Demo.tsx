@@ -64,16 +64,16 @@ export default function Demo() {
     {
       id: 1,
       imageSrc: "/images/products/desafio-literario/carrossel/1.webp",
-      alt: "Ficha Literária - Modelo 1",
-      legenda: "Ficha Literária - Modelo 1",
-      descricao: "Ficha completa para registro de leitura com campos para título, autor, personagens e resumo da história."
+      alt: "Projeto Desafio Literário",
+      legenda: "Projeto Desafio Literário",
+      descricao: "Projeto desenvolvido para estimular e incentivar a leitura entre os alunos."
     },
     {
       id: 2,
       imageSrc: "/images/products/desafio-literario/carrossel/2.webp",
-      alt: "Ficha Literária - Modelo 2",
-      legenda: "Ficha Literária - Modelo 2",
-      descricao: "Modelo alternativo com espaço para ilustração e avaliação pessoal do livro."
+      alt: "Ficha Literária 01",
+      legenda: "Ficha Literária 01",
+      descricao: "Exemplo de uma Ficha Literária que estimula o aluno a se recordar dos personagens principais, o que ele aprendeu sobre a historia e treinar a ordem alfabetica"
     },
     {
       id: 3,

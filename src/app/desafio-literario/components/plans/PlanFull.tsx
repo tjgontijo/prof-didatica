@@ -72,7 +72,7 @@ export default function PlanFull({ planData, bonusData }: PlanFullProps) {
                   <ul className="space-y-3 max-w-md mx-auto text-left">
                     <li className="flex items-start p-2 hover:bg-emerald-50 rounded-lg transition-colors">
                       <FaCheck className="text-emerald-600 mt-1 mr-3 flex-shrink-0" />
-                      <span className="text-gray-600"><strong>20 fichas literárias</strong> para acompanhamento de leitura</span>
+                      <span className="text-gray-600"><strong>20 fichas literárias</strong> para estimular a leitura</span>
                     </li>
                     <li className="flex items-start p-2 hover:bg-emerald-50 rounded-lg transition-colors">
                       <FaCheck className="text-emerald-600 mt-1 mr-3 flex-shrink-0" />
@@ -80,15 +80,19 @@ export default function PlanFull({ planData, bonusData }: PlanFullProps) {
                     </li>
                     <li className="flex items-start p-2 hover:bg-emerald-50 rounded-lg transition-colors">
                       <FaCheck className="text-emerald-600 mt-1 mr-3 flex-shrink-0" />
-                      <span className="text-gray-600"><strong>2 Tabelas de acompanhamento</strong> de leitura</span>
+                      <span className="text-gray-600"><strong>Tabela em PDF</strong> para controle de leitura</span>
                     </li>
                     <li className="flex items-start p-2 hover:bg-emerald-50 rounded-lg transition-colors">
                       <FaCheck className="text-emerald-600 mt-1 mr-3 flex-shrink-0" />
-                      <span className="text-gray-600"><strong>Guia de aplicação</strong> passo a passo</span>
+                      <span className="text-gray-600"><strong>Planilha do Google</strong> para controle de leitura</span>
                     </li>
                     <li className="flex items-start p-2 hover:bg-emerald-50 rounded-lg transition-colors">
                       <FaCheck className="text-emerald-600 mt-1 mr-3 flex-shrink-0" />
-                      <span className="text-gray-600"><strong>Acesso vitalício</strong> após a confirmação do pagamento</span>
+                      <span className="text-gray-600"><strong>Guia de aplicação em sala</strong> passo a passo</span>
+                    </li>
+                    <li className="flex items-start p-2 hover:bg-emerald-50 rounded-lg transition-colors">
+                      <FaCheck className="text-emerald-600 mt-1 mr-3 flex-shrink-0" />
+                      <span className="text-gray-600"><strong>Acesso vitalício</strong></span>
                     </li>
                     
                     {/* Bônus com destaque especial */}

@@ -62,15 +62,15 @@ export default function PlanBasic({ planData }: PlanBasicProps) {
                   <ul className="space-y-3 max-w-md mx-auto text-left">
                     <li className="flex items-start p-2 hover:bg-blue-50 rounded-lg transition-colors">
                       <FaCheck className="text-emerald-600 mt-1 mr-3 flex-shrink-0" />
-                      <span className="text-gray-600"><strong>20 fichas literárias</strong></span>
+                      <span className="text-gray-600"><strong>20 fichas literárias</strong> para estimular a leitura</span>
                     </li>
                     <li className="flex items-start p-2 hover:bg-blue-50 rounded-lg transition-colors">
                       <FaCheck className="text-emerald-600 mt-1 mr-3 flex-shrink-0" />
-                      <span className="text-gray-600"><strong>1 modelo de Leiturômetro</strong></span>
+                      <span className="text-gray-600"><strong>2 modelo de Leiturômetro</strong> para gamificação</span>
                     </li>
                     <li className="flex items-start p-2 hover:bg-blue-50 rounded-lg transition-colors">
                       <FaCheck className="text-emerald-600 mt-1 mr-3 flex-shrink-0" />
-                      <span className="text-gray-600"><strong>1 Tabela de acompanhamento</strong></span>
+                      <span className="text-gray-600"><strong>Tabela em PDF</strong> para controle de leitura</span>
                     </li>
                     <li className="flex items-start p-2 hover:bg-blue-50 rounded-lg transition-colors">
                       <FaCheck className="text-emerald-600 mt-1 mr-3 flex-shrink-0" />
