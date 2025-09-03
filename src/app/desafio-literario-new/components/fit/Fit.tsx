@@ -12,14 +12,14 @@ const Fit: React.FC = () => {
           </h2>
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-8 max-w-6xl mx-auto">
+        <div className="flex flex-col gap-6 max-w-3xl mx-auto">
           {/* Card 1 */}
           <div className="bg-[#f1faee] rounded-lg p-6 border-2 border-[#457B9D] shadow-md hover:shadow-lg transition-shadow">
             <div className="text-3xl mb-4 text-center">👩‍🏫</div>
             <h3 className="text-xl font-bold text-[#1D3557] mb-3 text-center">
               É professor do Ensino Fundamental I ou II
             </h3>
-            <p className="text-gray-700 text-left">
+            <p className="text-gray-700 text-center">
               Especialmente desenvolvido para alunos do 2º ao 7º ano, com adaptações possíveis para outras séries
             </p>
           </div>
@@ -30,7 +30,7 @@ const Fit: React.FC = () => {
             <h3 className="text-xl font-bold text-[#1D3557] mb-3 text-center">
               Está cansado de alunos desinteressados pela leitura
             </h3>
-            <p className="text-gray-700 text-left">
+            <p className="text-gray-700 text-center">
               Transforma a relação dos alunos com os livros através da gamificação e competição saudável
             </p>
           </div>
@@ -41,7 +41,7 @@ const Fit: React.FC = () => {
             <h3 className="text-xl font-bold text-[#1D3557] mb-3 text-center">
               Precisa de soluções práticas e prontas para usar
             </h3>
-            <p className="text-gray-700 text-left">
+            <p className="text-gray-700 text-center">
               Material completo que não exige criação adicional, economizando seu tempo e energia
             </p>
           </div>

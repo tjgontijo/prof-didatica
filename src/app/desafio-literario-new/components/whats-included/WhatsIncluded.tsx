@@ -52,14 +52,14 @@ const WhatsIncluded: React.FC = () => {
 
   return (
     <section id="whats-included" className="py-16 bg-[#f1faee]">
-      <div className="container mx-auto px-4">
+      <div className="container max-w-4xl mx-auto bg-white rounded-lg shadow-lg p-8 border border-gray-100">
         <div className="text-center mb-12">
           <h2 className="text-3xl md:text-4xl font-bold text-[#1D3557] mb-4">
             O QUE VOCÊ RECEBE NO DESAFIO LITERÁRIO
           </h2>
         </div>
 
-        <div className="max-w-4xl mx-auto bg-white rounded-lg shadow-lg p-8 border border-gray-100">
+        <div>
           {includedItems.map((item, index) => (
             <IncludedItem
               key={index}
