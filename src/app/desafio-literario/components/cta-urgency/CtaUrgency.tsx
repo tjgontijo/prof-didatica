@@ -33,7 +33,7 @@ const CtaUrgency: React.FC = () => {
 
             <div className="flex flex-col items-center">
               <div className="bg-white text-[#1D3557] font-bold py-3 px-6 rounded-md mb-6 text-sm">
-                Lote com desconto ativo hoje
+                Oferta válida até: {new Date().toLocaleDateString('pt-BR')}
               </div>
 
               <Link href="#plans">

@@ -5,12 +5,13 @@ import { Swiper, SwiperSlide } from 'swiper/react';
 import type { Swiper as SwiperType } from 'swiper';
 
 // Importação dinâmica dos módulos do Swiper para reduzir o JavaScript
-import { Navigation, Pagination, Autoplay } from 'swiper/modules';
+import { Navigation, Pagination, Autoplay, Zoom } from 'swiper/modules';
 
 // Importações de estilos do Swiper
 import 'swiper/css';
 import 'swiper/css/navigation';
 import 'swiper/css/pagination';
+import 'swiper/css/zoom';
 
 interface CarouselProps {
   items: {
@@ -23,6 +24,7 @@ interface CarouselProps {
   loop?: boolean;
   navigation?: boolean;
   pagination?: boolean;
+  zoom?: boolean;
   className?: string;
   onSlideChange?: (swiper: SwiperType) => void;
 }
@@ -35,6 +37,7 @@ export default function Carousel({
   loop = true,
   navigation = true,
   pagination = true,
+  zoom = false,
   className = '',
   onSlideChange,
 }: CarouselProps) {
@@ -61,6 +64,7 @@ export default function Carousel({
   if (navigation) modules.push(Navigation);
   if (pagination) modules.push(Pagination);
   if (autoplay) modules.push(Autoplay);
+  if (zoom) modules.push(Zoom);
 
   // Breakpoints otimizados para responsividade
   const breakpoints = {
@@ -90,12 +94,24 @@ export default function Carousel({
         pagination={paginationConfig}
         loop={loop}
         autoplay={autoplayConfig}
+        zoom={zoom ? {
+          maxRatio: 3,
+          minRatio: 1
+        } : false}
         breakpoints={breakpoints}
         onSlideChange={onSlideChange}
         className="mySwiper"
       >
         {items.map((item) => (
-          <SwiperSlide key={item.id}>{item.content}</SwiperSlide>
+          <SwiperSlide key={item.id}>
+            {zoom ? (
+              <div className="swiper-zoom-container" data-swiper-zoom="2.5">
+                {item.content}
+              </div>
+            ) : (
+              item.content
+            )}
+          </SwiperSlide>
         ))}
       </Swiper>
     </div>
