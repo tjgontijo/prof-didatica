@@ -74,62 +74,41 @@ export default function Demo() {
       alt: "Ficha Literária 01",
       legenda: "Ficha Literária 01",
       descricao: "Exemplo de uma Ficha Literária que estimula o aluno a se recordar dos personagens principais, o que ele aprendeu sobre a historia e treinar a ordem alfabetica"
-    },
-    {
-      id: 3,
-      imageSrc: "/images/products/desafio-literario/carrossel/3.webp",
-      alt: "Leiturômetro - Modelo Árvore",
-      legenda: "Leiturômetro - Modelo Árvore",
-      descricao: "Acompanhe o progresso de leitura da turma com este leiturômetro em formato de árvore."
-    },
-    {
-      id: 4,
-      imageSrc: "/images/products/desafio-literario/carrossel/4.webp",
-      alt: "Leiturômetro - Modelo Escada",
-      legenda: "Leiturômetro - Modelo Escada",
-      descricao: "Visualize o avanço individual dos alunos com este leiturômetro em formato de escada."
-    },
-    {
-      id: 5,
-      imageSrc: "/images/products/desafio-literario/carrossel/5.webp",
-      alt: "Leiturômetro - Modelo Estrelas",
-      legenda: "Leiturômetro - Modelo Estrelas",
-      descricao: "Incentive a leitura com este leiturômetro que premia com estrelas a cada livro concluído."
-    },
+    },   
     {
       id: 6,
       imageSrc: "/images/products/desafio-literario/carrossel/6.webp",
-      alt: "Tabela de Acompanhamento - Modelo 1",
-      legenda: "Tabela de Acompanhamento - Modelo 1",
-      descricao: "Organize o registro de leituras da turma com esta tabela completa de acompanhamento."
+      alt: "Ficha Literária 20",
+      legenda: "Ficha Literária 20",
+      descricao: "Exemplo de uma Ficha Literária que trata sobre antônimos, estimula a imaginação com desenhos  e também com sugestões do que que ele poderia dar de dica para um dos personagens do livro."
     },
     {
       id: 7,
       imageSrc: "/images/products/desafio-literario/carrossel/7.webp",
-      alt: "Tabela de Acompanhamento - Modelo 2",
-      legenda: "Tabela de Acompanhamento - Modelo 2",
-      descricao: "Controle detalhado com campos para data, título, autor e avaliação de cada leitura."
+      alt: "Leiturômetro - Modelo 01",
+      legenda: "Leiturômetro - Modelo 01",
+      descricao: "Exemplo de Leiturômetro que mostra o progresso do aluno em uma leitura."
     },
     {
       id: 8,
       imageSrc: "/images/products/desafio-literario/carrossel/8.webp",
-      alt: "Ficha Literária - Modelo Infantil",
-      legenda: "Ficha Literária - Modelo Infantil",
-      descricao: "Ficha adaptada para crianças menores com campos simplificados e mais espaço para desenho."
+      alt: "Leiturômetro - Modelo 02",
+      legenda: "Leiturômetro - Modelo 02",
+      descricao: "Exemplo de Leiturômetro que mostra o progresso do aluno em uma leitura."
     },
     {
       id: 9,
       imageSrc: "/images/products/desafio-literario/carrossel/9.webp",
-      alt: "Certificado de Participação",
-      legenda: "Certificado de Participação",
-      descricao: "Reconheça o esforço dos alunos com este certificado personalizado de participação no desafio."
+      alt: "Leiturômetro - Modelo 03",
+      legenda: "Leiturômetro - Modelo 03",
+      descricao: "Exemplo de Leiturômetro que mostra o progresso do aluno em uma leitura."
     },
     {
       id: 10,
       imageSrc: "/images/products/desafio-literario/carrossel/10.webp",
-      alt: "Kit Completo - Visão Geral",
-      legenda: "Kit Completo - Visão Geral",
-      descricao: "Todos os materiais incluídos no Desafio Literário prontos para impressão e uso imediato."
+      alt: "Tabela em PDF para acompanhar o progresso do aluno",
+      legenda: "Tabela em PDF para acompanhar o progresso do aluno",
+      descricao: "Exemplo de Tabela em PDF para acompanhar o progresso do aluno."
     },
   ];
 
