@@ -45,9 +45,9 @@ const plansData: PlansDataType = {
     paymentLink: PAYMENT_LINK_BASIC
   },
   full: {
-    originalPrice: 72,
+    originalPrice: 76,
     promotionalPrice: 18,
-    discount: '77% OFF',
+    discount: '76% OFF',
     paymentLink: PAYMENT_LINK_FULL
   }
 };
@@ -55,14 +55,14 @@ const plansData: PlansDataType = {
 const bonusData: Bonus[] = [
   {
     title: '40 Historinhas Exclusivas para o Desafio Literário',
-    description: 'Coletânea com 40 textos curtos e envolventes, ideais para alunos em diferentes níveis de leitura.',
+    description: 'Coletânea com 40 histórias curtas e envolventes, ideais para alunos em diferentes níveis de leitura.',
     value: 17,
     imagePath: '/images/products/historias-missao-literaria/bonus_cover.jpg'
   },
   {
     title: 'Kit de Certificados Personalizáveis',
     description: '3 modelos de certificados coloridos e editáveis para celebrar as conquistas dos seus alunos.',
-    value: 8,
+    value: 12,
     imagePath: '/images/products/certificado/bonus_cover.jpg'
   },
   {
