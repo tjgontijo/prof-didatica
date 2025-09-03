@@ -20,7 +20,7 @@ export default function Hero() {
           <div className="relative w-full h-[350px] md:h-[500px] overflow-hidden">
             {/* Selo de preço */}
             <div className="absolute top-0 right-0 md:right-10 z-10 bg-green-600 text-white rounded-full w-24 h-24 md:w-32 md:h-32 flex flex-col items-center justify-center transform rotate-12 shadow-lg border-4 border-white ">
-            <div className="flex items-baseline">            
+            <div className="flex items-baseline">
               <span className="text-xs md:text-md">De&nbsp;</span>
               <span className="text-xs md:text-md line-through decoration-red-600 decoration-2">R$</span>
               <span className="text-xl md:text-2xl font-bold line-through decoration-red-600 decoration-2">18</span>
@@ -32,7 +32,7 @@ export default function Hero() {
             </div>
             </div>
             <Image
-              src="/images/products/desafio-literario/lp/hero_mockup.png"
+              src="/images/products/desafio-literario/lp/hero_mockup.webp"
               alt="Kit Desafio Literário"
               fill
               sizes="(max-width: 768px) 100vw, (max-width: 1200px) 80vw, 1000px"

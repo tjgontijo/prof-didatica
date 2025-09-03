@@ -37,7 +37,7 @@ export default function Home() {
           </Link>
 
           <Link
-            href="/missao-literaria"
+            href="/desafio-literario"
             className="w-full transform transition-transform duration-300 hover:scale-105"
           >
             <div className="overflow-hidden rounded-lg shadow-lg hover:shadow-xl transition-shadow duration-300">
