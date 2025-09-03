@@ -47,6 +47,7 @@ export default function PlanBasic({ planData }: PlanBasicProps) {
                   src="/images/products/desafio-literario/lp/hero_mockup.png"
                   alt="Desafio Literário"
                   fill
+                  sizes="(max-width: 768px) 240px, 256px"
                   style={{ objectFit: 'contain' }}
                   className="drop-shadow-lg"
                 />
@@ -55,25 +56,26 @@ export default function PlanBasic({ planData }: PlanBasicProps) {
             <div className="text-center">
                {/* O que está incluído */}
                <div className="mb-8">
-                  <h4 className="font-bold text-[#1D3557] mb-3 flex  items-center justify-center">
+               <div className="mt-2 border-t border-blue-200 pt-4"></div>
+                  <h4 className="font-bold text-[#1D3557] mb-3 flex items-center max-w-md mx-auto text-left">
                     <span className="inline-block w-2 h-6 bg-[#457B9D] mr-2"></span>
                     O que está incluído:
                   </h4>
                   <ul className="space-y-3 max-w-md mx-auto text-left">
                     <li className="flex items-start p-2 hover:bg-blue-50 rounded-lg transition-colors">
-                      <FaCheck className="text-emerald-600 mt-1 mr-3 flex-shrink-0" />
+                      <FaCheck className="text-[#457B9D] mt-1 mr-3 flex-shrink-0" />
                       <span className="text-gray-600"><strong>20 fichas literárias</strong> para estimular a leitura</span>
                     </li>
                     <li className="flex items-start p-2 hover:bg-blue-50 rounded-lg transition-colors">
-                      <FaCheck className="text-emerald-600 mt-1 mr-3 flex-shrink-0" />
+                      <FaCheck className="text-[#457B9D] mt-1 mr-3 flex-shrink-0" />
                       <span className="text-gray-600"><strong>2 modelo de Leiturômetro</strong> para gamificação</span>
                     </li>
                     <li className="flex items-start p-2 hover:bg-blue-50 rounded-lg transition-colors">
-                      <FaCheck className="text-emerald-600 mt-1 mr-3 flex-shrink-0" />
+                      <FaCheck className="text-[#457B9D] mt-1 mr-3 flex-shrink-0" />
                       <span className="text-gray-600"><strong>Tabela em PDF</strong> para controle de leitura</span>
                     </li>
                     <li className="flex items-start p-2 hover:bg-blue-50 rounded-lg transition-colors">
-                      <FaCheck className="text-emerald-600 mt-1 mr-3 flex-shrink-0" />
+                      <FaCheck className="text-[#457B9D] mt-1 mr-3 flex-shrink-0" />
                       <span className="text-gray-600"><strong>Acesso por 90 dias</strong></span>
                     </li>
                   </ul>
@@ -103,21 +105,10 @@ export default function PlanBasic({ planData }: PlanBasicProps) {
                     <span>QUERO APENAS O BÁSICO</span>                    
                   </motion.button>
                 </div>
-
-                {/* Imagem de compra segura */}
-                <div className="mt-4 flex justify-center">
-                  <Image
-                    src="/images/system/compra-segura.png"
-                    alt="Compra Segura"
-                    width={300}
-                    height={60}
-                    className="max-w-full"
-                  />
-                </div>
               </div>
 
             {/* Separador */}
-            <div className="border-t border-gray-200 my-8"></div>
+            <div className="border-t border-gray-200 my-4"></div>
 
             {/* Chamada para o plano completo */}
             <div className="text-center bg-gradient-to-r from-blue-50 to-emerald-50 p-6 rounded-lg">

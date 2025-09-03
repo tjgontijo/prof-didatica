@@ -35,6 +35,7 @@ export default function Hero() {
               src="/images/products/desafio-literario/lp/hero_mockup.png"
               alt="Kit Desafio Literário"
               fill
+              sizes="(max-width: 768px) 100vw, (max-width: 1200px) 80vw, 1000px"
               className="object-contain"
               quality={100}
               priority

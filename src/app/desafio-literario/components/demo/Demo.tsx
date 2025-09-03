@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react';
 import dynamic from 'next/dynamic';
 import Image from 'next/image';
 
+
 // Importação dinâmica do componente Carrossel
 const Carrossel = dynamic(
   () => import('../carrossel/Carrossel'),
@@ -63,48 +64,41 @@ export default function Demo() {
   const itensCarrossel: CarrosselItem[] = [
     {
       id: 1,
-      imageSrc: "/images/products/desafio-literario/carrossel/1.webp",
-      alt: "Projeto Desafio Literário",
-      legenda: "Projeto Desafio Literário",
-      descricao: "Projeto desenvolvido para estimular e incentivar a leitura entre os alunos."
-    },
-    {
-      id: 2,
       imageSrc: "/images/products/desafio-literario/carrossel/2.webp",
       alt: "Ficha Literária 01",
       legenda: "Ficha Literária 01",
       descricao: "Exemplo de uma Ficha Literária que estimula o aluno a se recordar dos personagens principais, o que ele aprendeu sobre a historia e treinar a ordem alfabetica"
     },   
     {
-      id: 6,
+      id: 2,
       imageSrc: "/images/products/desafio-literario/carrossel/6.webp",
       alt: "Ficha Literária 20",
       legenda: "Ficha Literária 20",
       descricao: "Exemplo de uma Ficha Literária que trata sobre antônimos, estimula a imaginação com desenhos  e também com sugestões do que que ele poderia dar de dica para um dos personagens do livro."
     },
     {
-      id: 7,
+      id: 3,
       imageSrc: "/images/products/desafio-literario/carrossel/7.webp",
       alt: "Leiturômetro - Modelo 01",
       legenda: "Leiturômetro - Modelo 01",
       descricao: "Exemplo de Leiturômetro que mostra o progresso do aluno em uma leitura."
     },
     {
-      id: 8,
+      id: 4,
       imageSrc: "/images/products/desafio-literario/carrossel/8.webp",
       alt: "Leiturômetro - Modelo 02",
       legenda: "Leiturômetro - Modelo 02",
       descricao: "Exemplo de Leiturômetro que mostra o progresso do aluno em uma leitura."
     },
     {
-      id: 9,
+      id: 5,
       imageSrc: "/images/products/desafio-literario/carrossel/9.webp",
       alt: "Leiturômetro - Modelo 03",
       legenda: "Leiturômetro - Modelo 03",
       descricao: "Exemplo de Leiturômetro que mostra o progresso do aluno em uma leitura."
     },
     {
-      id: 10,
+      id: 6,
       imageSrc: "/images/products/desafio-literario/carrossel/10.webp",
       alt: "Tabela em PDF para acompanhar o progresso do aluno",
       legenda: "Tabela em PDF para acompanhar o progresso do aluno",
@@ -116,19 +110,19 @@ export default function Demo() {
   const carrosselItems = itensCarrossel.map((item) => ({
     id: item.id,
     content: (
-      <div className="flex flex-col items-center">
-        <div className="relative aspect-[7/10] w-full rounded-md">
-          <Image
-            src={item.imageSrc}
-            alt={item.alt}
-            fill
-            sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 700px"
-            className="object-contain rounded-md"
-            priority={item.id === 1}
-            loading={item.id === 1 ? "eager" : "lazy"}
-          />
+      <div className="flex flex-col items-center w-full">
+        <div className="relative aspect-[7/10] w-full h-[500px] rounded-md">
+            <Image
+              src={item.imageSrc}
+              alt={item.alt}
+              fill
+              sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 700px"
+              className="object-contain rounded-md"
+              priority={item.id === 1}
+              loading={item.id === 1 ? "eager" : "lazy"}
+            />
           <div className="absolute top-2 right-2 bg-[#1D3557] text-white px-2 py-1 rounded-md text-sm font-medium">
-            {item.id}/10
+            {item.id}/6
           </div>
         </div>
       </div>
@@ -158,13 +152,15 @@ export default function Demo() {
             slidesPerView={1}
             navigation={true}
             pagination={false}
-            autoplay={true}
+            autoplay={false}
             loop={true}
+            zoom={true}
             className="demo-carrossel swiper-custom-arrows"
             onSlideChange={(swiper) => setActiveIndex(swiper.realIndex)}
           />
 
-          {/* Paginação personalizada com pontinhos */}
+          {/* Removido o modal de imagem, agora usamos o zoom nativo do Swiper */}
+
           <div className="flex justify-center gap-2 mt-6">
             {itensCarrossel.map((_, index) => (
               <button
