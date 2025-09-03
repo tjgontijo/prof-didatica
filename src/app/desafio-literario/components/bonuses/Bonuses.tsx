@@ -72,7 +72,7 @@ const Bonuses: React.FC<BonusesProps> = ({ bonusData }) => {
             BÔNUS EXCLUSIVOS PARA TURBINAR SEUS RESULTADOS
           </h2>
           <p className="text-lg text-[#457B9D] max-w-3xl mx-auto">
-            Além do projeto Desafio Literário, você receberá estes 4 bônus especiais <span className="font-bold">no valor total de R$ 54,00</span> para potencializar ainda mais o engajamento dos seus alunos com a leitura:
+          Além do Desafio Literário, você ainda recebe 4 presentes meus para engajar seus alunos na leitura. Se fossem comprados separadamente <span className="font-bold">custariam R$ 54,00</span>, mas <span className="font-bold">hoje são 100% gratuitos para você</span>.
           </p>
         </div>
         <div className="space-y-8 max-w-3xl mx-auto">
