@@ -2,7 +2,11 @@ import Image from 'next/image';
 import CtaButton from '@/components/buttons/CtaButton';
 import { FaArrowRight } from 'react-icons/fa';
 
-export default function Results() {
+interface ResultsProps {
+  paymentLink: string;
+}
+
+export default function Results({ paymentLink }: ResultsProps) {
   return (
     <section className="bg-white rounded-lg shadow-lg p-8 mb-20">
       <h2 className="text-2xl md:text-3xl font-bold text-[#1D3557] mb-8 border-b-2 border-[#a8dadc] pb-3 uppercase text-center">
@@ -62,8 +66,8 @@ export default function Results() {
             <div className="mt-8 max-w-md mx-auto">
               <div className="relative">
                 <CtaButton
-                  paymentLink="#plan-full"
-                  text="COMPRAR AGORA"
+                  paymentLink={paymentLink}
+                  text="QUERO TRANSFORMAR MEUS ALUNOS EM LEITORES"
                   className="shadow-[0_0_15px_rgba(70,123,157,0.5)] border-2 border-white"
                 />
                 <div className="absolute -top-3 -right-3 bg-[#e63946] text-white text-xs font-bold py-1 px-3 rounded-full shadow-md transform rotate-3">
