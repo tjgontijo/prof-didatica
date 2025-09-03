@@ -1,10 +1,9 @@
 'use client';
 
 import { FaCheck, FaStar } from 'react-icons/fa';
-import { FaArrowDown } from 'react-icons/fa6';
+import { FaChevronCircleDown } from 'react-icons/fa';
 import { BsLightningChargeFill } from 'react-icons/bs';
 import Image from 'next/image';
-import Link from 'next/link';
 import { motion } from 'framer-motion';
 
 // Usando os tipos definidos na página principal
@@ -25,7 +24,7 @@ export default function PlanBasic({ planData }: PlanBasicProps) {
           <h2 className="text-3xl md:text-4xl font-bold text-[#1D3557] mb-3">Escolha o Plano Ideal</h2>
           <p className="text-gray-600 max-w-2xl mx-auto">Comece com o plano básico e tenha acesso aos recursos essenciais para transformar a experiência de leitura dos seus alunos.</p>
         </div>
-        <motion.div 
+        <motion.div
           initial={{ opacity: 0, y: 20 }}
           whileInView={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.5 }}
@@ -44,12 +43,13 @@ export default function PlanBasic({ planData }: PlanBasicProps) {
             <div className="flex justify-center mb-6">
               <div className="relative w-60 h-60 md:w-64 md:h-64">
                 <Image
-                  src="/images/products/desafio-literario/lp/hero_mockup.png"
+                  src="/images/products/desafio-literario/lp/hero_mockup.webp"
                   alt="Desafio Literário"
                   fill
                   sizes="(max-width: 768px) 240px, 256px"
                   style={{ objectFit: 'contain' }}
                   className="drop-shadow-lg"
+                  loading="lazy"
                 />
               </div>
             </div>
@@ -82,17 +82,17 @@ export default function PlanBasic({ planData }: PlanBasicProps) {
                 </div>
 
                 {/* Preço com destaque */}
-                <div className="mb-8 bg-gray-50 p-4 rounded-lg ">                  
+                <div className="mb-8 bg-gray-50 p-4 rounded-lg ">
                   <div className="flex flex-col items-center">
                     <span className="text-lg font-medium text-gray-500 line-through decoration-red-600 decoration-2">R$ {planData.originalPrice}</span>
-                    <span className="text-5xl font-bold text-[#1D3557] my-1">R$ {planData.promotionalPrice}</span>                    
+                    <span className="text-5xl font-bold text-[#1D3557] my-1">R$ {planData.promotionalPrice}</span>
                   </div>
                   <div className="mt-3 bg-yellow-100 text-yellow-800 text-sm font-medium px-3 py-1 rounded-full inline-flex items-center">
                     <FaStar className="mr-1" /> {planData.discount}
                   </div>
                 </div>
 
-             
+
 
                 {/* Botão de compra */}
                 <div className="max-w-sm mx-auto">
@@ -102,7 +102,7 @@ export default function PlanBasic({ planData }: PlanBasicProps) {
                     className="w-full py-4 px-6 bg-emerald-600 text-white font-bold rounded-lg hover:bg-emerald-700 transition-all shadow-md hover:shadow-lg flex items-center justify-center gap-2"
                     onClick={() => window.open(planData.paymentLink, '_blank')}
                   >
-                    <span>QUERO APENAS O BÁSICO</span>                    
+                    <span>QUERO APENAS O BÁSICO</span>
                   </motion.button>
                 </div>
               </div>
@@ -112,23 +112,25 @@ export default function PlanBasic({ planData }: PlanBasicProps) {
 
             {/* Chamada para o plano completo */}
             <div className="text-center bg-gradient-to-r from-blue-50 to-emerald-50 p-6 rounded-lg">
-              <p className="text-lg font-medium text-[#1D3557] mb-2">
-                Quer mais recursos e bônus exclusivos?
+              <p className="text-xl font-black text-red-600 mb-2 uppercase leading-relaxed">
+                Quer ganhar mais recursos exclusivos?
               </p>
-              <p className="text-emerald-700 font-bold mb-4">
-                Conheça nosso plano completo com 4 bônus exclusivos!
+              <p className="text-zinc-600 font-bold mb-4">
+                Conheça abaixo nosso plano mais vantajoso com vários presentes únicos!
               </p>
-              <motion.div
-                whileHover={{ scale: 1.05 }}
-                whileTap={{ scale: 0.95 }}
-              >
-                <Link 
-                  href="#plan-full"
-                  className="inline-flex items-center gap-2 text-white font-bold bg-[#1D3557] hover:bg-[#2A4A6D] px-6 py-3 rounded-lg transition-colors shadow-md"
+              <div className="flex justify-center mt-2">
+                <motion.div
+                  animate={{ y: [0, 10, 0] }}
+                  transition={{
+                    repeat: Infinity,
+                    duration: 1.5,
+                    ease: "easeInOut"
+                  }}
+                  className="text-red-600"
                 >
-                  Ver plano completo <FaArrowDown className="animate-bounce" />
-                </Link>
-              </motion.div>
+                  <FaChevronCircleDown size={40} />
+                </motion.div>
+              </div>
             </div>
           </div>
         </motion.div>

@@ -25,7 +25,7 @@ export default function PlanFull({ planData, bonusData }: PlanFullProps) {
     <section id="plan-full" className="py-16 bg-gradient-to-b from-emerald-50 to-white">
       <div className="container mx-auto px-4 max-w-3xl">
 
-        <motion.div 
+        <motion.div
           initial={{ opacity: 0, y: 20 }}
           whileInView={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.5 }}
@@ -51,16 +51,17 @@ export default function PlanFull({ planData, bonusData }: PlanFullProps) {
               <div className="flex justify-center mb-6">
                 <div className="relative w-64 h-64">
                   <Image
-                    src="/images/products/desafio-literario/lp/mockup_full.png"
+                    src="/images/products/desafio-literario/lp/mockup_full.webp"
                     alt="Desafio Literário"
                     fill
                     sizes="(max-width: 768px) 256px, 256px"
                     style={{ objectFit: 'contain' }}
                     className="drop-shadow-lg"
+                    loading="lazy"
                   />
                 </div>
-              </div>                         
-              
+              </div>
+
               {/* Conteúdo em coluna única */}
               <div className="w-full text-center">
               <div className="mt-2 border-t border-emerald-100 pt-4"></div>
@@ -95,7 +96,7 @@ export default function PlanFull({ planData, bonusData }: PlanFullProps) {
                       <FaCheck className="text-emerald-600 mt-1 mr-3 flex-shrink-0" />
                       <span className="text-gray-600"><strong>Acesso vitalício</strong> e atualizações do material.</span>
                     </li>
-                    
+
                     {/* Bônus com destaque especial */}
                     <li className="mt-2 border-t border-emerald-100 pt-4">
                       <p className="font-bold text-emerald-800 mb-2 flex items-center">
@@ -130,7 +131,7 @@ export default function PlanFull({ planData, bonusData }: PlanFullProps) {
                   </div>
                 </div>
 
-            
+
 
                 {/* Botão de compra */}
                 <motion.button
@@ -145,23 +146,24 @@ export default function PlanFull({ planData, bonusData }: PlanFullProps) {
 
                 {/* Informações de segurança - imagem única */}
                 <div className="mt-4 flex justify-center">
-                  <Image 
-                    src="/images/system/compra-segura.png" 
-                    alt="Compra Segura" 
-                    width={300} 
-                    height={60} 
+                  <Image
+                    src="/images/system/compra-segura.png"
+                    alt="Compra Segura"
+                    width={300}
+                    height={60}
                     style={{ width: 'auto', height: 'auto' }}
-                    className="max-w-full" 
+                    className="max-w-full"
+                    loading="lazy"
                   />
                 </div>
-                
+
                 <p className="text-center text-sm mt-4 text-gray-600">Acesso imediato no WhatsApp</p>
               </div>
             </div>
-            
+
             {/* Separador */}
             <div className="border-t border-gray-200 my-8"></div>
-            
+
             {/* Selo de garantia */}
             <div className="text-center bg-gradient-to-r from-emerald-50 to-blue-50 p-6 rounded-lg max-w-md mx-auto">
               <div className="flex flex-col items-center justify-center gap-4 mb-4">

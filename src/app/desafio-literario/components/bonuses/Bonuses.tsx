@@ -38,6 +38,7 @@ const Bonus: React.FC<BonusItemProps> = ({ title, description, image, value, ind
           sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
           style={{ objectFit: 'cover' }}
           className="rounded-t-lg"
+          loading="lazy"
         />
         <div className="absolute top-0 right-0 bg-emerald-600 text-white font-bold py-1 px-3 rounded-bl-lg">
           BÔNUS
