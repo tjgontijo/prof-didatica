@@ -1,6 +1,7 @@
 'use client';
 
-import { FaCheck, FaArrowRight, FaShieldAlt, FaStar, FaGem } from 'react-icons/fa';
+import { FaCheck, FaArrowRight, FaShieldAlt, FaStar, FaGem, FaClock } from 'react-icons/fa';
+import { useEffect, useState } from 'react';
 import Image from 'next/image';
 import { motion } from 'framer-motion';
 
@@ -18,6 +19,76 @@ interface PlanFullProps {
     value: number;
     imagePath: string;
   }>;
+}
+
+// Componente de Countdown adaptado para a paleta de cores do Desafio Literário
+function CountdownTimer() {
+  // Tempo inicial em segundos (10 minutos)
+  const TEMPO_INICIAL = 10 * 60;
+  const [tempoRestante, setTempoRestante] = useState(TEMPO_INICIAL);
+
+  // Estado para o estoque, independente do tempo
+  const [estoque, setEstoque] = useState(5);
+  const estoqueTotal = 10;
+
+  // Diminui o tempo
+  useEffect(() => {
+    if (tempoRestante === 0) return;
+    const timer = setInterval(() => {
+      setTempoRestante((prev) => (prev > 0 ? prev - 1 : 0));
+    }, 1000);
+    return () => clearInterval(timer);
+  }, [tempoRestante]);
+
+  // Diminui o estoque em intervalos aleatórios
+  useEffect(() => {
+    if (estoque <= 2) return; // Para em 2 unidades
+    const minDelay = 15000; // 15 segundos
+    const maxDelay = 45000; // 45 segundos
+    const delay = Math.floor(Math.random() * (maxDelay - minDelay)) + minDelay;
+
+    const timer = setTimeout(() => {
+      setEstoque((prev) => Math.max(2, prev - 1)); // Nunca menor que 2
+    }, delay);
+
+    return () => clearTimeout(timer);
+  }, [estoque]);
+
+  const progresso = Math.max(0, Math.min(1, estoque / estoqueTotal));
+
+  // Formata o tempo restante em HH:MM:SS
+  function formatTempo(restante: number) {
+    const horas = Math.floor(restante / 3600);
+    const minutos = Math.floor((restante % 3600) / 60);
+    const segundos = restante % 60;
+    return [horas, minutos, segundos].map((n) => n.toString().padStart(2, '0')).join(' : ');
+  }
+
+  return (
+    <div className="rounded-lg bg-white p-4 mt-8 mb-8 border border-emerald-200 w-full shadow-sm">
+      <div className="flex items-center justify-center mb-2">
+        <span className="text-xs text-emerald-800">Últimas</span>
+        <span className="mx-1 bg-emerald-100 text-emerald-800 font-bold px-2 py-0.5 rounded-full text-base">
+          {typeof estoque === 'number' && !isNaN(estoque) ? estoque : 5}
+        </span>
+        <span className="text-xs text-emerald-800">unidades no valor promocional</span>
+      </div>
+      <div className="w-full h-2 bg-emerald-50 rounded-full mb-4">
+        <div
+          className="h-2 rounded-full bg-emerald-600 transition-all duration-500"
+          style={{ width: `${progresso * 100}%` }}
+        ></div>
+      </div>
+      <div className="flex flex-col items-center">
+        <span className="text-xs text-emerald-700 mb-1 flex items-center">
+          <FaClock className="mr-1" /> Oferta acaba em
+        </span>
+        <span className="font-bold text-lg text-emerald-800 tracking-widest">
+          {formatTempo(tempoRestante)}
+        </span>
+      </div>
+    </div>
+  );
 }
 
 export default function PlanFull({ planData, bonusData }: PlanFullProps) {
@@ -59,6 +130,7 @@ export default function PlanFull({ planData, bonusData }: PlanFullProps) {
                     className="drop-shadow-lg"
                     loading="lazy"
                   />
+
                 </div>
               </div>
 
@@ -67,6 +139,7 @@ export default function PlanFull({ planData, bonusData }: PlanFullProps) {
               <div className="mt-2 border-t border-emerald-100 pt-4"></div>
                     {/* O que está incluído */}
                     <div className="mb-8">
+
                   <h4 className="font-bold text-emerald-800 mb-3 flex items-center max-w-md mx-auto text-left">
                     <span className="inline-block w-2 h-6 bg-emerald-700 mr-2"></span>
                     O que está incluído:
@@ -120,44 +193,64 @@ export default function PlanFull({ planData, bonusData }: PlanFullProps) {
                   </ul>
                 </div>
 
-                {/* Preço com destaque */}
-                <div className="mb-8 bg-gray-50 p-4 rounded-lg">
-                  <div className="flex flex-col items-center">
-                    <span className="text-lg font-medium text-gray-500 line-through decoration-red-600 decoration-2">R$ {planData.originalPrice}</span>
-                    <span className="text-5xl font-bold text-emerald-800 my-1">R$ {planData.promotionalPrice}</span>
+              {/* Preço com destaque - Design elegante */}
+                <div className="mb-8 relative">
+                  {/* Badge de desconto */}
+                  <div className="absolute -top-3 right-0 bg-yellow-500 text-white font-bold py-1 px-3 rounded-full shadow-sm z-10">
+                    <div className="flex items-center gap-1">
+                      <FaStar className="text-white text-xs" />
+                      <span className="text-sm">{planData.discount}</span>
+                    </div>
                   </div>
-                  <div className="mt-3 bg-yellow-100 text-yellow-800 text-sm font-medium px-3 py-1 rounded-full inline-flex items-center">
-                    <FaStar className="mr-1" /> {planData.discount}
+
+                  {/* Container principal */}
+                  <div className="bg-white p-6 rounded-lg border border-emerald-200 shadow-sm">
+                    <div className="flex flex-col items-center">
+                      {/* Preço original */}
+                      <div className="mb-1">
+                        <span className="text-lg font-medium text-gray-500 line-through decoration-red-500 decoration-2">De R$ {planData.originalPrice}</span>
+                      </div>
+
+                      {/* Preço promocional */}
+                      <div className="flex items-start justify-center">
+                        <span className="text-emerald-800 text-xl mt-1 mr-1">R$</span>
+                        <span className="text-5xl font-bold text-emerald-800">{planData.promotionalPrice}</span>
+                      </div>
+
+                      {/* Texto adicional */}
+                      <p className="text-gray-600 text-sm mt-2">Acesso imediato no WhatsApp</p>
+
+                    </div>
                   </div>
                 </div>
-
-
 
                 {/* Botão de compra */}
                 <motion.button
                   whileHover={{ scale: 1.03 }}
                   whileTap={{ scale: 0.98 }}
-                  className="w-full py-4 px-6 bg-emerald-700 text-white font-bold rounded-lg hover:bg-emerald-800 transition-all shadow-md hover:shadow-lg flex items-center justify-center gap-2"
+                  className="w-full py-6 px-6 bg-emerald-700 text-white font-bold rounded-lg hover:bg-emerald-800 transition-all shadow-md hover:shadow-lg flex items-center justify-center gap-2"
                   onClick={() => window.open(planData.paymentLink, '_blank')}
                 >
                   <span>QUERO O PLANO COMPLETO</span>
                   <FaArrowRight className="animate-pulse" />
                 </motion.button>
 
+                {/* Countdown Timer */}
+                <CountdownTimer />
+
+
                 {/* Informações de segurança - imagem única */}
                 <div className="mt-4 flex justify-center">
                   <Image
                     src="/images/system/compra-segura.png"
                     alt="Compra Segura"
-                    width={300}
-                    height={60}
-                    style={{ width: 'auto', height: 'auto' }}
-                    className="max-w-full"
+                    width={250}
+                    height={50}
+                    style={{ width: '250px', height: 'auto', opacity: 0.6 }}
+                    className="max-w-[250px]"
                     loading="lazy"
                   />
                 </div>
-
-                <p className="text-center text-sm mt-4 text-gray-600">Acesso imediato no WhatsApp</p>
               </div>
             </div>
 
