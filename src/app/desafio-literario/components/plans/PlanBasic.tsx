@@ -108,14 +108,14 @@ export default function PlanBasic({ planData }: PlanBasicProps) {
               </div>
 
             {/* Separador */}
-            <div className="border-t border-gray-200 my-4"></div>
+            <div className="my-6"></div>
 
             {/* Chamada para o plano completo */}
             <div className="text-center bg-gradient-to-r from-blue-50 to-emerald-50 p-6 rounded-lg">
-              <p className="text-xl font-black text-red-600 mb-2 uppercase leading-relaxed">
-                Quer ganhar mais recursos exclusivos?
+              <p className="text-2xl font-bold text-red-600 mb-2 uppercase leading-relaxed">
+                Quer ganhar alguns presentes?
               </p>
-              <p className="text-zinc-600 font-bold mb-4">
+              <p className="text-xl text-zinc-600 mb-4">
                 Conheça abaixo nosso plano mais vantajoso com vários presentes únicos!
               </p>
               <div className="flex justify-center mt-2">
