@@ -46,8 +46,8 @@ const plansData: PlansDataType = {
   },
   full: {
     originalPrice: 76,
-    promotionalPrice: 18,
-    discount: '76% OFF',
+    promotionalPrice: 17,
+    discount: '78% OFF',
     paymentLink: PAYMENT_LINK_FULL
   }
 };
