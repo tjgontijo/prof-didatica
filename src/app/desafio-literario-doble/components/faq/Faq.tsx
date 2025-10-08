@@ -69,7 +69,7 @@ export default function Faq() {
           className="inline-block"
         >
           <Link 
-            href="#plans"
+            href="#plan-full"
             className="inline-flex items-center gap-2 text-white font-bold bg-emerald-700 hover:bg-emerald-800 px-8 py-4 rounded-lg transition-colors shadow-lg"
           >
             COMPRAR AGORA <FaArrowRight />

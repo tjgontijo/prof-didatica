@@ -8,6 +8,7 @@ import WhatsIncluded from './components/whats-included/WhatsIncluded';
 import Bonuses from './components/bonuses/Bonuses';
 import Results from './components/results/Results';
 import PlanBasic from './components/plans/PlanBasic';
+import PlanFull from './components/plans/PlanFull';
 import Faq from './components/faq/Faq';
 import Footer from './components/footer/Footer';
 
@@ -39,8 +40,8 @@ const PAYMENT_LINK_BASIC = 'https://seguro.profdidatica.com.br/r/NZL4JLXAYJ';
 const plansData: PlansDataType = {
   basic: {
     originalPrice: 18,
-    promotionalPrice: 5.9,
-    discount: '67% OFF',
+    promotionalPrice: 12,
+    discount: '33% OFF',
     paymentLink: PAYMENT_LINK_BASIC
   },
   full: {
@@ -52,6 +53,12 @@ const plansData: PlansDataType = {
 };
 
 const bonusData: Bonus[] = [
+  {
+    title: '40 Historinhas Exclusivas para o Desafio Literário',
+    description: 'Coletânea com 40 histórias curtas e envolventes, ideais para alunos em diferentes níveis de leitura.',
+    value: 17,
+    imagePath: '/images/products/historias-missao-literaria/bonus_cover.webp'
+  },
   {
     title: 'Kit de Certificados Personalizáveis',
     description: '3 modelos de certificados coloridos e editáveis para celebrar as conquistas dos seus alunos.',
@@ -83,8 +90,9 @@ export default function DesafioLiterarioPage() {
         <CtaUrgency />
         <Fit />
         <WhatsIncluded />
-        <Bonuses bonusData={bonusData} />        
+        <Bonuses bonusData={bonusData} />
         <PlanBasic planData={plansData.basic} />
+        <PlanFull planData={plansData.full} bonusData={bonusData} />
         <Results />
         <Faq />
       </div>
