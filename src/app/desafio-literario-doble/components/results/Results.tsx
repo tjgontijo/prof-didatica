@@ -62,7 +62,7 @@ export default function Results() {
             <div className="mt-8 max-w-md mx-auto">
               <div className="relative">
                 <CtaButton
-                  paymentLink="#plans"
+                  paymentLink="#plan-full"
                   text="COMPRAR AGORA"
                   className="shadow-[0_0_15px_rgba(70,123,157,0.5)] border-2 border-white"
                 />
