@@ -85,8 +85,8 @@ export default function DesafioLiterarioPage() {
         <WhatsIncluded />
         <Bonuses bonusData={bonusData} />        
         <PlanBasic planData={plansData.basic} />
-        <Results />
-        <Faq />
+        <Results planData={plansData.basic} />
+        <Faq planData={plansData.basic} />
       </div>
       <Footer />
     </main>

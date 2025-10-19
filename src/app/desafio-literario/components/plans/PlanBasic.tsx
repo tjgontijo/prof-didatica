@@ -16,6 +16,8 @@ interface PlanBasicProps {
 }
 
 export default function PlanBasic({ planData }: PlanBasicProps) {
+  const formattedOriginalPrice = planData.originalPrice.toLocaleString('pt-BR');
+  const formattedPromotionalPrice = planData.promotionalPrice.toLocaleString('pt-BR');
   return (
     <section id="plans" className="py-16 bg-gradient-to-b from-blue-50 to-white">
       <div className="container mx-auto px-4 max-w-3xl">
@@ -64,11 +66,11 @@ export default function PlanBasic({ planData }: PlanBasicProps) {
                     </li>
                     <li className="flex items-start p-2 hover:bg-blue-50 rounded-lg transition-colors">
                       <FaCheck className="text-[#457B9D] mt-1 mr-3 flex-shrink-0" />
-                      <span className="text-gray-600"><strong>2 modelo de Leiturômetro</strong> para gamificação</span>
+                      <span className="text-gray-600"><strong>3 modelo de Leiturômetro</strong> para gamificação</span>
                     </li>
                     <li className="flex items-start p-2 hover:bg-blue-50 rounded-lg transition-colors">
                       <FaCheck className="text-[#457B9D] mt-1 mr-3 flex-shrink-0" />
-                      <span className="text-gray-600"><strong>Tabela em PDF</strong> para controle de leitura</span>
+                      <span className="text-gray-600"><strong>2 modelos de Tabelas </strong> para controle de leitura</span>
                     </li>
                     <li className="flex items-start p-2 hover:bg-blue-50 rounded-lg transition-colors">
                       <FaCheck className="text-[#457B9D] mt-1 mr-3 flex-shrink-0" />
@@ -80,8 +82,8 @@ export default function PlanBasic({ planData }: PlanBasicProps) {
                 {/* Preço com destaque */}
                 <div className="mb-8 bg-gray-50 p-4 rounded-lg ">
                   <div className="flex flex-col items-center">
-                    <span className="text-lg font-medium text-gray-500 line-through decoration-red-600 decoration-2">R$ {planData.originalPrice}</span>
-                    <span className="text-5xl font-bold text-[#1D3557] my-1">R$ {planData.promotionalPrice}</span>
+                    <span className="text-lg font-medium text-gray-500 line-through decoration-red-600 decoration-2">R$ {formattedOriginalPrice}</span>
+                    <span className="text-5xl font-bold text-[#1D3557] my-1">R$ {formattedPromotionalPrice}</span>
                   </div>
                   <div className="mt-3 bg-yellow-100 text-yellow-800 text-sm font-medium px-3 py-1 rounded-full inline-flex items-center">
                     <FaStar className="mr-1" /> {planData.discount}

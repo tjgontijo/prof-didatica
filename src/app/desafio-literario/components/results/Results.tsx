@@ -2,7 +2,17 @@ import Image from 'next/image';
 import CtaButton from '@/components/buttons/CtaButton';
 import { FaArrowRight } from 'react-icons/fa';
 
-export default function Results() {
+// Usando os tipos definidos na página principal
+interface PlanBasicProps {
+  planData: {
+    originalPrice: number;
+    promotionalPrice: number;
+    discount: string;
+    paymentLink: string;
+  };
+}
+
+export default function Results({ planData }: PlanBasicProps) {
   return (
     <section className="bg-white rounded-lg shadow-lg p-8 mb-20">
       <h2 className="text-2xl md:text-3xl font-bold text-[#1D3557] mb-8 border-b-2 border-[#a8dadc] pb-3 uppercase text-center">
@@ -62,7 +72,7 @@ export default function Results() {
             <div className="mt-8 max-w-md mx-auto">
               <div className="relative">
                 <CtaButton
-                  paymentLink="#plans"
+                  paymentLink={planData.paymentLink}
                   text="COMPRAR AGORA"
                   className="shadow-[0_0_15px_rgba(70,123,157,0.5)] border-2 border-white"
                 />
