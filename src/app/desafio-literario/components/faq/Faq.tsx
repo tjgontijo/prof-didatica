@@ -2,15 +2,20 @@
 
 import FaqItem from './FaqItem';
 import { motion } from 'framer-motion';
-import Link from 'next/link';
 import { FaArrowRight } from 'react-icons/fa';
 
-export default function Faq() {
+interface FaqProps {
+  planData: {
+    paymentLink: string;
+  };
+}
+
+export default function Faq({ planData }: FaqProps) {
   const faqItems = [
     {
       question: 'Para qual faixa etária esse material é indicado?',
       answer:
-        'O recurso Missão Literária foi criado especialmente para alunos do Ensino Fundamental I para alunos do 2º ao 7º ano.',
+        'O Projeto Desafio Literário foi criado especialmente para alunos do Ensino Fundamental I para alunos do 2º ao 7º ano.',
     },
     {
       question: 'O material é digital ou físico?',
@@ -68,12 +73,14 @@ export default function Faq() {
           whileTap={{ scale: 0.95 }}
           className="inline-block"
         >
-          <Link 
-            href="#plans"
+          <a
+            href={planData.paymentLink}
+            target="_blank"
+            rel="noopener noreferrer"
             className="inline-flex items-center gap-2 text-white font-bold bg-emerald-700 hover:bg-emerald-800 px-8 py-4 rounded-lg transition-colors shadow-lg"
           >
             COMPRAR AGORA <FaArrowRight />
-          </Link>
+          </a>
         </motion.div>
       </div>
     </section>
