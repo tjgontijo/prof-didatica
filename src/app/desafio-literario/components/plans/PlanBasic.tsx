@@ -16,8 +16,14 @@ interface PlanBasicProps {
 }
 
 export default function PlanBasic({ planData }: PlanBasicProps) {
-  const formattedOriginalPrice = planData.originalPrice.toLocaleString('pt-BR');
-  const formattedPromotionalPrice = planData.promotionalPrice.toLocaleString('pt-BR');
+  const formattedOriginalPrice = planData.originalPrice.toLocaleString('pt-BR', {
+    minimumFractionDigits: 2,
+    maximumFractionDigits: 2
+  });
+  const formattedPromotionalPrice = planData.promotionalPrice.toLocaleString('pt-BR', {
+    minimumFractionDigits: 2,
+    maximumFractionDigits: 2
+  });
   return (
     <section id="plans" className="py-16 bg-gradient-to-b from-blue-50 to-white">
       <div className="container mx-auto px-4 max-w-3xl">
