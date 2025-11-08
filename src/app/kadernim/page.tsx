@@ -31,17 +31,17 @@ const upsellContent: UpsellContent = {
   subheadline:
     'Assista ao vídeo abaixo parasaber mais...',
   video: {
-    src: '/videos/vsl_01_desfocada_hb.mp4',
+    src: 'https://res.cloudinary.com/dvbynvwi2/video/upload/q_auto,f_auto/v1762560712/vsl_01_desfocada_hb_y6tvp7.mp4',
     title: 'Assista e libere o upgrade completo do Kadernim',
     unlockAtSecond: 140
   },
   accept: {
     label: 'Quero aproveitar agora',
-    url: 'https://profdidatica.mycartpanda.com/ex-ocu/next-offer/zbVPGz42m4?accepted=yes'
+    url: 'https://checkout.profdidatica.com.br/checkout/201872586:1'
   },
   decline: {
     label: 'Prefiro continuar sem o upgrade',
-    url: 'https://profdidatica.mycartpanda.com/ex-ocu/next-offer/zbVPGz42m4?accepted=no'
+    url: 'https://profdidatica.com.br'
   },
   highlights: []
 };
