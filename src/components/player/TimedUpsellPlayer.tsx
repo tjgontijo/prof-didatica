@@ -117,13 +117,17 @@ export function TimedUpsellPlayer({
     ]
   }), [src, title, poster]);
 
-  const options: PlyrProps['options'] = useMemo(() => ({
-    controls: ['play-large'],
-    fullscreen: {
-      enabled: false
-    },
-    tooltips: { controls: true, seek: true },
-  }), []);
+  const options: PlyrProps['options'] = useMemo(
+    () => ({
+      controls: ['play-large', 'progress'],
+      tooltips: { controls: true, seek: true },
+      clickToPlay: true,
+      autoplay: false,
+      autopause: false,
+      hideControlsOnPause: true
+    }),
+    []
+  );
 
   return (
     <div>
