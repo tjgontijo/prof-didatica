@@ -25,7 +25,7 @@ export default function Hero() {
             <span className="text-xs md:text-md font-medium">por apenas:</span>
             <div className="flex items-baseline">
               <span className="text-xs md:text-md font-medium">R$</span>
-              <span className="text-xl md:text-xl font-bold">5,90</span>
+              <span className="text-xl md:text-xl font-bold">7,90</span>
             </div>
             </div>
             <Image
