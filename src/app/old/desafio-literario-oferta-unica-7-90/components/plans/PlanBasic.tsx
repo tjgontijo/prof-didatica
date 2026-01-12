@@ -1,7 +1,6 @@
 'use client';
 
 import { FaCheck, FaStar } from 'react-icons/fa';
-import { FaChevronCircleDown } from 'react-icons/fa';
 import { BsLightningChargeFill } from 'react-icons/bs';
 import Image from 'next/image';
 import { motion } from 'framer-motion';
@@ -17,12 +16,20 @@ interface PlanBasicProps {
 }
 
 export default function PlanBasic({ planData }: PlanBasicProps) {
+  const formattedOriginalPrice = planData.originalPrice.toLocaleString('pt-BR', {
+    minimumFractionDigits: 2,
+    maximumFractionDigits: 2
+  });
+  const formattedPromotionalPrice = planData.promotionalPrice.toLocaleString('pt-BR', {
+    minimumFractionDigits: 2,
+    maximumFractionDigits: 2
+  });
   return (
     <section id="plans" className="py-16 bg-gradient-to-b from-blue-50 to-white">
       <div className="container mx-auto px-4 max-w-3xl">
         <div className="text-center mb-10">
-          <h2 className="text-3xl md:text-4xl font-bold text-[#1D3557] mb-3">Escolha o Plano Ideal</h2>
-          <p className="text-gray-600 max-w-2xl mx-auto">Comece com o plano básico e tenha acesso aos recursos essenciais para transformar a experiência de leitura dos seus alunos.</p>
+          <h2 className="text-3xl md:text-4xl font-bold text-[#1D3557] mb-3">Você vai Receber...</h2>
+          <p className="text-gray-600 max-w-2xl mx-auto">Tenha acesso aos recursos essenciais para transformar a experiência de leitura dos seus alunos.</p>
         </div>
         <motion.div
           initial={{ opacity: 0, y: 20 }}
@@ -30,16 +37,14 @@ export default function PlanBasic({ planData }: PlanBasicProps) {
           transition={{ duration: 0.5 }}
           viewport={{ once: true }}
           className="bg-white rounded-xl shadow-xl overflow-hidden border border-gray-200 transform transition-all hover:shadow-2xl">
-          {/* Cabeçalho com gradiente */}
           <div className="bg-gradient-to-r from-[#457B9D] to-[#1D3557] p-6 text-white relative overflow-hidden">
             <div className="flex items-center justify-center gap-2 mb-2">
               <BsLightningChargeFill className="text-yellow-300 animate-pulse" />
-              <h3 className="text-2xl md:text-3xl font-bold text-center">Plano Básico</h3>
+              <h3 className="text-2xl md:text-3xl font-bold text-center">Desafio Literário</h3>
             </div>
           </div>
 
           <div className="p-8">
-            {/* Imagem centralizada */}
             <div className="flex justify-center mb-6">
               <div className="relative w-60 h-60 md:w-64 md:h-64">
                 <Image
@@ -54,7 +59,6 @@ export default function PlanBasic({ planData }: PlanBasicProps) {
               </div>
             </div>
             <div className="text-center">
-               {/* O que está incluído */}
                <div className="mb-8">
                <div className="mt-2 border-t border-blue-200 pt-4"></div>
                   <h4 className="font-bold text-[#1D3557] mb-3 flex items-center max-w-md mx-auto text-left">
@@ -68,15 +72,15 @@ export default function PlanBasic({ planData }: PlanBasicProps) {
                     </li>
                     <li className="flex items-start p-2 hover:bg-blue-50 rounded-lg transition-colors">
                       <FaCheck className="text-[#457B9D] mt-1 mr-3 flex-shrink-0" />
-                      <span className="text-gray-600"><strong>2 modelo de Leiturômetro</strong> para gamificação</span>
+                      <span className="text-gray-600"><strong>3 modelo de Leiturômetro</strong> para gamificação</span>
                     </li>
                     <li className="flex items-start p-2 hover:bg-blue-50 rounded-lg transition-colors">
                       <FaCheck className="text-[#457B9D] mt-1 mr-3 flex-shrink-0" />
-                      <span className="text-gray-600"><strong>Tabela em PDF</strong> para controle de leitura</span>
+                      <span className="text-gray-600"><strong>2 modelos de Tabelas </strong> para controle de leitura</span>
                     </li>
                     <li className="flex items-start p-2 hover:bg-blue-50 rounded-lg transition-colors">
                       <FaCheck className="text-[#457B9D] mt-1 mr-3 flex-shrink-0" />
-                      <span className="text-gray-600"><strong>Acesso por 90 dias</strong></span>
+                      <span className="text-gray-600"><strong>Acesso vitalício</strong></span>
                     </li>
                   </ul>
                 </div>
@@ -84,15 +88,13 @@ export default function PlanBasic({ planData }: PlanBasicProps) {
                 {/* Preço com destaque */}
                 <div className="mb-8 bg-gray-50 p-4 rounded-lg ">
                   <div className="flex flex-col items-center">
-                    <span className="text-lg font-medium text-gray-500 line-through decoration-red-600 decoration-2">R$ {planData.originalPrice}</span>
-                    <span className="text-5xl font-bold text-[#1D3557] my-1">R$ {planData.promotionalPrice}</span>
+                    <span className="text-lg font-medium text-gray-500 line-through decoration-red-600 decoration-2">R$ {formattedOriginalPrice}</span>
+                    <span className="text-5xl font-bold text-[#1D3557] my-1">R$ {formattedPromotionalPrice}</span>
                   </div>
                   <div className="mt-3 bg-yellow-100 text-yellow-800 text-sm font-medium px-3 py-1 rounded-full inline-flex items-center">
                     <FaStar className="mr-1" /> {planData.discount}
                   </div>
                 </div>
-
-
 
                 {/* Botão de compra */}
                 <div className="max-w-sm mx-auto">
@@ -102,36 +104,11 @@ export default function PlanBasic({ planData }: PlanBasicProps) {
                     className="w-full py-4 px-6 bg-emerald-600 text-white font-bold rounded-lg hover:bg-emerald-700 transition-all shadow-md hover:shadow-lg flex items-center justify-center gap-2"
                     onClick={() => window.open(planData.paymentLink, '_blank')}
                   >
-                    <span>QUERO APENAS O BÁSICO</span>
+                    <span>COMPRAR AGORA</span>
                   </motion.button>
                 </div>
-              </div>
-
-            {/* Separador */}
+              </div>            
             <div className="my-6"></div>
-
-            {/* Chamada para o plano completo */}
-            <div className="text-center bg-gradient-to-r from-blue-50 to-emerald-50 p-6 rounded-lg">
-              <p className="text-2xl font-bold text-red-600 mb-2 uppercase leading-relaxed">
-                Quer ganhar alguns presentes?
-              </p>
-              <p className="text-xl text-zinc-600 mb-4">
-                Conheça abaixo nosso plano mais vantajoso com vários presentes únicos!
-              </p>
-              <div className="flex justify-center mt-2">
-                <motion.div
-                  animate={{ y: [0, 10, 0] }}
-                  transition={{
-                    repeat: Infinity,
-                    duration: 1.5,
-                    ease: "easeInOut"
-                  }}
-                  className="text-red-600"
-                >
-                  <FaChevronCircleDown size={40} />
-                </motion.div>
-              </div>
-            </div>
           </div>
         </motion.div>
       </div>

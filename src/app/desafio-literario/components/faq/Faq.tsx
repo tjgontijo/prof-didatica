@@ -4,18 +4,14 @@ import FaqItem from './FaqItem';
 import { motion } from 'framer-motion';
 import { FaArrowRight } from 'react-icons/fa';
 
-interface FaqProps {
-  planData: {
-    paymentLink: string;
-  };
-}
+const PAYMENT_LINK_FULL = 'https://seguro.profdidatica.com.br/r/D6B9TPX140';
 
-export default function Faq({ planData }: FaqProps) {
+export default function Faq() {
   const faqItems = [
     {
       question: 'Para qual faixa etária esse material é indicado?',
       answer:
-        'O Projeto Desafio Literário foi criado especialmente para alunos do Ensino Fundamental I para alunos do 2º ao 7º ano.',
+        'O recurso Desafio Literário foi criado especialmente para alunos do Ensino Fundamental I para alunos do 2º ao 7º ano.',
     },
     {
       question: 'O material é digital ou físico?',
@@ -45,43 +41,39 @@ export default function Faq({ planData }: FaqProps) {
     {
       question: 'E se eu não tiver experiência com projetos assim?',
       answer:
-        'Não tem problema. O material vem com um manual de aplicação completo, pensado para quem nunca trabalhou com esse tipo de proposta. Você não precisa adaptar nada nem inventar atividades. É só seguir o que está pronto.',
+        'Não tem problema. O material vem com um guia de aplicação completo, pensado para quem nunca trabalhou com esse tipo de proposta. Você não precisa adaptar nada nem inventar atividades. É só seguir o que está pronto.',
     },
   ];
 
   return (
-    <section className="bg-white rounded-lg shadow-lg py-8 px-6 mb-20">
-      <h2 className="text-2xl md:text-3xl font-bold text-[#1D3557] mb-8 text-center border-b-2 border-[#a8dadc] pb-3 uppercase">
-        Perguntas Frequentes (FAQ)
-      </h2>
-      <div className="space-y-4 max-w-3xl mx-auto">
-        {faqItems.map((item, index) => (
-          <FaqItem key={index} question={item.question} answer={item.answer} />
-        ))}
-      </div>
+    <section className="py-12 md:py-16 bg-white">
+      <div className="container mx-auto px-3 max-w-3xl">
+        <h2 className="text-2xl md:text-3xl font-bold text-dl-primary-800 mb-8 text-center border-b-2 border-dl-primary-100 pb-3 uppercase">
+          Perguntas Frequentes (FAQ)
+        </h2>
+        <div className="space-y-4">
+          {faqItems.map((item, index) => (
+            <FaqItem key={index} question={item.question} answer={item.answer} />
+          ))}
+        </div>
 
-      {/* CTA direcionando para o plano completo */}
-      <div className="mt-12 bg-gradient-to-r from-blue-50 to-emerald-50 p-8 rounded-lg max-w-3xl mx-auto text-center">
-        <h3 className="text-xl md:text-2xl font-bold text-[#1D3557] mb-4">
-          Pronto para transformar a experiência de leitura dos seus alunos?
-        </h3>
-        <p className="text-gray-700 mb-6 max-w-2xl mx-auto">
-          O Desafio Literário é a solução completa que vai engajar seus alunos e tornar a leitura uma atividade prazerosa e divertida.
-        </p>
-        <motion.div
-          whileHover={{ scale: 1.05 }}
-          whileTap={{ scale: 0.95 }}
-          className="inline-block"
-        >
-          <a
-            href={planData.paymentLink}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="inline-flex items-center gap-2 text-white font-bold bg-emerald-700 hover:bg-emerald-800 px-8 py-4 rounded-lg transition-colors shadow-lg"
+        {/* CTA direcionando para o plano completo */}
+        <div className="mt-12 bg-gradient-to-r from-dl-primary-50 to-blue-50 p-6 md:p-8 rounded-lg text-center">
+          <h3 className="text-xl md:text-2xl font-bold text-dl-primary-800 mb-4">
+            Pronto para transformar a experiência de leitura dos seus alunos?
+          </h3>
+          <p className="text-gray-700 mb-6">
+            O Desafio Literário é a solução completa que vai engajar seus alunos e tornar a leitura uma atividade prazerosa e divertida.
+          </p>
+          <motion.a
+            href={PAYMENT_LINK_FULL}
+            whileHover={{ scale: 1.05 }}
+            whileTap={{ scale: 0.95 }}
+            className="inline-flex items-center gap-2 text-white font-bold bg-dl-accent hover:bg-dl-accent-hover px-8 py-4 rounded-lg transition-colors shadow-lg cursor-pointer no-underline"
           >
             COMPRAR AGORA <FaArrowRight />
-          </a>
-        </motion.div>
+          </motion.a>
+        </div>
       </div>
     </section>
   );

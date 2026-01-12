@@ -2,7 +2,17 @@ import Image from 'next/image';
 import CtaButton from '@/components/buttons/CtaButton';
 import { FaArrowRight } from 'react-icons/fa';
 
-export default function Results() {
+// Usando os tipos definidos na página principal
+interface PlanBasicProps {
+  planData: {
+    originalPrice: number;
+    promotionalPrice: number;
+    discount: string;
+    paymentLink: string;
+  };
+}
+
+export default function Results({ planData }: PlanBasicProps) {
   return (
     <section className="bg-white rounded-lg shadow-lg p-8 mb-20">
       <h2 className="text-2xl md:text-3xl font-bold text-[#1D3557] mb-8 border-b-2 border-[#a8dadc] pb-3 uppercase text-center">
@@ -43,9 +53,9 @@ export default function Results() {
               seus alunos em{' '}
               <span className="text-[#e63946] font-extrabold">leitores apaixonados!</span>
             </p>
-            <div className="flex justify-center mt-4">
+            <div className="flex justify-center mt-3">
               <svg
-                className="w-12 h-12 text-[#457B9D] animate-bounce"
+                className="w-8 h-8 text-[#457B9D] animate-bounce"
                 fill="currentColor"
                 viewBox="0 0 20 20"
                 xmlns="http://www.w3.org/2000/svg"
@@ -59,12 +69,20 @@ export default function Results() {
             </div>
 
             {/* CTA Button */}
-            <div className="mt-0 max-w-md mx-auto">              
+            <div className="mt-8 max-w-md mx-auto">
+              <div className="relative">
                 <CtaButton
-                  paymentLink="https://seguro.profdidatica.com.br/r/D6B9TPX140"
+                  paymentLink={planData.paymentLink}
                   text="COMPRAR AGORA"
                   className="shadow-[0_0_15px_rgba(70,123,157,0.5)] border-2 border-white"
                 />
+                <div className="absolute -top-3 -right-3 bg-[#e63946] text-white text-xs font-bold py-1 px-3 rounded-full shadow-md transform rotate-3">
+                  OFERTA ESPECIAL
+                </div>
+              </div>
+              <p className="text-center text-sm text-[#457B9D] mt-3 font-medium flex items-center justify-center gap-1">
+                Receba agora mesmo no WhatsApp<FaArrowRight className="ml-1" />
+              </p>
             </div>
           </div>
         </div>

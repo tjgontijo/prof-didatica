@@ -33,7 +33,7 @@ export default function PlanBasic({ planData }: PlanBasicProps) {
           {/* Cabeçalho com gradiente */}
           <div className="bg-gradient-to-r from-[#457B9D] to-[#1D3557] p-6 text-white relative overflow-hidden">
             <div className="flex items-center justify-center gap-2 mb-2">
-              <BsLightningChargeFill className="text-yellow-300" />
+              <BsLightningChargeFill className="text-yellow-300 animate-pulse" />
               <h3 className="text-2xl md:text-3xl font-bold text-center">Plano Básico</h3>
             </div>
           </div>
@@ -100,7 +100,7 @@ export default function PlanBasic({ planData }: PlanBasicProps) {
                     href={planData.paymentLink}
                     whileHover={{ scale: 1.03 }}
                     whileTap={{ scale: 0.98 }}
-                    className="w-full py-4 px-6 bg-emerald-600 text-white font-bold rounded-lg hover:bg-emerald-700 transition-all shadow-md hover:shadow-lg flex items-center justify-center gap-2 cursor-pointer no-underline"
+                    className="w-full py-4 px-6 bg-emerald-600 text-white font-bold rounded-lg hover:bg-emerald-700 transition-all shadow-md hover:shadow-lg flex items-center justify-center gap-2 cursor-pointer"
                   >
                     <span>QUERO APENAS O BÁSICO</span>
                   </motion.a>

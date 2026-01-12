@@ -36,12 +36,12 @@ export default function Demo() {
     style.innerHTML = `
       .swiper-custom-arrows .swiper-button-next,
       .swiper-custom-arrows .swiper-button-prev {
-        width: 44px;
-        height: 44px;
+        width: 30px;
+        height: 30px;
       }
       .swiper-custom-arrows .swiper-button-next:after,
       .swiper-custom-arrows .swiper-button-prev:after {
-        font-size: 20px;
+        font-size: 16px;
         font-weight: bold;
         color: #457B9D;
       }
@@ -135,15 +135,18 @@ export default function Demo() {
   }
 
   return (
-    <section id="demo" className="py-12 px-3 md:py-16">
-      <div className="container mx-auto px-3 max-w-4xl">
-        <div className="text-center mb-8">
-          <h2 className="text-2xl md:text-3xl font-bold text-dl-primary-800 mb-4 uppercase">
-            Veja uma parte do que você vai receber
+    <section id="demo" className="py-16 bg-gray-50">
+      <div className="container mx-auto px-4">
+        <div className="text-center mb-12">
+          <h2 className="text-3xl md:text-4xl font-bold text-[#1D3557] mb-4">
+            VEJA UMA AMOSTRA DOS MATERIAIS QUE VOCÊ VAI RECEBER
           </h2>
+          <p className="text-xl text-[#457B9D] max-w-3xl mx-auto">
+          Enviado para o seu WhatsApp pronto para imprimir e aplicar já na sua próxima aula
+          </p>
         </div>
 
-        <div>
+        <div className="max-w-4xl mx-auto">
           <Carrossel
             items={carrosselItems}
             slidesPerView={1}
@@ -175,7 +178,7 @@ export default function Demo() {
 
           {/* Legenda atual */}
           <div className="mt-8 text-center">
-            <h3 className="text-xl font-bold text-dl-primary-500">
+            <h3 className="text-xl font-bold text-[#457B9D]">
               {itensCarrossel[activeIndex].legenda}
             </h3>
             <p className="mt-2 text-gray-700">

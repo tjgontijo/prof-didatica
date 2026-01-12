@@ -1,18 +1,15 @@
+import Header from './components/header/Header';
 import Hero from './components/hero/Hero';
-import Problem from './components/problem/Problem';
-import Solution from './components/solution/Solution';
 import Demo from './components/demo/Demo';
 import Benefits from './components/benefits/Benefits';
 import CtaUrgency from './components/cta-urgency/CtaUrgency';
 import Fit from './components/fit/Fit';
 import WhatsIncluded from './components/whats-included/WhatsIncluded';
 import Bonuses from './components/bonuses/Bonuses';
+import Results from './components/results/Results';
 import PlanBasic from './components/plans/PlanBasic';
-import PlanFull from './components/plans/PlanFull';
 import Faq from './components/faq/Faq';
 import Footer from './components/footer/Footer';
-import Results from './components/results/Results';
-import './page-wrapper.css';
 
 // Tipos centralizados
 type PlanType = {
@@ -42,8 +39,8 @@ const PAYMENT_LINK_BASIC = 'https://seguro.profdidatica.com.br/r/NZL4JLXAYJ';
 const plansData: PlansDataType = {
   basic: {
     originalPrice: 18,
-    promotionalPrice: 12,
-    discount: '33% OFF',
+    promotionalPrice: 7.9,
+    discount: '61% OFF',
     paymentLink: PAYMENT_LINK_BASIC
   },
   full: {
@@ -55,12 +52,6 @@ const plansData: PlansDataType = {
 };
 
 const bonusData: Bonus[] = [
-  {
-    title: '40 Historinhas Exclusivas para o Desafio Literário',
-    description: 'Coletânea com 40 histórias curtas e envolventes, ideais para alunos em diferentes níveis de leitura.',
-    value: 17,
-    imagePath: '/images/products/historias-missao-literaria/bonus_cover.webp'
-  },
   {
     title: 'Kit de Certificados Personalizáveis',
     description: '3 modelos de certificados coloridos e editáveis para celebrar as conquistas dos seus alunos.',
@@ -83,23 +74,19 @@ const bonusData: Bonus[] = [
 
 export default function DesafioLiterarioPage() {
   return (
-    <main className="desafio-literario-page bg-dl-primary-50 min-h-screen">
-      <div className="max-w-screen-2xl mx-auto">
-        <Hero />                
-        <Problem /> 
-                <WhatsIncluded />       
-        <Solution />
-
+    <main className="bg-[#f1faee]">
+      <Header />
+      <div className="px-4 md:px-6 lg:px-8 max-w-screen-2xl mx-auto">
+        <Hero />
         <Demo />
-        {/* <Benefits /> */}
-        {/* <CtaUrgency /> */}
-        {/* <Fit /> */}
-
-        <Bonuses bonusData={bonusData} />
+        <Benefits />
+        <CtaUrgency />
+        <Fit />
+        <WhatsIncluded />
+        <Bonuses bonusData={bonusData} />        
         <PlanBasic planData={plansData.basic} />
-        <PlanFull planData={plansData.full} bonusData={bonusData} />
-        <Results />
-        <Faq />
+        <Results planData={plansData.basic} />
+        <Faq planData={plansData.basic} />
       </div>
       <Footer />
     </main>

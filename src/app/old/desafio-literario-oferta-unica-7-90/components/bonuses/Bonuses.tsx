@@ -66,14 +66,14 @@ const Bonuses: React.FC<BonusesProps> = ({ bonusData }) => {
   }));
 
   return (
-    <section id="bonuses" className="py-12 px-3 md:py-16">
-      <div className="container mx-auto px-4 max-w-4xl">
+    <section id="bonuses" className="py-16 bg-white">
+      <div className="container mx-auto px-4">
         <div className="text-center mb-12">
-          <h2 className="text-3xl md:text-4xl font-bold text-dl-primary-800 mb-4 uppercase">
-            Você ainda recebe 4 BÔNUS EXCLUSIVOS
+          <h2 className="text-3xl md:text-4xl font-bold text-[#1D3557] mb-4">
+            BÔNUS EXCLUSIVOS PARA TURBINAR SEUS RESULTADOS
           </h2>
-          <p className="text-lg text-dl-primary-500 max-w-3xl mx-auto">
-          Além do Desafio Literário, você ainda recebe 4 presentes meus para engajar seus alunos na leitura. <br />Se fossem comprados separadamente <span className="font-bold">custariam R$ 58,00</span>, mas <span className="font-bold">hoje são 100% gratuitos para você</span>.
+          <p className="text-lg text-[#457B9D] max-w-3xl mx-auto">
+          Além do Desafio Literário, você ainda recebe 4 presentes meus para engajar seus alunos na leitura. Se fossem comprados separadamente <span className="font-bold">custariam R$ 54,00</span>, mas <span className="font-bold">hoje são 100% gratuitos para você</span>.
           </p>
         </div>
         <div className="space-y-8 max-w-3xl mx-auto">

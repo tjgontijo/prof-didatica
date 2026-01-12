@@ -94,7 +94,7 @@ function CountdownTimer() {
 export default function PlanFull({ planData, bonusData }: PlanFullProps) {
   return (
     <section id="plan-full" className="py-16 bg-gradient-to-b from-emerald-50 to-white">
-      <div className="container mx-auto px-2 max-w-3xl">
+      <div className="container mx-auto px-4 max-w-3xl">
 
         <motion.div
           initial={{ opacity: 0, y: 20 }}
@@ -109,13 +109,13 @@ export default function PlanFull({ planData, bonusData }: PlanFullProps) {
               MAIS VENDIDO
             </div>
             <div className="flex items-center justify-center gap-2 mb-2">
-              <FaGem className="text-yellow-300" />
+              <FaGem className="text-yellow-300 animate-pulse" />
               <h3 className="text-2xl md:text-3xl font-bold text-center">Plano Completo</h3>
             </div>
             <p className="text-center opacity-90 mt-2">Acesso a todos os recursos + bônus exclusivos</p>
           </div>
 
-          <div className="p-4">
+          <div className="p-8">
             {/* Layout de coluna única */}
             <div className="flex flex-col items-center">
               {/* Imagem centralizada */}
@@ -229,9 +229,10 @@ export default function PlanFull({ planData, bonusData }: PlanFullProps) {
                   href={planData.paymentLink}
                   whileHover={{ scale: 1.03 }}
                   whileTap={{ scale: 0.98 }}
-                  className="w-full py-6 px-6 bg-emerald-700 text-white font-bold rounded-lg hover:bg-emerald-800 transition-all shadow-md hover:shadow-lg flex items-center justify-center gap-2 cursor-pointer no-underline"
+                  className="w-full py-6 px-6 bg-emerald-700 text-white font-bold rounded-lg hover:bg-emerald-800 transition-all shadow-md hover:shadow-lg flex items-center justify-center gap-2 cursor-pointer"
                 >
                   <span>QUERO O PLANO COMPLETO</span>
+                  <FaArrowRight />
                 </motion.a>
 
                 {/* Countdown Timer */}

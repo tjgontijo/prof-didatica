@@ -1,53 +1,56 @@
-export default function Solution() {
-  return (
-    <section className="bg-white rounded-lg shadow-lg p-8 mb-20">
-      <div className="relative mb-10">
-        <div className="absolute -top-3 left-4 bg-[#a8dadc] text-[#1D3557] px-4 py-1 rounded-full text-sm font-medium">
-          Imagine só...
-        </div>
-        <h2 className="text-2xl md:text-3xl  text-[#1D3557] p-6 bg-[#f8f9fa] rounded-lg shadow-md border-2 border-dashed border-[#a8dadc]">
-          <span className="italic">
-            Até aquele aluno mais difícil disputando pra ser o próximo a apresentar o livro lido na semana. Um sonho, né?
-          </span>
-          <span className="absolute -right-2 -bottom-2 text-3xl">💭</span>
-        </h2>
-      </div>
-      <div className="flex flex-col gap-8 items-center mb-6">
-        <p className="text-gray-800 text-xl mb-4 leading-relaxed">
-          Esse é o poder desse desafio! Enquanto se divertem, os alunos desenvolvem habilidades que vão além do conteúdo:
-        </p>
-      </div>
+import { FaBookOpen, FaPrint, FaWhatsapp } from 'react-icons/fa';
 
-      <div className="bg-gradient-to-r from-[#f8f9fa] to-[#e9ecef] p-5 rounded-lg border-l-4 border-[#6bbbed] shadow-md mb-4">
-        <div className="flex flex-rol items-center space-y-3">
-          <div className="text-3xl text-[#457B9D] mr-2">📖</div>
-          <p className="font-bold text-lg text-[#1D3557] text-left">
-            Criam naturalmente o gosto e o hábito pela leitura
-          </p>
-        </div>
-      </div>
-      <div className="bg-gradient-to-r from-[#f8f9fa] to-[#e9ecef] p-5 rounded-lg border-l-4 border-[#6bbbed] shadow-md mb-4">
-        <div className="flex flex-rol items-center space-y-3">
-          <div className="text-3xl text-[#457B9D] mr-2">🔍</div>
-          <p className="font-bold text-lg text-[#1D3557] text-left">
-            Ampliam vocabulário, interpretação e pensamento crítico
-          </p>
-        </div>
-      </div>
-      <div className="bg-gradient-to-r from-[#f8f9fa] to-[#e9ecef] p-5 rounded-lg border-l-4 border-[#6bbbed] shadow-md mb-4">
-        <div className="flex flex-rol items-center space-y-3">
-          <div className="text-3xl text-[#457B9D] mr-2">🏆</div>
-          <p className="font-bold text-lg text-[#1D3557] text-left">
-            Participam de uma competição saudável que os motiva a continuar
-          </p>
-        </div>
-      </div>
-      <div className="bg-gradient-to-r from-[#f8f9fa] to-[#e9ecef] p-5 rounded-lg border-l-4 border-[#6bbbed] shadow-md mb-4">
-        <div className="flex flex-rol items-center space-y-3">
-          <div className="text-3xl text-[#457B9D] mr-2">🔥</div>
-          <p className="font-bold text-lg text-[#1D3557] text-left">
-            Engajam mais nas aulas, com mais autonomia e interesse
-          </p>
+export default function Solution() {
+  const steps = [
+    {
+      title: 'Chega no seu WhatsApp',
+      description:
+        'O Kit Desafio Literário é 100% digital. Logo após a compra, você recebe tudo no WhatsApp e pode baixar quantas vezes quiser.',
+      icon: FaWhatsapp,
+    },
+    {
+      title: 'Você imprime',
+      description:
+        'Imprima só o que for usar. Dá pra aplicar com a turma inteira e reutilizar o material sempre que precisar.',
+      icon: FaPrint,
+    },
+    {
+      title: 'Hora da Leitura',
+      description:
+        'Agora sim. Seus alunos entram na dinâmica e a leitura fica mais leve, participativa e gostosa de acompanhar.',
+      icon: FaBookOpen,
+    },
+  ];
+
+  return (
+    <section className="py-12 px-3 md:py-16 bg-white">
+      <div className="container mx-auto px-3 max-w-3xl">
+        <h2 className="text-2xl md:text-3xl font-bold text-dl-primary-800 mb-8 border-b-2 border-dl-primary-100 pb-3 text-center uppercase">
+          Como funciona o Kit Desafio Literário?
+        </h2>
+
+        <div className="space-y-4">
+          {steps.map((step) => {
+            const Icon = step.icon;
+            return (
+              <div
+                key={step.title}
+                className="flex items-start gap-4 rounded-xl bg-white p-4 md:p-5 shadow-sm border border-dl-primary-100"
+              >
+                <div className="flex-shrink-0">
+                  <div className="w-12 h-12 rounded-full bg-dl-primary-50 border border-dl-primary-100 flex items-center justify-center shadow-sm">
+                    <Icon className="text-xl text-dl-primary-800" aria-hidden />
+                  </div>
+                </div>
+                <div>
+                  <h3 className="text-lg md:text-xl font-bold text-dl-primary-800">{step.title}</h3>
+                  <p className="text-base md:text-lg text-dl-primary-500 mt-1 leading-relaxed">
+                    {step.description}
+                  </p>
+                </div>
+              </div>
+            );
+          })}
         </div>
       </div>
     </section>
