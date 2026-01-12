@@ -47,3 +47,6 @@ Thumbs.db
 *.pem
 
 /generated/prisma
+
+
+public/videos
