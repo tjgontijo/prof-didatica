@@ -135,7 +135,7 @@ export default function Demo() {
   }
 
   return (
-    <section id="demo" className="py-12 px-3 md:py-16">
+    <section id="demo" className="py-12 px-3 md:py-16 bg-dl-primary-50">
       <div className="container mx-auto px-3 max-w-4xl">
         <div className="text-center mb-8">
           <h2 className="text-2xl md:text-3xl font-bold text-dl-primary-800 mb-4 uppercase">
