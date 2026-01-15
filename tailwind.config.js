@@ -42,6 +42,10 @@ module.exports = {
 		  'dl-success': {
 			DEFAULT: '#16a34a', // green-600 (selos, garantia)
 		  },
+		  'dl-bg': {
+			'warm-cream': '#FFF8F0',  // Bege quente acessível (Problem)
+			'lavender': '#F0EDFF',     // Lavanda acessível (Solution, Results)
+		  },
 		},
 		borderRadius: {
 		  lg: '12px',
