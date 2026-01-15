@@ -1,26 +1,44 @@
+'use client';
+
 import Image from 'next/image';
 import CtaButton from '@/components/buttons/CtaButton';
 import { FaArrowRight } from 'react-icons/fa';
+import { useState, useEffect } from 'react';
 
 export default function Results() {
+  // Depoimentos fixos para hidratação consistente
+  const [testimonials, setTestimonials] = useState([1, 2, 3, 4]);
+
+  // Randomiza apenas no cliente após montagem
+  useEffect(() => {
+    const totalTestimonials = 14;
+    const numberOfTestimonials = 4;
+    const allIndexes = Array.from({ length: totalTestimonials }, (_, i) => i + 1);
+
+    // Embaralha e pega os primeiros 4
+    const shuffled = allIndexes.sort(() => Math.random() - 0.5);
+    setTestimonials(shuffled.slice(0, numberOfTestimonials));
+  }, []);
+
   return (
-    <section className="bg-white rounded-lg shadow-lg p-8 mb-20">
-      <h2 className="text-2xl md:text-3xl font-bold text-[#1D3557] mb-8 border-b-2 border-[#a8dadc] pb-3 uppercase text-center">
-        Resultados comprovados
-      </h2>
+    <section className="bg-dl-bg-lavender py-12 px-3 md:py-16">
+      <div className="container mx-auto px-3 max-w-3xl">
+        <h2 className="text-2xl md:text-3xl font-bold text-dl-primary-800 mb-8 border-b-2 border-dl-primary-100 pb-3 uppercase text-center">
+          Resultados comprovados
+        </h2>
       <h3 className="font-bold text-xl text-gray-800 mb-6 text-center pb-3">
         💬 Veja o que estão dizendo:
       </h3>
 
       <div className="flex flex-col gap-6 items-center">
-        {/* Prints de WhatsApp e comentários do Instagram em formato vertical */}
-        {[...Array(14)].map((_, index) => {
-          const imageNumber = (index + 1).toString().padStart(2, '0');
+        {/* Exibe 4 depoimentos aleatórios */}
+        {testimonials.map((testimonialNumber: number) => {
+          const imageNumber = testimonialNumber.toString().padStart(2, '0');
           return (
             <div key={imageNumber} className="w-full max-w-md">
               <Image
                 src={`/images/products/missao-literaria/depoimentos/${imageNumber}.webp`}
-                alt={`Depoimento ${index + 1} de professor(a) sobre o Missão Literária`}
+                alt={`Depoimento ${testimonialNumber} de professor(a) sobre o Missão Literária`}
                 width={400}
                 height={0}
                 sizes="(max-width: 768px) 100vw, 400px"
@@ -68,6 +86,7 @@ export default function Results() {
             </div>
           </div>
         </div>
+      </div>
       </div>
     </section>
   );
