@@ -23,7 +23,7 @@ export default function Solution() {
   ];
 
   return (
-    <section className="py-12 px-3 md:py-16 bg-white">
+    <section className="py-12 px-3 md:py-16 bg-dl-bg-lavender">
       <div className="container mx-auto px-3 max-w-3xl">
         <h2 className="text-2xl md:text-3xl font-bold text-dl-primary-800 mb-8 border-b-2 border-dl-primary-100 pb-3 text-center uppercase">
           Como funciona o Kit Desafio Literário?
