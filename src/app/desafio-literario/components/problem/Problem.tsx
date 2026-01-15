@@ -2,7 +2,7 @@ import Image from 'next/image';
 
 export default function Problem() {
   return (
-    <section className="pt-6 pb-16 px-3 md:py-16">
+    <section className="pt-6 pb-16 px-3 md:py-16 bg-dl-bg-warm-cream">
       <div className="container mx-auto px-3 max-w-3xl">
         <h2 className="text-2xl md:text-3xl font-bold text-dl-primary-800 mb-6 border-b-2 border-dl-primary-100 pb-3 text-center uppercase">
           Está difícil fazer seus alunos se interessarem pela leitura?
