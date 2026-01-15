@@ -2,9 +2,6 @@ import Hero from './components/hero/Hero';
 import Problem from './components/problem/Problem';
 import Solution from './components/solution/Solution';
 import Demo from './components/demo/Demo';
-import Benefits from './components/benefits/Benefits';
-import CtaUrgency from './components/cta-urgency/CtaUrgency';
-import Fit from './components/fit/Fit';
 import WhatsIncluded from './components/whats-included/WhatsIncluded';
 import Bonuses from './components/bonuses/Bonuses';
 import PlanBasic from './components/plans/PlanBasic';
@@ -87,14 +84,9 @@ export default function DesafioLiterarioPage() {
       <div className="max-w-screen-2xl mx-auto">
         <Hero />                
         <Problem /> 
-                <WhatsIncluded />       
+        <WhatsIncluded />       
         <Solution />
-
         <Demo />
-        {/* <Benefits /> */}
-        {/* <CtaUrgency /> */}
-        {/* <Fit /> */}
-
         <Bonuses bonusData={bonusData} />
         <PlanBasic planData={plansData.basic} />
         <PlanFull planData={plansData.full} bonusData={bonusData} />
