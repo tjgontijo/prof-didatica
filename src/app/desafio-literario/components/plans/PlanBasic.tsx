@@ -1,10 +1,6 @@
-'use client';
-
-import { FaCheck, FaStar } from 'react-icons/fa';
-import { FaChevronCircleDown } from 'react-icons/fa';
-import { BsLightningChargeFill } from 'react-icons/bs';
+import { Check, Star, ChevronDown, Zap } from 'lucide-react';
 import Image from 'next/image';
-import { motion } from 'framer-motion';
+import CtaButton from '@/components/buttons/CtaButton';
 
 // Usando os tipos definidos na página principal
 interface PlanBasicProps {
@@ -24,16 +20,11 @@ export default function PlanBasic({ planData }: PlanBasicProps) {
           <h2 className="text-3xl md:text-4xl font-bold text-[#1D3557] mb-3">Escolha o Plano Ideal</h2>
           <p className="text-gray-600 max-w-2xl mx-auto">Comece com o plano básico e tenha acesso aos recursos essenciais para transformar a experiência de leitura dos seus alunos.</p>
         </div>
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.5 }}
-          viewport={{ once: true }}
-          className="bg-white rounded-xl shadow-xl overflow-hidden border border-gray-200 transform transition-all hover:shadow-2xl">
+        <div className="bg-white rounded-xl shadow-xl overflow-hidden border border-gray-200 transition-all hover:shadow-2xl">
           {/* Cabeçalho com gradiente */}
           <div className="bg-gradient-to-r from-[#457B9D] to-[#1D3557] p-6 text-white relative overflow-hidden">
             <div className="flex items-center justify-center gap-2 mb-2">
-              <BsLightningChargeFill className="text-yellow-300" />
+              <Zap className="text-yellow-300" />
               <h3 className="text-2xl md:text-3xl font-bold text-center">Plano Básico</h3>
             </div>
           </div>
@@ -63,19 +54,19 @@ export default function PlanBasic({ planData }: PlanBasicProps) {
                   </h4>
                   <ul className="space-y-3 max-w-md mx-auto text-left">
                     <li className="flex items-start p-2 hover:bg-blue-50 rounded-lg transition-colors">
-                      <FaCheck className="text-[#457B9D] mt-1 mr-3 flex-shrink-0" />
+                      <Check className="text-[#457B9D] mt-1 mr-3 flex-shrink-0" />
                       <span className="text-gray-600"><strong>20 fichas literárias</strong> para estimular a leitura</span>
                     </li>
                     <li className="flex items-start p-2 hover:bg-blue-50 rounded-lg transition-colors">
-                      <FaCheck className="text-[#457B9D] mt-1 mr-3 flex-shrink-0" />
+                      <Check className="text-[#457B9D] mt-1 mr-3 flex-shrink-0" />
                       <span className="text-gray-600"><strong>2 modelo de Leiturômetro</strong> para gamificação</span>
                     </li>
                     <li className="flex items-start p-2 hover:bg-blue-50 rounded-lg transition-colors">
-                      <FaCheck className="text-[#457B9D] mt-1 mr-3 flex-shrink-0" />
+                      <Check className="text-[#457B9D] mt-1 mr-3 flex-shrink-0" />
                       <span className="text-gray-600"><strong>Tabela em PDF</strong> para controle de leitura</span>
                     </li>
                     <li className="flex items-start p-2 hover:bg-blue-50 rounded-lg transition-colors">
-                      <FaCheck className="text-[#457B9D] mt-1 mr-3 flex-shrink-0" />
+                      <Check className="text-[#457B9D] mt-1 mr-3 flex-shrink-0" />
                       <span className="text-gray-600"><strong>Acesso por 90 dias</strong></span>
                     </li>
                   </ul>
@@ -88,7 +79,7 @@ export default function PlanBasic({ planData }: PlanBasicProps) {
                     <span className="text-5xl font-bold text-[#1D3557] my-1">R$ {planData.promotionalPrice}</span>
                   </div>
                   <div className="mt-3 bg-yellow-100 text-yellow-800 text-sm font-medium px-3 py-1 rounded-full inline-flex items-center">
-                    <FaStar className="mr-1" /> {planData.discount}
+                    <Star className="mr-1" /> {planData.discount}
                   </div>
                 </div>
 
@@ -96,14 +87,11 @@ export default function PlanBasic({ planData }: PlanBasicProps) {
 
                 {/* Botão de compra */}
                 <div className="max-w-sm mx-auto">
-                  <motion.a
-                    href={planData.paymentLink}
-                    whileHover={{ scale: 1.03 }}
-                    whileTap={{ scale: 0.98 }}
-                    className="w-full py-4 px-6 bg-emerald-600 text-white font-bold rounded-lg hover:bg-emerald-700 transition-all shadow-md hover:shadow-lg flex items-center justify-center gap-2 cursor-pointer no-underline"
-                  >
-                    <span>QUERO APENAS O BÁSICO</span>
-                  </motion.a>
+                  <CtaButton
+                    paymentLink={planData.paymentLink}
+                    text="QUERO APENAS O BÁSICO"
+                    className="!bg-emerald-600 hover:!bg-emerald-700 !py-4"
+                  />
                 </div>
               </div>
 
@@ -119,21 +107,13 @@ export default function PlanBasic({ planData }: PlanBasicProps) {
                 Conheça abaixo nosso plano mais vantajoso com vários presentes únicos!
               </p>
               <div className="flex justify-center mt-2">
-                <motion.div
-                  animate={{ y: [0, 10, 0] }}
-                  transition={{
-                    repeat: Infinity,
-                    duration: 1.5,
-                    ease: "easeInOut"
-                  }}
-                  className="text-red-600"
-                >
-                  <FaChevronCircleDown size={40} />
-                </motion.div>
+                <div className="text-red-600 animate-bounce">
+                  <ChevronDown size={40} strokeWidth={2} />
+                </div>
               </div>
             </div>
           </div>
-        </motion.div>
+        </div>
       </div>
     </section>
   );

@@ -1,8 +1,7 @@
 'use client';
 
 import FaqItem from './FaqItem';
-import { motion } from 'framer-motion';
-import { FaArrowRight } from 'react-icons/fa';
+import CtaButton from '@/components/buttons/CtaButton';
 
 const PAYMENT_LINK_FULL = 'https://seguro.profdidatica.com.br/r/D6B9TPX140';
 
@@ -65,14 +64,13 @@ export default function Faq() {
           <p className="text-gray-700 mb-6">
             O Desafio Literário é a solução completa que vai engajar seus alunos e tornar a leitura uma atividade prazerosa e divertida.
           </p>
-          <motion.a
-            href={PAYMENT_LINK_FULL}
-            whileHover={{ scale: 1.05 }}
-            whileTap={{ scale: 0.95 }}
-            className="inline-flex items-center gap-2 text-white font-bold bg-dl-accent hover:bg-dl-accent-hover px-8 py-4 rounded-lg transition-colors shadow-lg cursor-pointer no-underline"
-          >
-            COMPRAR AGORA <FaArrowRight />
-          </motion.a>
+          <div className="max-w-md mx-auto">
+            <CtaButton
+              paymentLink={PAYMENT_LINK_FULL}
+              text="COMPRAR AGORA"
+              className="!bg-dl-accent hover:!bg-dl-accent-hover"
+            />
+          </div>
         </div>
       </div>
     </section>

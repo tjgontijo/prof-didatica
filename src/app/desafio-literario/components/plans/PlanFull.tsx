@@ -1,9 +1,10 @@
 'use client';
 
-import { FaCheck, FaArrowRight, FaShieldAlt, FaStar, FaGem, FaClock } from 'react-icons/fa';
+import { Check, Shield, Star, Gem, Clock } from 'lucide-react';
 import { useEffect, useState } from 'react';
 import Image from 'next/image';
 import { motion } from 'framer-motion';
+import CtaButton from '@/components/buttons/CtaButton';
 
 // Usando os tipos definidos na página principal
 interface PlanFullProps {
@@ -81,7 +82,7 @@ function CountdownTimer() {
       </div>
       <div className="flex flex-col items-center">
         <span className="text-xs text-emerald-700 mb-1 flex items-center">
-          <FaClock className="mr-1" /> Oferta acaba em
+          <Clock className="mr-1" /> Oferta acaba em
         </span>
         <span className="font-bold text-lg text-emerald-800 tracking-widest">
           {formatTempo(tempoRestante)}
@@ -109,7 +110,7 @@ export default function PlanFull({ planData, bonusData }: PlanFullProps) {
               MAIS VENDIDO
             </div>
             <div className="flex items-center justify-center gap-2 mb-2">
-              <FaGem className="text-yellow-300" />
+              <Gem className="text-yellow-300" />
               <h3 className="text-2xl md:text-3xl font-bold text-center">Plano Completo</h3>
             </div>
             <p className="text-center opacity-90 mt-2">Acesso a todos os recursos + bônus exclusivos</p>
@@ -146,39 +147,39 @@ export default function PlanFull({ planData, bonusData }: PlanFullProps) {
                   </h4>
                   <ul className="space-y-3 max-w-md mx-auto text-left">
                     <li className="flex items-start p-2 hover:bg-emerald-50 rounded-lg transition-colors">
-                      <FaCheck className="text-emerald-600 mt-1 mr-3 flex-shrink-0" />
+                      <Check className="text-emerald-600 mt-1 mr-3 flex-shrink-0" />
                       <span className="text-gray-600"><strong>20 fichas literárias</strong> para estimular a leitura</span>
                     </li>
                     <li className="flex items-start p-2 hover:bg-emerald-50 rounded-lg transition-colors">
-                      <FaCheck className="text-emerald-600 mt-1 mr-3 flex-shrink-0" />
+                      <Check className="text-emerald-600 mt-1 mr-3 flex-shrink-0" />
                       <span className="text-gray-600"><strong>3 modelos de Leiturômetro</strong> para gamificação</span>
                     </li>
                     <li className="flex items-start p-2 hover:bg-emerald-50 rounded-lg transition-colors">
-                      <FaCheck className="text-emerald-600 mt-1 mr-3 flex-shrink-0" />
+                      <Check className="text-emerald-600 mt-1 mr-3 flex-shrink-0" />
                       <span className="text-gray-600"><strong>Tabela em PDF</strong> para controle de leitura</span>
                     </li>
                     <li className="flex items-start p-2 hover:bg-emerald-50 rounded-lg transition-colors">
-                      <FaCheck className="text-emerald-600 mt-1 mr-3 flex-shrink-0" />
+                      <Check className="text-emerald-600 mt-1 mr-3 flex-shrink-0" />
                       <span className="text-gray-600"><strong>Planilha do Google</strong> para controle de leitura</span>
                     </li>
                     <li className="flex items-start p-2 hover:bg-emerald-50 rounded-lg transition-colors">
-                      <FaCheck className="text-emerald-600 mt-1 mr-3 flex-shrink-0" />
+                      <Check className="text-emerald-600 mt-1 mr-3 flex-shrink-0" />
                       <span className="text-gray-600"><strong>Guia de aplicação em sala</strong> passo a passo</span>
                     </li>
                     <li className="flex items-start p-2 hover:bg-emerald-50 rounded-lg transition-colors">
-                      <FaCheck className="text-emerald-600 mt-1 mr-3 flex-shrink-0" />
+                      <Check className="text-emerald-600 mt-1 mr-3 flex-shrink-0" />
                       <span className="text-gray-600"><strong>Acesso vitalício</strong> e atualizações do material.</span>
                     </li>
 
                     {/* Bônus com destaque especial */}
                     <li className="mt-2 border-t border-emerald-100 pt-4">
                       <p className="font-bold text-emerald-800 mb-2 flex items-center">
-                        <FaGem className="text-yellow-500 mr-2" /> Bônus Exclusivos:
+                        <Gem className="text-yellow-500 mr-2" /> Bônus Exclusivos:
                       </p>
                       <ul className="space-y-3">
                         {bonusData.map((bonus, index) => (
                           <li key={index} className="flex items-start p-2 bg-emerald-50 hover:bg-emerald-100 rounded-lg transition-colors">
-                            <FaCheck className="text-emerald-600 mt-1 mr-3 flex-shrink-0" />
+                            <Check className="text-emerald-600 mt-1 mr-3 flex-shrink-0" />
                             <div className="flex flex-col w-full">
                               <span className="text-gray-600 text-md"><strong>{bonus.title}</strong></span>
                               <div className="flex items-center gap-2 mt-1 justify-end">
@@ -198,7 +199,7 @@ export default function PlanFull({ planData, bonusData }: PlanFullProps) {
                   {/* Badge de desconto */}
                   <div className="absolute -top-3 right-0 bg-yellow-500 text-white font-bold py-1 px-3 rounded-full shadow-sm z-10">
                     <div className="flex items-center gap-1">
-                      <FaStar className="text-white text-xs" />
+                      <Star className="text-white text-xs" />
                       <span className="text-sm">{planData.discount}</span>
                     </div>
                   </div>
@@ -225,14 +226,11 @@ export default function PlanFull({ planData, bonusData }: PlanFullProps) {
                 </div>
 
                 {/* Botão de compra */}
-                <motion.a
-                  href={planData.paymentLink}
-                  whileHover={{ scale: 1.03 }}
-                  whileTap={{ scale: 0.98 }}
-                  className="w-full py-6 px-6 bg-emerald-700 text-white font-bold rounded-lg hover:bg-emerald-800 transition-all shadow-md hover:shadow-lg flex items-center justify-center gap-2 cursor-pointer no-underline"
-                >
-                  <span>QUERO O PLANO COMPLETO</span>
-                </motion.a>
+                <CtaButton
+                  paymentLink={planData.paymentLink}
+                  text="QUERO O PLANO COMPLETO"
+                  className="!bg-emerald-700 hover:!bg-emerald-800 !py-6"
+                />
 
                 {/* Countdown Timer */}
                 <CountdownTimer />
@@ -260,7 +258,7 @@ export default function PlanFull({ planData, bonusData }: PlanFullProps) {
             <div className="text-center bg-gradient-to-r from-emerald-50 to-blue-50 p-6 rounded-lg max-w-md mx-auto">
               <div className="flex flex-col items-center justify-center gap-4 mb-4">
                 <div className="bg-white p-4 rounded-full shadow-md">
-                  <FaShieldAlt className="text-4xl text-emerald-700" />
+                  <Shield className="text-4xl text-emerald-700" />
                 </div>
                 <div className="text-center">
                   <h4 className="text-lg font-bold text-emerald-800 mb-1">Garantia de 7 dias</h4>

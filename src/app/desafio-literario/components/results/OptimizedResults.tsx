@@ -3,7 +3,6 @@
 import { useState, useEffect, useRef } from 'react';
 import Image from 'next/image';
 import CtaButton from '@/components/buttons/CtaButton';
-import { FaArrowRight } from 'react-icons/fa';
 
 interface TestimonialItemProps {
   imageNumber: string;

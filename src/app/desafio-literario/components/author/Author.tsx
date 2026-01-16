@@ -2,7 +2,7 @@
 
 import Image from 'next/image';
 import { motion } from 'framer-motion';
-import { FaCheckCircle, FaGraduationCap, FaUsers, FaHeart } from 'react-icons/fa';
+import { CheckCircle, GraduationCap, Users, Heart } from 'lucide-react';
 
 export default function Author() {
   return (
@@ -66,24 +66,24 @@ export default function Author() {
                 {/* Credenciais */}
                 <div className="space-y-4 bg-dl-primary-50 p-6 rounded-lg">
                   <h4 className="font-bold text-dl-primary-800 text-lg mb-4 flex items-center">
-                    <FaGraduationCap className="mr-2 text-dl-accent" />
+                    <GraduationCap className="mr-2 text-dl-accent" />
                     Formação e Experiência:
                   </h4>
                   <ul className="space-y-3">
                     <li className="flex items-start">
-                      <FaCheckCircle className="text-dl-accent mt-1 mr-3 flex-shrink-0" />
+                      <CheckCircle className="text-dl-accent mt-1 mr-3 flex-shrink-0" />
                       <span className="text-gray-700">
                         <strong>Graduação em Pedagogia</strong> com especialização em Alfabetização
                       </span>
                     </li>
                     <li className="flex items-start">
-                      <FaCheckCircle className="text-dl-accent mt-1 mr-3 flex-shrink-0" />
+                      <CheckCircle className="text-dl-accent mt-1 mr-3 flex-shrink-0" />
                       <span className="text-gray-700">
                         <strong>Mais de [X] anos</strong> de experiência em sala de aula
                       </span>
                     </li>
                     <li className="flex items-start">
-                      <FaCheckCircle className="text-dl-accent mt-1 mr-3 flex-shrink-0" />
+                      <CheckCircle className="text-dl-accent mt-1 mr-3 flex-shrink-0" />
                       <span className="text-gray-700">
                         <strong>Criadora de materiais pedagógicos</strong> utilizados por milhares de professores
                       </span>
@@ -94,17 +94,17 @@ export default function Author() {
                 {/* Stats */}
                 <div className="grid grid-cols-2 md:grid-cols-3 gap-4 mt-6">
                   <div className="text-center p-4 bg-white rounded-lg shadow-sm border border-dl-primary-100">
-                    <FaUsers className="text-3xl text-dl-accent mx-auto mb-2" />
+                    <Users className="text-3xl text-dl-accent mx-auto mb-2" />
                     <p className="text-2xl font-bold text-dl-primary-800">10.000+</p>
                     <p className="text-sm text-gray-600">Professoras impactadas</p>
                   </div>
                   <div className="text-center p-4 bg-white rounded-lg shadow-sm border border-dl-primary-100">
-                    <FaHeart className="text-3xl text-dl-warning mx-auto mb-2" />
+                    <Heart className="text-3xl text-dl-warning mx-auto mb-2" />
                     <p className="text-2xl font-bold text-dl-primary-800">4.8/5</p>
                     <p className="text-sm text-gray-600">Avaliação média</p>
                   </div>
                   <div className="text-center p-4 bg-white rounded-lg shadow-sm border border-dl-primary-100 col-span-2 md:col-span-1">
-                    <FaGraduationCap className="text-3xl text-dl-accent mx-auto mb-2" />
+                    <GraduationCap className="text-3xl text-dl-accent mx-auto mb-2" />
                     <p className="text-2xl font-bold text-dl-primary-800">[X]+</p>
                     <p className="text-sm text-gray-600">Anos de experiência</p>
                   </div>

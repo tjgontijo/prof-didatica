@@ -22,6 +22,7 @@ export default function Problem() {
               height={600}
               className="max-w-full rounded-lg shadow-md"
               style={{ width: '100%', height: 'auto' }}
+              loading="lazy"
             />
           </div>
 

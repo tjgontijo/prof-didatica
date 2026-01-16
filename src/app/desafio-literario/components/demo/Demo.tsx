@@ -158,18 +158,22 @@ export default function Demo() {
 
           {/* Removido o modal de imagem, agora usamos o zoom nativo do Swiper */}
 
-          <div className="flex justify-center gap-2 mt-6">
+          <div className="flex justify-center gap-1 mt-6">
             {itensCarrossel.map((_, index) => (
               <button
                 key={index}
                 onClick={() => setActiveIndex(index)}
-                className={`w-2 h-2 rounded-full transition-all ${
-                  activeIndex === index
-                    ? 'bg-[#457B9D] w-4'
-                    : 'bg-gray-300 hover:bg-gray-400'
-                }`}
-                aria-label={`Slide ${index + 1}`}
-              />
+                className="min-w-[44px] min-h-[44px] flex items-center justify-center"
+                aria-label={`Ir para slide ${index + 1}`}
+              >
+                <span
+                  className={`block rounded-full transition-all ${
+                    activeIndex === index
+                      ? 'bg-[#457B9D] w-4 h-2'
+                      : 'bg-gray-300 hover:bg-gray-400 w-2 h-2'
+                  }`}
+                />
+              </button>
             ))}
           </div>
 

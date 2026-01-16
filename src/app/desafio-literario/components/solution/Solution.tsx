@@ -1,4 +1,4 @@
-import { FaBookOpen, FaPrint, FaWhatsapp } from 'react-icons/fa';
+import { BookOpen, Printer, MessageCircle } from 'lucide-react';
 
 export default function Solution() {
   const steps = [
@@ -6,19 +6,19 @@ export default function Solution() {
       title: 'Chega no seu WhatsApp',
       description:
         'O Kit Desafio Literário é 100% digital. Logo após a compra, você recebe tudo no WhatsApp e pode baixar quantas vezes quiser.',
-      icon: FaWhatsapp,
+      icon: MessageCircle,
     },
     {
       title: 'Você imprime',
       description:
         'Imprima só o que for usar. Dá pra aplicar com a turma inteira e reutilizar o material sempre que precisar.',
-      icon: FaPrint,
+      icon: Printer,
     },
     {
       title: 'Hora da Leitura',
       description:
         'Agora sim. Seus alunos entram na dinâmica e a leitura fica mais leve, participativa e gostosa de acompanhar.',
-      icon: FaBookOpen,
+      icon: BookOpen,
     },
   ];
 
@@ -39,7 +39,7 @@ export default function Solution() {
               >
                 <div className="flex-shrink-0">
                   <div className="w-12 h-12 rounded-full bg-dl-primary-50 border border-dl-primary-100 flex items-center justify-center shadow-sm">
-                    <Icon className="text-xl text-dl-primary-800" aria-hidden />
+                    <Icon className="w-6 h-6 text-dl-primary-800" aria-hidden="true" />
                   </div>
                 </div>
                 <div>

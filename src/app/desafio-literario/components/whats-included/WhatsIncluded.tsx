@@ -1,24 +1,14 @@
-'use client';
-
 import React from 'react';
-import { motion } from 'framer-motion';
 import { CheckCircle } from 'lucide-react';
 
 type IncludedItemProps = {
   title: string;
   description: string;
-  index: number;
 };
 
-const IncludedItem: React.FC<IncludedItemProps> = ({ title, description, index }) => {
+const IncludedItem: React.FC<IncludedItemProps> = ({ title, description }) => {
   return (
-    <motion.div
-      initial={{ opacity: 0, y: 20 }}
-      whileInView={{ opacity: 1, y: 0 }}
-      transition={{ duration: 0.5, delay: index * 0.1 }}
-      viewport={{ once: true }}
-      className="flex items-start gap-4 mb-6"
-    >
+    <div className="flex items-start gap-4 mb-6">
       <div className="flex-shrink-0 mt-1">
         <CheckCircle className="h-6 w-6 text-dl-accent" />
       </div>
@@ -26,7 +16,7 @@ const IncludedItem: React.FC<IncludedItemProps> = ({ title, description, index }
         <h3 className="text-lg font-bold text-dl-primary-800">{title}</h3>
         <p className="text-dl-primary-500">{description}</p>
       </div>
-    </motion.div>
+    </div>
   );
 };
 
@@ -65,7 +55,6 @@ const WhatsIncluded: React.FC = () => {
               key={index}
               title={item.title}
               description={item.description}
-              index={index}
             />
           ))}
         </div>

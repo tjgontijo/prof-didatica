@@ -2,7 +2,6 @@
 
 import Image from 'next/image';
 import CtaButton from '@/components/buttons/CtaButton';
-import { FaArrowRight } from 'react-icons/fa';
 import { useState, useEffect } from 'react';
 
 export default function Results() {

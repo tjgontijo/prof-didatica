@@ -1,5 +1,3 @@
-'use client';
-
 import Image from 'next/image';
 
 export default function Hero() {
@@ -34,8 +32,9 @@ export default function Hero() {
               fill
               sizes="(max-width: 768px) 100vw, (max-width: 1200px) 80vw, 1000px"
               className="object-contain"
-              quality={100}
+              quality={75}
               priority
+              fetchPriority="high"
             />
           </div>
         </div>

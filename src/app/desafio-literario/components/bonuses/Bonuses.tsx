@@ -1,15 +1,11 @@
-'use client';
-
 import React from 'react';
 import Image from 'next/image';
-import { motion } from 'framer-motion';
 
 type BonusItemProps = {
   title: string;
   description: string;
   image: string;
   value: string;
-  index: number;
 };
 
 type BonusesProps = {
@@ -21,15 +17,9 @@ type BonusesProps = {
   }>;
 };
 
-const Bonus: React.FC<BonusItemProps> = ({ title, description, image, value, index }) => {
+const Bonus: React.FC<BonusItemProps> = ({ title, description, image, value }) => {
   return (
-    <motion.div
-      initial={{ opacity: 0, y: 20 }}
-      whileInView={{ opacity: 1, y: 0 }}
-      transition={{ duration: 0.5, delay: index * 0.2 }}
-      viewport={{ once: true }}
-      className="flex flex-col items-center bg-white rounded-lg shadow-lg overflow-hidden border border-gray-100"
-    >
+    <div className="flex flex-col items-center bg-white rounded-lg shadow-lg overflow-hidden border border-gray-100">
       <div className="relative w-full aspect-video">
         <Image
           src={image}
@@ -40,19 +30,19 @@ const Bonus: React.FC<BonusItemProps> = ({ title, description, image, value, ind
           className="rounded-t-lg"
           loading="lazy"
         />
-        <div className="absolute top-0 right-0 bg-emerald-600 text-white font-bold py-1 px-3 rounded-bl-lg">
+        <div className="absolute top-0 right-0 bg-emerald-800 text-white font-bold py-1 px-3 rounded-bl-lg">
           BÔNUS
         </div>
       </div>
       <div className="p-6 w-full text-center">
         <h3 className="text-xl font-bold text-[#1D3557] mb-2">{title}</h3>
         <p className="text-[#457B9D] mb-4">{description}</p>
-        <div className="text-emerald-600 font-bold">
-          Valor: <span className="line-through decoration-red-600 decoration-2 mr-2">{value}</span> 
-          <span className="text-emerald-700 font-bold">GRÁTIS</span>
+        <div className="text-emerald-800 font-bold">
+          Valor: <span className="line-through decoration-red-600 decoration-2 mr-2">{value}</span>
+          <span className="text-emerald-800 font-bold">GRÁTIS</span>
         </div>
       </div>
-    </motion.div>
+    </div>
   );
 };
 
@@ -84,7 +74,6 @@ const Bonuses: React.FC<BonusesProps> = ({ bonusData }) => {
               description={item.description}
               image={item.image}
               value={item.value}
-              index={index}
             />
           ))}
         </div>
