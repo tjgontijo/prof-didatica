@@ -45,14 +45,14 @@ src/app/desafio-literario/
 - Selo de preço circular em verde (emerald-600) com borda branca
 
 #### Copy de texto descritivo:
-"Receba imediatamente no seu WhatsApp o projeto de leitura completo com: **20 fichas literárias**, **3 modelos de leiturômetro** e **2 tabelas de acompanhamento** que despertam o prazer pela leitura e engajam seus alunos em uma jornada literária envolvente."
+"Receba imediatamente no seu E-mail o projeto de leitura completo com: **20 fichas literárias**, **3 modelos de leiturômetro** e **2 tabelas de acompanhamento** que despertam o prazer pela leitura e engajam seus alunos em uma jornada literária envolvente."
 
 ## Proposta para Seção #demo (demonstração do produto)
 
 ### Estrutura proposta:
 
 - **Título:** "VEJA UMA AMOSTRA DOS MATERIAIS QUE VOCÊ VAI RECEBER"
-- **Subtítulo:** "Enviado para o seu WhatsApp pronto para imprimir e aplicar já na sua próxima aula"
+- **Subtítulo:** "Enviado para o seu E-mail pronto para imprimir e aplicar já na sua próxima aula"
 
 #### Carrossel interativo:
 - Manter o carrossel atual, mas com navegação mais intuitiva
@@ -185,7 +185,7 @@ src/app/desafio-literario/
 Voce economiza:** R$ 68
 CTA: QUERO O PLANO COMPLETO
 Trust row (ícones de segurança): 🔒 Compra segura (SSL) • ✅ 7 dias de garantia • 💳 PIX/Cartão
-Microcopy abaixo do botão: Acesso imediato no WhatsApp
+Microcopy abaixo do botão: Acesso imediato no E-mail
 
 #### Estilo visual:
 - Plano Premium com borda destacada

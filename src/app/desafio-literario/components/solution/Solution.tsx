@@ -3,9 +3,9 @@ import { BookOpen, Printer, MessageCircle } from 'lucide-react';
 export default function Solution() {
   const steps = [
     {
-      title: 'Chega no seu WhatsApp',
+      title: 'Chega no seu E-mail',
       description:
-        'O Kit Desafio Literário é 100% digital. Logo após a compra, você recebe tudo no WhatsApp e pode baixar quantas vezes quiser.',
+        'O Kit Desafio Literário é 100% digital. Logo após a compra, você recebe tudo no E-mail e pode baixar quantas vezes quiser.',
       icon: MessageCircle,
     },
     {

@@ -137,9 +137,9 @@ export default function PlanFull({ planData, bonusData }: PlanFullProps) {
 
               {/* Conteúdo em coluna única */}
               <div className="w-full text-center">
-              <div className="mt-2 border-t border-emerald-100 pt-4"></div>
-                    {/* O que está incluído */}
-                    <div className="mb-8">
+                <div className="mt-2 border-t border-emerald-100 pt-4"></div>
+                {/* O que está incluído */}
+                <div className="mb-8">
 
                   <h4 className="font-bold text-emerald-800 mb-3 flex items-center max-w-md mx-auto text-left">
                     <span className="inline-block w-2 h-6 bg-emerald-700 mr-2"></span>
@@ -194,7 +194,7 @@ export default function PlanFull({ planData, bonusData }: PlanFullProps) {
                   </ul>
                 </div>
 
-              {/* Preço com destaque - Design elegante */}
+                {/* Preço com destaque - Design elegante */}
                 <div className="mb-8 relative">
                   {/* Badge de desconto */}
                   <div className="absolute -top-3 right-0 bg-yellow-500 text-white font-bold py-1 px-3 rounded-full shadow-sm z-10">
@@ -219,7 +219,7 @@ export default function PlanFull({ planData, bonusData }: PlanFullProps) {
                       </div>
 
                       {/* Texto adicional */}
-                      <p className="text-gray-600 text-sm mt-2">Acesso imediato no WhatsApp</p>
+                      <p className="text-gray-600 text-sm mt-2">Acesso imediato no E-mail</p>
 
                     </div>
                   </div>

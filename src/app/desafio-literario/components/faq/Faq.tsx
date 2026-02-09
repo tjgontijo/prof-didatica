@@ -15,7 +15,7 @@ export default function Faq() {
     {
       question: 'O material é digital ou físico?',
       answer:
-        'O material é 100% digital. Assim que a compra é confirmada, você recebe tudo por Whatsapp, pronto para baixar e imprimir quantas vezes quiser.',
+        'O material é 100% digital. Assim que a compra é confirmada, você recebe tudo por E-mail, pronto para baixar e imprimir quantas vezes quiser.',
     },
     {
       question: 'Preciso de muito tempo para aplicar esse sistema?',
@@ -25,7 +25,7 @@ export default function Faq() {
     {
       question: 'Como recebo o material após a compra?',
       answer:
-        'Depois do pagamento, você recebe uma mensagem no seu Whatsapp com o link para download do Google Drive. É tudo simples, direto e com acesso imediato.',
+        'Depois do pagamento, você recebe uma mensagem no seu E-mail com o link para download do Google Drive. É tudo simples, direto e com acesso imediato.',
     },
     {
       question: 'Posso usar o material com todas as minhas turmas?',
