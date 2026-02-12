@@ -495,8 +495,8 @@ export default function FabricaDeContinhasPage() {
                                             </div>
 
                                             {/* Main Card Content */}
-                                            <div className="relative z-10 flex items-center justify-center w-full gap-2 md:gap-4 px-4 overflow-hidden">
-                                                <div className="flex items-center gap-2 md:gap-4 text-2xl md:text-3xl font-bold tabular-nums text-slate-800">
+                                            <div className="relative z-10 flex items-center justify-center w-full gap-2 md:gap-4 px-4 py-8">
+                                                <div className="flex items-center gap-2 md:gap-4 text-2xl md:text-3xl font-bold tabular-nums text-slate-800 leading-none">
                                                     <span>{card.num1}</span>
                                                     <span className="text-slate-400 scale-75">
                                                         {OPERATION_LABELS[card.operation].symbol}
@@ -504,10 +504,10 @@ export default function FabricaDeContinhasPage() {
                                                     <span>{card.num2}</span>
                                                 </div>
 
-                                                <div className="text-lg md:text-2xl text-slate-300 font-light">=</div>
+                                                <div className="text-lg md:text-2xl text-slate-300 font-light leading-none">=</div>
 
                                                 {showResults ? (
-                                                    <div className="text-2xl md:text-3xl font-black text-indigo-600 underline underline-offset-4 decoration-indigo-200 decoration-2 tabular-nums">
+                                                    <div className="text-2xl md:text-3xl font-black text-indigo-600 underline underline-offset-4 decoration-indigo-200 decoration-2 tabular-nums leading-none">
                                                         {card.result}
                                                     </div>
                                                 ) : (
