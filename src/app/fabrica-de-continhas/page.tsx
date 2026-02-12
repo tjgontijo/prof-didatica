@@ -236,7 +236,7 @@ export default function FabricaDeContinhasPage() {
                             value={passwordInput}
                             onChange={(e) => setPasswordInput(e.target.value)}
                             placeholder="Palavra-chave..."
-                            className="w-full px-5 py-4 rounded-xl border border-slate-200 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-all text-center text-lg tracking-widest font-medium"
+                            className="w-full px-5 py-4 rounded-xl border border-slate-200 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-all text-center text-lg tracking-widest font-medium text-slate-900 placeholder:text-slate-400"
                             autoFocus
                         />
                         <button
