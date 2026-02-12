@@ -18,13 +18,11 @@ import {
     ArrowRight,
     Eye,
     EyeOff,
-    Scissors,
     Lock,
     AlertCircle,
     Trash2,
     Download,
-    Loader2,
-    Printer
+    Loader2
 } from 'lucide-react';
 import { clsx, type ClassValue } from 'clsx';
 import { twMerge } from 'tailwind-merge';
@@ -516,11 +514,6 @@ export default function FabricaDeContinhasPage() {
                                                     <div className="w-12 h-10 md:w-20 md:h-14 border-4 border-dashed border-slate-200 rounded-2xl bg-slate-50/50" />
                                                 )}
                                             </div>
-
-                                            {/* Cutting Guide Icon */}
-                                            <div className="absolute -top-3 -left-3 text-slate-200 print:hidden">
-                                                <Scissors className="w-4 h-4 rotate-90" />
-                                            </div>
                                         </div>
                                     );
                                 })}
@@ -556,13 +549,6 @@ export default function FabricaDeContinhasPage() {
                                 Baixar PDF
                             </>
                         )}
-                    </button>
-                    <button
-                        onClick={() => window.print()}
-                        className="p-3 text-slate-500 hover:text-slate-800 hover:bg-slate-100 rounded-full transition-all"
-                        title="Imprimir via navegador"
-                    >
-                        <Printer className="w-5 h-5" />
                     </button>
                 </div>
             )}
