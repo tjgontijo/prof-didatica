@@ -652,7 +652,7 @@ export default function FabricaDeContinhasPage() {
                         padding: 0 !important;
                         background: white !important;
                         width: 100% !important;
-                        height: 100% !important;
+                        height: auto !important;
                     }
                     .print-hidden, .no-print, header, nav, button, .fixed {
                         display: none !important;
@@ -667,12 +667,13 @@ export default function FabricaDeContinhasPage() {
                         display: block !important;
                         position: relative !important;
                         width: 100% !important;
-                        height: 100vh !important; /* Use viewport height for print page */
-                        margin: 0 !important;
+                        height: 255mm !important; /* Altura segura baseada nos testes */
+                        margin: 0 auto !important;
                         padding: 0 !important;
                         page-break-after: always !important;
                         break-after: page !important;
                         background: white !important;
+                        overflow: visible !important;
                     }
                     .pdf-page:last-child {
                         page-break-after: avoid !important;
@@ -682,7 +683,7 @@ export default function FabricaDeContinhasPage() {
                         display: flex !important;
                         flex-wrap: wrap !important;
                         width: 100% !important;
-                        height: 100% !important;
+                        height: 250mm !important; /* 5 linhas x 50mm */
                         background: white !important;
                         padding: 0 !important;
                         margin: 0 !important;
@@ -691,7 +692,7 @@ export default function FabricaDeContinhasPage() {
                     }
                     .flashcard-item {
                         width: 50% !important;
-                        height: 20% !important;
+                        height: 50mm !important; /* Exatos 50mm de altura */
                         border-right: 1px dashed #ccc !important;
                         border-bottom: 1px dashed #ccc !important;
                         page-break-inside: avoid !important;
