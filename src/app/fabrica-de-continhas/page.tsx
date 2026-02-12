@@ -616,36 +616,45 @@ export default function FabricaDeContinhasPage() {
                 @media print {
                     * {
                         box-sizing: border-box !important;
+                        -webkit-print-color-adjust: exact !important;
+                        print-color-adjust: exact !important;
                     }
                     @page {
                         size: A4 portrait;
-                        margin: 0;
+                        margin: 0 auto;
                     }
                     html, body {
                         margin: 0 !important;
                         padding: 0 !important;
                         background: white !important;
-                        -webkit-print-color-adjust: exact;
-                        print-color-adjust: exact;
-                        height: 100%;
+                        width: 210mm !important;
+                        height: auto !important;
                     }
-                    .print-hidden, .no-print, header, nav, button {
+                    .print-hidden, .no-print, header, nav, button, .fixed {
                         display: none !important;
+                        visibility: hidden !important;
                         height: 0 !important;
+                        padding: 0 !important;
+                        margin: 0 !important;
+                    }
+                    #flashcards-to-export {
+                        position: absolute !important;
+                        left: 0 !important;
+                        top: 0 !important;
+                        width: 210mm !important;
                         margin: 0 !important;
                         padding: 0 !important;
-                        overflow: hidden !important;
+                        background: white !important;
                     }
                     .pdf-page {
                         display: block !important;
+                        position: relative !important;
                         width: 210mm !important;
-                        height: 297mm !important;
-                        max-height: 297mm !important;
-                        margin: 0 !important;
+                        height: 296mm !important; /* 1mm shorter to avoid iOS spill */
+                        margin: 0 auto !important;
                         padding: 0 !important;
                         page-break-after: always !important;
                         break-after: page !important;
-                        position: relative !important;
                         background: white !important;
                         overflow: hidden !important;
                     }
@@ -655,18 +664,19 @@ export default function FabricaDeContinhasPage() {
                     }
                     .flashcard-grid {
                         display: grid !important;
-                        width: 100% !important;
-                        height: 100% !important;
+                        width: 210mm !important;
+                        height: 296mm !important;
+                        grid-template-columns: 105mm 105mm !important;
+                        grid-template-rows: repeat(5, 59.2mm) !important;
                         background: white !important;
-                        padding: 0 !important;
-                        margin: 0 !important;
+                        border: none !important;
                     }
-                    /* Ensure no other content leaks */
-                    #flashcards-to-export {
-                        padding: 0 !important;
-                        margin: 0 !important;
-                        width: 100% !important;
-                        max-width: none !important;
+                    .flashcard-item {
+                        width: 105mm !important;
+                        height: 59.2mm !important;
+                        border-right: 1px dashed #ccc !important;
+                        border-bottom: 1px dashed #ccc !important;
+                        position: relative !important;
                     }
                 }
             `}} />
