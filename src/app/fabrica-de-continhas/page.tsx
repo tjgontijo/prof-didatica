@@ -61,8 +61,8 @@ const configSchema = z.object({
     difficulty: z.enum(['easy', 'medium', 'hard', 'mixed']).nullable().refine(val => val !== null, {
         message: 'Selecione o nível de dificuldade'
     }),
-    orientation: z.enum(['portrait', 'landscape']).nullable().refine(val => val !== null, {
-        message: 'Selecione a orientação da página'
+    orientation: z.enum(['portrait']).nullable().refine(val => val !== null, {
+        message: 'Orientação interna'
     }),
     showResults: z.boolean().nullable().refine(val => val !== null, {
         message: 'Selecione se deseja mostrar o gabarito'
@@ -78,7 +78,7 @@ export default function FabricaDeContinhasPage() {
         division: 2
     });
     const [difficulty, setDifficulty] = useState<Difficulty | null>(null);
-    const [orientation, setOrientation] = useState<'portrait' | 'landscape' | null>(null);
+    const [orientation, setOrientation] = useState<'portrait'>('portrait');
     const [showResults, setShowResults] = useState<boolean | null>(null);
     const [cards, setCards] = useState<FlashcardData[]>([]);
     const [isGenerating, setIsGenerating] = useState(false);
@@ -111,7 +111,7 @@ export default function FabricaDeContinhasPage() {
             division: 2
         });
         setDifficulty(null);
-        setOrientation(null);
+        setOrientation('portrait');
         setShowResults(null);
         setCards([]);
         setValidationErrors([]);
@@ -257,7 +257,7 @@ export default function FabricaDeContinhasPage() {
             {/* Search/Header Area - Hidden on Print */}
             <div className="print:hidden no-print">
                 <header className="bg-white border-b border-slate-200 sticky top-0 z-10">
-                    <div className="max-w-6xl mx-auto px-4 h-20 flex items-center justify-center md:justify-start">
+                    <div className="max-w-6xl mx-auto px-4 h-20 flex items-center justify-center">
                         <div className="flex items-center">
                             <Image
                                 src="/images/fabrica-de-continhas/logo.png"
@@ -281,76 +281,8 @@ export default function FabricaDeContinhasPage() {
                             </div>
                         </div>
 
-                        {/* Configuration Grid - 3 columns */}
-                        <div className="grid md:grid-cols-3 gap-6 mb-8">
-                            {/* Orientation */}
-                            <div id="config-orientation" className="flex flex-col scroll-mt-24">
-                                <label className={cn(
-                                    "block text-sm font-semibold uppercase tracking-wider mb-4 transition-colors",
-                                    validationErrors.includes('orientation') ? "text-rose-500" : "text-slate-500"
-                                )}>
-                                    Orientação
-                                </label>
-                                <div className={cn(
-                                    "grid grid-cols-1 gap-3 p-1 rounded-2xl transition-all",
-                                    validationErrors.includes('orientation') && "ring-2 ring-rose-300 bg-rose-50/30"
-                                )}>
-                                    <button
-                                        onClick={() => {
-                                            setOrientation('portrait');
-                                            setValidationErrors(prev => prev.filter(e => e !== 'orientation'));
-                                        }}
-                                        className={cn(
-                                            "flex items-center gap-4 p-4 rounded-2xl border-2 transition-all text-left min-h-[80px]",
-                                            orientation === 'portrait'
-                                                ? "border-indigo-600 bg-indigo-50/50 ring-4 ring-indigo-50"
-                                                : "border-slate-100 hover:border-slate-200 bg-white shadow-sm shadow-slate-100"
-                                        )}
-                                    >
-                                        <div className={cn(
-                                            "p-2 rounded-lg",
-                                            orientation === 'portrait' ? "bg-indigo-600 text-white" : "bg-slate-100 text-slate-400"
-                                        )}>
-                                            <div className="w-5 h-5 border-2 border-current rounded" />
-                                        </div>
-                                        <div>
-                                            <div className={cn("font-bold leading-tight", orientation === 'portrait' ? "text-indigo-900" : "text-slate-700")}>
-                                                Retrato
-                                            </div>
-                                            <div className="text-xs text-slate-500 mt-0.5">
-                                                10 cards (2×5)
-                                            </div>
-                                        </div>
-                                    </button>
-                                    <button
-                                        onClick={() => {
-                                            setOrientation('landscape');
-                                            setValidationErrors(prev => prev.filter(e => e !== 'orientation'));
-                                        }}
-                                        className={cn(
-                                            "flex items-center gap-4 p-4 rounded-2xl border-2 transition-all text-left min-h-[80px]",
-                                            orientation === 'landscape'
-                                                ? "border-indigo-600 bg-indigo-50/50 ring-4 ring-indigo-50"
-                                                : "border-slate-100 hover:border-slate-200 bg-white shadow-sm shadow-slate-100"
-                                        )}
-                                    >
-                                        <div className={cn(
-                                            "p-2 rounded-lg",
-                                            orientation === 'landscape' ? "bg-indigo-600 text-white" : "bg-slate-100 text-slate-400"
-                                        )}>
-                                            <div className="w-5 h-5 border-2 border-current rounded rotate-90" />
-                                        </div>
-                                        <div>
-                                            <div className={cn("font-bold leading-tight", orientation === 'landscape' ? "text-indigo-900" : "text-slate-700")}>
-                                                Paisagem
-                                            </div>
-                                            <div className="text-xs text-slate-500 mt-0.5">
-                                                9 cards (3×3)
-                                            </div>
-                                        </div>
-                                    </button>
-                                </div>
-                            </div>
+                        {/* Configuration Grid - 2 columns (Orientation removed) */}
+                        <div className="grid md:grid-cols-2 gap-6 mb-8">
 
                             {/* Gabarito */}
                             <div id="config-showResults" className="flex flex-col scroll-mt-24">
@@ -567,32 +499,17 @@ export default function FabricaDeContinhasPage() {
             </div>
 
             {/* Preview & PDF Content Area */}
-            <div id="flashcards-to-export" className={cn(
-                "mx-auto transition-all duration-500 px-2 md:px-4",
-                orientation === 'portrait' ? "max-w-4xl" : "max-w-[1240px]"
-            )}>
+            <div id="flashcards-to-export" className="mx-auto transition-all duration-500 px-2 md:px-4 max-w-4xl">
                 {cardPages.map((pageCards, pageIndex) => (
-                    <div key={pageIndex} className={cn(
-                        "pdf-page mb-24 print:mb-0 flex flex-col items-center",
-                        "w-full max-w-[calc(100vw-16px)] md:max-w-none mx-auto"
-                    )}>
+                    <div key={pageIndex} className="pdf-page mb-24 print:mb-0 flex flex-col items-center w-full max-w-[calc(100vw-16px)] md:max-w-none mx-auto">
                         <div className="print:hidden flex items-baseline justify-between mb-8 mt-16 pt-8 border-t border-slate-200 w-full px-4">
-                            <h3 className="text-xl font-bold text-slate-800">Folha {pageIndex + 1} de {cardPages.length} ({orientation === 'portrait' ? 'Retrato' : 'Paisagem'})</h3>
-                            <p className="text-slate-500 text-sm">{cardsPerPage} cards por folha</p>
+                            <h3 className="text-xl font-bold text-slate-800">Folha {pageIndex + 1} de {cardPages.length}</h3>
+                            <p className="text-slate-500 text-sm">10 cards por folha</p>
                         </div>
 
-                        <div className={cn(
-                            "bg-white shadow-2xl shadow-slate-300 ring-1 ring-slate-200 overflow-hidden print:shadow-none print:ring-0",
-                            "w-full max-w-[210mm] print:w-[210mm] print:h-[297mm]",
-                            orientation === 'portrait' ? "aspect-[210/297]" : "aspect-[297/210]"
-                        )}>
+                        <div className="bg-white shadow-2xl shadow-slate-300 ring-1 ring-slate-200 overflow-hidden print:shadow-none print:ring-0 w-full max-w-[210mm] print:w-[210mm] print:h-[297mm] aspect-[210/297]">
                             {/* A4 Sheet Grid */}
-                            <div className={cn(
-                                "flashcard-grid grid w-full h-full border-t-2 border-l-2 border-dashed border-slate-300 print:border-slate-400",
-                                orientation === 'portrait'
-                                    ? "grid-cols-2 grid-rows-5"
-                                    : "grid-cols-3 grid-rows-3"
-                            )}>
+                            <div className="flashcard-grid grid w-full h-full border-t-2 border-l-2 border-dashed border-slate-300 print:border-slate-400 grid-cols-2 grid-rows-5">
                                 {Array.from({ length: cardsPerPage }).map((_, idx) => {
                                     const card = pageCards[idx];
                                     if (!card) {
@@ -637,24 +554,24 @@ export default function FabricaDeContinhasPage() {
 
                                                 {/* Main Card Content: All Inline, No Wrap */}
                                                 <div className="flex flex-1 items-center gap-1 md:gap-3 flex-nowrap whitespace-nowrap justify-center text-center max-w-full px-1">
-                                                    <span className="text-lg md:text-4xl print:text-4xl font-bold tracking-tighter text-slate-800 tabular-nums">
+                                                    <span className="text-lg md:text-3xl print:text-4xl font-bold tracking-tighter text-slate-800 tabular-nums">
                                                         {card.num1}
                                                     </span>
-                                                    <span className="text-sm md:text-2xl print:text-2xl text-slate-400 font-medium">
+                                                    <span className="text-sm md:text-xl print:text-2xl text-slate-400 font-medium">
                                                         {OPERATION_LABELS[card.operation].symbol}
                                                     </span>
-                                                    <span className="text-lg md:text-4xl print:text-4xl font-bold tracking-tighter text-slate-800 tabular-nums">
+                                                    <span className="text-lg md:text-3xl print:text-4xl font-bold tracking-tighter text-slate-800 tabular-nums">
                                                         {card.num2}
                                                     </span>
-                                                    <span className="text-sm md:text-2xl print:text-2xl text-slate-300 font-light">
+                                                    <span className="text-sm md:text-xl print:text-2xl text-slate-300 font-light">
                                                         =
                                                     </span>
                                                     {showResults ? (
-                                                        <span className="text-lg md:text-4xl print:text-4xl font-black tracking-tighter text-indigo-600 tabular-nums underline decoration-indigo-200 underline-offset-4 decoration-2">
+                                                        <span className="text-lg md:text-3xl print:text-4xl font-black tracking-tighter text-indigo-600 tabular-nums underline decoration-indigo-200 underline-offset-4 decoration-2">
                                                             {card.result}
                                                         </span>
                                                     ) : (
-                                                        <div className="flex-shrink-0 w-8 md:w-14 h-6 md:h-10 border-2 border-dashed border-slate-200 rounded-md md:rounded-xl" />
+                                                        <div className="flex-shrink-0 w-8 md:w-12 h-6 md:h-8 border-2 border-dashed border-slate-200 rounded-md md:rounded-xl" />
                                                     )}
                                                 </div>
 
