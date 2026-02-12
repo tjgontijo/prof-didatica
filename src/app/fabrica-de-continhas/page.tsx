@@ -495,23 +495,23 @@ export default function FabricaDeContinhasPage() {
                                             </div>
 
                                             {/* Main Card Content */}
-                                            <div className="relative z-10 flex items-center justify-center w-full gap-3 md:gap-5 px-4 overflow-hidden">
-                                                <div className="flex items-center gap-3 md:gap-5 text-3xl md:text-5xl font-bold tabular-nums text-slate-800">
+                                            <div className="relative z-10 flex items-center justify-center w-full gap-2 md:gap-4 px-4 overflow-hidden">
+                                                <div className="flex items-center gap-2 md:gap-4 text-2xl md:text-3xl font-bold tabular-nums text-slate-800">
                                                     <span>{card.num1}</span>
-                                                    <span className="text-slate-400 font-medium text-2xl md:text-4xl">
+                                                    <span className="text-slate-400 scale-75">
                                                         {OPERATION_LABELS[card.operation].symbol}
                                                     </span>
                                                     <span>{card.num2}</span>
                                                 </div>
 
-                                                <div className="text-2xl md:text-4xl text-slate-300 font-light">=</div>
+                                                <div className="text-lg md:text-2xl text-slate-300 font-light">=</div>
 
                                                 {showResults ? (
-                                                    <div className="text-3xl md:text-5xl font-black text-indigo-600 underline underline-offset-8 decoration-indigo-200 decoration-4 tabular-nums">
+                                                    <div className="text-2xl md:text-3xl font-black text-indigo-600 underline underline-offset-4 decoration-indigo-200 decoration-2 tabular-nums">
                                                         {card.result}
                                                     </div>
                                                 ) : (
-                                                    <div className="w-12 h-10 md:w-20 md:h-14 border-4 border-dashed border-slate-200 rounded-2xl bg-slate-50/50" />
+                                                    <div className="w-10 h-8 md:w-12 md:h-10 border-2 border-dashed border-slate-200 rounded-lg bg-slate-50/50" />
                                                 )}
                                             </div>
                                         </div>
