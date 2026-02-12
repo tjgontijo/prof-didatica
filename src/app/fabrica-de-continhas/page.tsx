@@ -645,37 +645,30 @@ export default function FabricaDeContinhasPage() {
                     }
                     @page {
                         size: A4 portrait;
-                        margin: 0 auto;
+                        margin: 0;
                     }
                     html, body {
                         margin: 0 !important;
                         padding: 0 !important;
                         background: white !important;
-                        width: 210mm !important;
-                        height: auto !important;
+                        width: 100% !important;
+                        height: 100% !important;
                     }
                     .print-hidden, .no-print, header, nav, button, .fixed {
                         display: none !important;
                         visibility: hidden !important;
-                        height: 0 !important;
-                        padding: 0 !important;
-                        margin: 0 !important;
                     }
                     #flashcards-to-export {
-                        position: absolute !important;
-                        left: 0 !important;
-                        top: 0 !important;
-                        width: 210mm !important;
+                        width: 100% !important;
                         margin: 0 !important;
                         padding: 0 !important;
-                        background: white !important;
                     }
                     .pdf-page {
                         display: block !important;
                         position: relative !important;
-                        width: 210mm !important;
-                        height: 296mm !important; /* 1mm shorter to avoid iOS spill */
-                        margin: 0 auto !important;
+                        width: 100% !important;
+                        height: 100vh !important;
+                        margin: 0 !important;
                         padding: 0 !important;
                         page-break-after: always !important;
                         break-after: page !important;
@@ -688,19 +681,19 @@ export default function FabricaDeContinhasPage() {
                     }
                     .flashcard-grid {
                         display: grid !important;
-                        width: 210mm !important;
-                        height: 296mm !important;
-                        grid-template-columns: 105mm 105mm !important;
-                        grid-template-rows: repeat(5, 59.2mm) !important;
+                        width: 100% !important;
+                        height: 100% !important;
+                        grid-template-columns: 50% 50% !important;
+                        grid-template-rows: repeat(5, 20%) !important;
                         background: white !important;
-                        border: none !important;
+                        padding: 0 !important;
+                        margin: 0 !important;
                     }
                     .flashcard-item {
-                        width: 105mm !important;
-                        height: 59.2mm !important;
+                        width: 100% !important;
+                        height: 100% !important;
                         border-right: 1px dashed #ccc !important;
                         border-bottom: 1px dashed #ccc !important;
-                        position: relative !important;
                     }
                 }
             `}} />
