@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import Image from 'next/image';
 import { z } from 'zod';
 import {
@@ -86,9 +86,33 @@ export default function FabricaDeContinhasPage() {
     const [validationErrors, setValidationErrors] = useState<string[]>([]);
     const [errorMessages, setErrorMessages] = useState<string[]>([]);
 
+    // Check for existing session on mount
+    useEffect(() => {
+        const sessionData = localStorage.getItem('fabrica-session');
+        if (sessionData) {
+            try {
+                const { timestamp } = JSON.parse(sessionData);
+                const now = Date.now();
+                const fifteenMinutes = 15 * 60 * 1000;
+
+                if (now - timestamp < fifteenMinutes) {
+                    setIsUnlocked(true);
+                } else {
+                    localStorage.removeItem('fabrica-session');
+                }
+            } catch (e) {
+                localStorage.removeItem('fabrica-session');
+            }
+        }
+    }, []);
+
     const handleUnlock = (e: React.FormEvent) => {
         e.preventDefault();
         if (passwordInput.toLowerCase() === 'profdidatica') {
+            // Save session to localStorage with timestamp
+            localStorage.setItem('fabrica-session', JSON.stringify({
+                timestamp: Date.now()
+            }));
             setIsUnlocked(true);
         } else {
             alert('Palavra-chave incorreta');
