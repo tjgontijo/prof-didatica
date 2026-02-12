@@ -638,6 +638,11 @@ export default function FabricaDeContinhasPage() {
                 <style dangerouslySetInnerHTML={{
                     __html: `
                 @media print {
+                    * {
+                        box-sizing: border-box !important;
+                        -webkit-print-color-adjust: exact !important;
+                        print-color-adjust: exact !important;
+                    }
                     @page {
                         size: A4 portrait;
                         margin: 0;
@@ -646,25 +651,27 @@ export default function FabricaDeContinhasPage() {
                         margin: 0 !important;
                         padding: 0 !important;
                         background: white !important;
-                        -webkit-print-color-adjust: exact;
-                        print-color-adjust: exact;
+                        width: 100% !important;
+                        height: 100% !important;
                     }
-                    .print-hidden, .no-print, header, nav, button {
+                    .print-hidden, .no-print, header, nav, button, .fixed {
                         display: none !important;
-                        height: 0 !important;
+                        visibility: hidden !important;
+                    }
+                    #flashcards-to-export {
+                        width: 100% !important;
                         margin: 0 !important;
                         padding: 0 !important;
-                        overflow: hidden !important;
                     }
                     .pdf-page {
                         display: block !important;
-                        width: 210mm !important;
-                        height: 230mm !important;
+                        position: relative !important;
+                        width: 100% !important;
+                        height: 100vh !important; /* Use viewport height for print page */
                         margin: 0 !important;
                         padding: 0 !important;
                         page-break-after: always !important;
                         break-after: page !important;
-                        position: relative !important;
                         background: white !important;
                     }
                     .pdf-page:last-child {
@@ -672,17 +679,27 @@ export default function FabricaDeContinhasPage() {
                         break-after: avoid !important;
                     }
                     .flashcard-grid {
-                        display: grid !important;
+                        display: flex !important;
+                        flex-wrap: wrap !important;
                         width: 100% !important;
                         height: 100% !important;
                         background: white !important;
-                    }
-                    /* Ensure no other content leaks */
-                    #flashcards-to-export {
                         padding: 0 !important;
                         margin: 0 !important;
-                        width: 100% !important;
-                        max-width: none !important;
+                        border-top: 2px dashed #ccc !important;
+                        border-left: 2px dashed #ccc !important;
+                    }
+                    .flashcard-item {
+                        width: 50% !important;
+                        height: 20% !important;
+                        border-right: 1px dashed #ccc !important;
+                        border-bottom: 1px dashed #ccc !important;
+                        page-break-inside: avoid !important;
+                        break-inside: avoid !important;
+                        display: flex !important;
+                        flex-direction: column !important;
+                        justify-content: center !important;
+                        align-items: center !important;
                     }
                 }
             `}} />
