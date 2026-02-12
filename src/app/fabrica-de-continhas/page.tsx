@@ -482,28 +482,44 @@ export default function FabricaDeContinhasPage() {
                                     const card = pageCards[idx];
                                     if (!card) return <div key={idx} className="w-1/2 h-1/5 border-r border-b border-dashed border-slate-200" />;
                                     return (
-                                        <div key={card.id} className="w-1/2 h-1/5 border-r border-b border-dashed border-slate-300 relative flex flex-col items-center justify-center">
-                                            <div className={cn("absolute inset-0 border-[4px]", OPERATION_LABELS[card.operation].borderColor)} />
-                                            <div className="relative z-10 flex flex-col items-center gap-1">
-                                                {/* Header in each card */}
-                                                <div className="absolute top-2 left-3 flex items-center gap-1 opacity-30">
-                                                    <div className={cn("p-1 rounded text-white scale-75", OPERATION_LABELS[card.operation].color)}>
-                                                        {React.createElement(OPERATION_LABELS[card.operation].icon, { className: 'w-3 h-3' })}
-                                                    </div>
-                                                    <span className="text-[9px] font-bold uppercase">{OPERATION_LABELS[card.operation].label}</span>
+                                        <div key={card.id} className="w-1/2 h-1/5 border-r border-b border-dashed border-slate-300 relative flex items-center justify-center p-6">
+                                            {/* Colored Inner Border */}
+                                            <div className={cn("absolute inset-0 border-[6px]", OPERATION_LABELS[card.operation].borderColor)} />
+
+                                            {/* Header Badge - Fixed Position */}
+                                            <div className="absolute top-5 left-6 flex items-center gap-2 opacity-40">
+                                                <div className={cn("p-1.5 rounded text-white", OPERATION_LABELS[card.operation].color)}>
+                                                    {React.createElement(OPERATION_LABELS[card.operation].icon, { className: 'w-3 h-3' })}
+                                                </div>
+                                                <span className="text-[10px] font-black uppercase tracking-[0.15em] text-slate-500">
+                                                    {OPERATION_LABELS[card.operation].label}
+                                                </span>
+                                            </div>
+
+                                            {/* Main Card Content */}
+                                            <div className="relative z-10 flex items-center justify-center w-full gap-3 md:gap-5 px-4 overflow-hidden">
+                                                <div className="flex items-center gap-3 md:gap-5 text-3xl md:text-5xl font-bold tabular-nums text-slate-800">
+                                                    <span>{card.num1}</span>
+                                                    <span className="text-slate-400 font-medium text-2xl md:text-4xl">
+                                                        {OPERATION_LABELS[card.operation].symbol}
+                                                    </span>
+                                                    <span>{card.num2}</span>
                                                 </div>
 
-                                                <div className="flex items-center gap-2 md:gap-4 text-2xl md:text-3xl font-bold tabular-nums">
-                                                    <span>{card.num1}</span>
-                                                    <span className="text-slate-400 scale-75">{OPERATION_LABELS[card.operation].symbol}</span>
-                                                    <span>{card.num2}</span>
-                                                    <span className="text-slate-300 font-light">=</span>
-                                                    {showResults ? (
-                                                        <span className="text-indigo-600 underline underline-offset-4 decoration-indigo-200">{card.result}</span>
-                                                    ) : (
-                                                        <div className="w-10 h-8 border-2 border-dashed border-slate-200 rounded-lg" />
-                                                    )}
-                                                </div>
+                                                <div className="text-2xl md:text-4xl text-slate-300 font-light">=</div>
+
+                                                {showResults ? (
+                                                    <div className="text-3xl md:text-5xl font-black text-indigo-600 underline underline-offset-8 decoration-indigo-200 decoration-4 tabular-nums">
+                                                        {card.result}
+                                                    </div>
+                                                ) : (
+                                                    <div className="w-12 h-10 md:w-20 md:h-14 border-4 border-dashed border-slate-200 rounded-2xl bg-slate-50/50" />
+                                                )}
+                                            </div>
+
+                                            {/* Cutting Guide Icon */}
+                                            <div className="absolute -top-3 -left-3 text-slate-200 print:hidden">
+                                                <Scissors className="w-4 h-4 rotate-90" />
                                             </div>
                                         </div>
                                     );
