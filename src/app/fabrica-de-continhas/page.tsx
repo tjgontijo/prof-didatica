@@ -606,7 +606,7 @@ export default function FabricaDeContinhasPage() {
                                 className="flex-1 max-w-sm flex items-center justify-center gap-3 bg-indigo-600 text-white px-8 py-3 md:py-4 rounded-2xl hover:bg-indigo-700 transition-all font-bold text-base md:text-lg shadow-lg shadow-indigo-100"
                             >
                                 <Printer className="w-5 h-5" />
-                                Exportar PDF
+                                Imprimir Folha
                             </button>
                         </div>
                     </div>
@@ -616,8 +616,11 @@ export default function FabricaDeContinhasPage() {
                 <style dangerouslySetInnerHTML={{
                     __html: `
                 @media print {
+                    * {
+                        box-sizing: border-box !important;
+                    }
                     @page {
-                        size: A4 ${orientation};
+                        size: A4 portrait;
                         margin: 0;
                     }
                     html, body {
@@ -626,6 +629,7 @@ export default function FabricaDeContinhasPage() {
                         background: white !important;
                         -webkit-print-color-adjust: exact;
                         print-color-adjust: exact;
+                        height: 100%;
                     }
                     .print-hidden, .no-print, header, nav, button {
                         display: none !important;
@@ -636,14 +640,16 @@ export default function FabricaDeContinhasPage() {
                     }
                     .pdf-page {
                         display: block !important;
-                        width: ${orientation === 'portrait' ? '210mm' : '297mm'} !important;
-                        height: ${orientation === 'portrait' ? '297mm' : '210mm'} !important;
+                        width: 210mm !important;
+                        height: 297mm !important;
+                        max-height: 297mm !important;
                         margin: 0 !important;
                         padding: 0 !important;
                         page-break-after: always !important;
                         break-after: page !important;
                         position: relative !important;
                         background: white !important;
+                        overflow: hidden !important;
                     }
                     .pdf-page:last-child {
                         page-break-after: avoid !important;
@@ -654,6 +660,8 @@ export default function FabricaDeContinhasPage() {
                         width: 100% !important;
                         height: 100% !important;
                         background: white !important;
+                        padding: 0 !important;
+                        margin: 0 !important;
                     }
                     /* Ensure no other content leaks */
                     #flashcards-to-export {
