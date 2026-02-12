@@ -659,7 +659,7 @@ export default function FabricaDeContinhasPage() {
                     .pdf-page {
                         display: block !important;
                         width: 210mm !important;
-                        height: 296mm !important;
+                        height: 290mm !important;
                         margin: 0 !important;
                         padding: 0 !important;
                         page-break-after: always !important;
