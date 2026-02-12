@@ -21,7 +21,6 @@ import {
     Lock,
     AlertCircle,
     Trash2,
-    ArrowUp
 } from 'lucide-react';
 import { clsx, type ClassValue } from 'clsx';
 import { twMerge } from 'tailwind-merge';
@@ -597,7 +596,6 @@ export default function FabricaDeContinhasPage() {
                             >
                                 <Trash2 className="w-4 h-4" />
                                 <span>Limpar</span>
-                                <ArrowUp className="w-4 h-4" />
                             </button>
 
                             {/* Export Button */}
@@ -606,7 +604,7 @@ export default function FabricaDeContinhasPage() {
                                 className="flex-1 max-w-sm flex items-center justify-center gap-3 bg-indigo-600 text-white px-8 py-3 md:py-4 rounded-2xl hover:bg-indigo-700 transition-all font-bold text-base md:text-lg shadow-lg shadow-indigo-100"
                             >
                                 <Printer className="w-5 h-5" />
-                                Imprimir Folha
+                                Imprimir
                             </button>
                         </div>
                     </div>
