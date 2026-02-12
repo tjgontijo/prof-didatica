@@ -4,10 +4,9 @@ import { useState, useEffect } from 'react';
 import dynamic from 'next/dynamic';
 import Image from 'next/image';
 
-
 // Importação dinâmica do componente Carrossel
 const Carrossel = dynamic(
-  () => import('../carrossel/Carrossel'),
+  () => import('../../../desafio-literario/components/carrossel/Carrossel'),
   {
     loading: () => (
       <div className="carrossel-placeholder relative aspect-video w-full bg-gray-200 animate-pulse rounded-md">
@@ -20,7 +19,6 @@ const Carrossel = dynamic(
   }
 );
 
-// Tipo para os itens do carrossel com legenda
 interface CarrosselItem {
   id: number;
   imageSrc: string;
@@ -30,97 +28,93 @@ interface CarrosselItem {
 }
 
 export default function Demo() {
-  // Adicionar estilos CSS para reduzir o tamanho das setas de navegação
   useEffect(() => {
     const style = document.createElement('style');
     style.innerHTML = `
       .swiper-custom-arrows .swiper-button-next,
       .swiper-custom-arrows .swiper-button-prev {
-        width: 30px;
-        height: 30px;
+        width: 44px;
+        height: 44px;
       }
       .swiper-custom-arrows .swiper-button-next:after,
       .swiper-custom-arrows .swiper-button-prev:after {
-        font-size: 16px;
+        font-size: 20px;
         font-weight: bold;
         color: #457B9D;
       }
     `;
     document.head.appendChild(style);
-
     return () => {
       document.head.removeChild(style);
     };
   }, []);
+
   const [activeIndex, setActiveIndex] = useState(0);
   const [isClient, setIsClient] = useState(false);
 
-  // Garantir que o componente só seja renderizado no cliente
   useEffect(() => {
     setIsClient(true);
   }, []);
 
-  // Dados do carrossel com legendas
   const itensCarrossel: CarrosselItem[] = [
     {
       id: 1,
-      imageSrc: "/images/products/desafio-literario/carrossel/2.webp",
-      alt: "Ficha Literária 01",
-      legenda: "Ficha Literária 01",
-      descricao: "Exemplo de uma Ficha Literária que estimula o aluno a se recordar dos personagens principais, o que ele aprendeu sobre a historia e treinar a ordem alfabetica"
+      imageSrc: "https://images.yampi.me/assets/stores/prof-didatica/uploads/images/operacoes-matematicas-em-pixel-art-divertidamente-ii-67032d0b836a6-large.png",
+      alt: "Atividade — Alegria",
+      legenda: "Kit Completo",
+      descricao: "Material completo com 18 folhinhas de atividades abrangendo as 4 operações matemáticas."
     },
     {
       id: 2,
-      imageSrc: "/images/products/desafio-literario/carrossel/6.webp",
-      alt: "Ficha Literária 20",
-      legenda: "Ficha Literária 20",
-      descricao: "Exemplo de uma Ficha Literária que trata sobre antônimos, estimula a imaginação com desenhos  e também com sugestões do que que ele poderia dar de dica para um dos personagens do livro."
+      imageSrc: "https://images.yampi.me/assets/stores/prof-didatica/uploads/images/operacoes-matematicas-em-pixel-art-divertidamente-ii-6704371bdc939-large.jpg",
+      alt: "Atividade — Multiplicação",
+      legenda: "Desafio de Multiplicação",
+      descricao: "Os alunos resolvem as multiplicações para descobrir as cores e preencher os pixels."
     },
     {
       id: 3,
-      imageSrc: "/images/products/desafio-literario/carrossel/7.webp",
-      alt: "Leiturômetro - Modelo 01",
-      legenda: "Leiturômetro - Modelo 01",
-      descricao: "Exemplo de Leiturômetro que mostra o progresso do aluno em uma leitura."
+      imageSrc: "https://images.yampi.me/assets/stores/prof-didatica/uploads/images/operacoes-matematicas-em-pixel-art-divertidamente-ii-67032d0b65fbd-large.png",
+      alt: "Atividade — Detalhe",
+      legenda: "Aprenda Brincando",
+      descricao: "Personagens queridos que criam conexão e motivação imediata nos alunos."
     },
     {
       id: 4,
-      imageSrc: "/images/products/desafio-literario/carrossel/8.webp",
-      alt: "Leiturômetro - Modelo 02",
-      legenda: "Leiturômetro - Modelo 02",
-      descricao: "Exemplo de Leiturômetro que mostra o progresso do aluno em uma leitura."
+      imageSrc: "https://images.yampi.me/assets/stores/prof-didatica/uploads/images/operacoes-matematicas-em-pixel-art-divertidamente-ii-6704371c43f1d-large.jpg",
+      alt: "Atividade — Divisão",
+      legenda: "Prática de Divisão",
+      descricao: "Operações de divisão integradas ao desenho para tornar o aprendizado leve."
     },
     {
       id: 5,
-      imageSrc: "/images/products/desafio-literario/carrossel/9.webp",
-      alt: "Leiturômetro - Modelo 03",
-      legenda: "Leiturômetro - Modelo 03",
-      descricao: "Exemplo de Leiturômetro que mostra o progresso do aluno em uma leitura."
+      imageSrc: "https://images.yampi.me/assets/stores/prof-didatica/uploads/images/operacoes-matematicas-em-pixel-art-divertidamente-ii-67032d0b03a5f-large.png",
+      alt: "Atividade — Resultado",
+      legenda: "Resultado Encantador",
+      descricao: "Veja como ficam os personagens após a resolução correta de todas as operações."
     },
     {
       id: 6,
-      imageSrc: "/images/products/desafio-literario/carrossel/10.webp",
-      alt: "Tabela em PDF para acompanhar o progresso do aluno",
-      legenda: "Tabela em PDF para acompanhar o progresso do aluno",
-      descricao: "Exemplo de Tabela em PDF para acompanhar o progresso do aluno."
+      imageSrc: "https://images.yampi.me/assets/stores/prof-didatica/uploads/images/operacoes-matematicas-em-pixel-art-divertidamente-ii-670437140748b-large.jpg",
+      alt: "Atividade — Subtração",
+      legenda: "Operações Diversificadas",
+      descricao: "Cada folhinha traz um desafio diferente, mantendo o interesse da turma."
     },
   ];
 
-  // Transformar os itens para o formato aceito pelo componente Carrossel
   const carrosselItems = itensCarrossel.map((item) => ({
     id: item.id,
     content: (
       <div className="flex flex-col items-center w-full">
         <div className="relative aspect-[7/10] w-full h-[500px] rounded-md">
-            <Image
-              src={item.imageSrc}
-              alt={item.alt}
-              fill
-              sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 700px"
-              className="object-contain rounded-md"
-              priority={item.id === 1}
-              loading={item.id === 1 ? "eager" : "lazy"}
-            />
+          <Image
+            src={item.imageSrc}
+            alt={item.alt}
+            fill
+            sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 700px"
+            className="object-contain rounded-md"
+            priority={item.id === 1}
+            loading={item.id === 1 ? "eager" : "lazy"}
+          />
           <div className="absolute top-2 right-2 bg-[#1D3557] text-white px-2 py-1 rounded-md text-sm font-medium">
             {item.id}/6
           </div>
@@ -129,24 +123,20 @@ export default function Demo() {
     ),
   }));
 
-  // Se não estiver no cliente, mostra um placeholder
   if (!isClient) {
     return <div className="demo-placeholder h-96"></div>;
   }
 
   return (
-    <section id="demo" className="py-16 bg-gray-50">
-      <div className="container mx-auto px-4">
-        <div className="text-center mb-12">
-          <h2 className="text-3xl md:text-4xl font-bold text-[#1D3557] mb-4">
-            VEJA UMA AMOSTRA DO RECURSO POR DENTRO
+    <section id="demo" className="py-12 px-3 md:py-16 bg-dl-primary-50">
+      <div className="container mx-auto px-3 max-w-4xl">
+        <div className="text-center mb-8">
+          <h2 className="text-2xl md:text-3xl font-bold text-dl-primary-800 mb-4 uppercase">
+            Veja o material que você vai receber
           </h2>
-          <p className="text-lg text-[#457B9D] max-w-3xl mx-auto">
-            Enviado diretamente para o seu WhatsApp pronto para imprimir e aplicar já na sua próxima aula
-          </p>
         </div>
 
-        <div className="max-w-4xl mx-auto">
+        <div>
           <Carrossel
             items={carrosselItems}
             slidesPerView={1}
@@ -159,26 +149,26 @@ export default function Demo() {
             onSlideChange={(swiper) => setActiveIndex(swiper.realIndex)}
           />
 
-          {/* Removido o modal de imagem, agora usamos o zoom nativo do Swiper */}
-
-          <div className="flex justify-center gap-2 mt-6">
+          <div className="flex justify-center gap-1 mt-6">
             {itensCarrossel.map((_, index) => (
               <button
                 key={index}
                 onClick={() => setActiveIndex(index)}
-                className={`w-2 h-2 rounded-full transition-all ${
-                  activeIndex === index
-                    ? 'bg-[#457B9D] w-4'
-                    : 'bg-gray-300 hover:bg-gray-400'
-                }`}
-                aria-label={`Slide ${index + 1}`}
-              />
+                className="min-w-[44px] min-h-[44px] flex items-center justify-center"
+                aria-label={`Ir para slide ${index + 1}`}
+              >
+                <span
+                  className={`block rounded-full transition-all ${activeIndex === index
+                    ? 'bg-[#457B9D] w-4 h-2'
+                    : 'bg-gray-300 hover:bg-gray-400 w-2 h-2'
+                    }`}
+                />
+              </button>
             ))}
           </div>
 
-          {/* Legenda atual */}
           <div className="mt-8 text-center">
-            <h3 className="text-xl font-bold text-[#457B9D]">
+            <h3 className="text-xl font-bold text-dl-primary-500">
               {itensCarrossel[activeIndex].legenda}
             </h3>
             <p className="mt-2 text-gray-700">

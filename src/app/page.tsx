@@ -20,10 +20,8 @@ export default function Home() {
       <main className="bg-[#fffaf3] flex-1 flex flex-col items-center justify-center py-8 px-4">
         <div className="w-full max-w-md flex flex-col gap-6">
           <Link
-            href="https://profdidatica.com.br/operacoes-matematicas-em-pixel-art-divertidamente/p"
+            href="/operacoes-matematicas"
             className="w-full transform transition-transform duration-300 hover:scale-105"
-            target="_blank"
-            rel="noopener noreferrer"
           >
             <div className="overflow-hidden rounded-lg shadow-lg hover:shadow-xl transition-shadow duration-300">
               <Image

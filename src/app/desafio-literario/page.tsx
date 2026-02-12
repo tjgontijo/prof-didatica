@@ -39,14 +39,14 @@ const PAYMENT_LINK_BASIC = 'https://seguro.profdidatica.com.br/r/NZL4JLXAYJ';
 const plansData: PlansDataType = {
   basic: {
     originalPrice: 18,
-    promotionalPrice: 12,
-    discount: '33% OFF',
+    promotionalPrice: 14,
+    discount: '22% OFF',
     paymentLink: PAYMENT_LINK_BASIC
   },
   full: {
     originalPrice: 76,
-    promotionalPrice: 17,
-    discount: '78% OFF',
+    promotionalPrice: 18,
+    discount: '76% OFF',
     paymentLink: PAYMENT_LINK_FULL
   }
 };
@@ -82,16 +82,16 @@ export default function DesafioLiterarioPage() {
   return (
     <main className="desafio-literario-page bg-dl-primary-50 min-h-screen">
       <div className="max-w-screen-2xl mx-auto">
-        <Hero />                
-        <Problem /> 
-        <WhatsIncluded />       
+        <Hero />
+        <Problem />
+        <WhatsIncluded />
         <Solution />
         <Demo />
         <Bonuses bonusData={bonusData} />
         <PlanBasic planData={plansData.basic} />
         <PlanFull planData={plansData.full} bonusData={bonusData} />
         <Results />
-        <Faq />
+        <Faq fullPlanPrice={plansData.full.promotionalPrice} paymentLink={plansData.full.paymentLink} />
       </div>
       <Footer />
     </main>

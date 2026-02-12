@@ -1,16 +1,15 @@
-import Header from './components/header/Header';
 import Hero from './components/hero/Hero';
-import Demo from './components/demo/Demo';
-import Benefits from './components/benefits/Benefits';
-import CtaUrgency from './components/cta-urgency/CtaUrgency';
-import Fit from './components/fit/Fit';
+import Problem from './components/problem/Problem';
 import WhatsIncluded from './components/whats-included/WhatsIncluded';
+import Solution from './components/solution/Solution';
+import Demo from './components/demo/Demo';
 import Bonuses from './components/bonuses/Bonuses';
-import Results from './components/results/Results';
 import PlanBasic from './components/plans/PlanBasic';
 import PlanFull from './components/plans/PlanFull';
+import Results from './components/results/Results';
 import Faq from './components/faq/Faq';
 import Footer from './components/footer/Footer';
+import './page-wrapper.css';
 
 // Tipos centralizados
 type PlanType = {
@@ -32,69 +31,56 @@ type Bonus = {
   imagePath: string;
 };
 
-// Links de pagamento
-const PAYMENT_LINK_FULL = 'https://seguro.profdidatica.com.br/r/D6B9TPX140';
-const PAYMENT_LINK_BASIC = 'https://seguro.profdidatica.com.br/r/NZL4JLXAYJ';
+// Links de pagamento (TODO: atualizar com links reais)
+const PAYMENT_LINK_BASIC = 'https://seguro.profdidatica.com.br/r/9CVUCYXCWB';
+const PAYMENT_LINK_FULL = 'https://seguro.profdidatica.com.br/r/SG7QX68CHY';
 
-// Dados dos planos separados por tipo
+// Dados dos planos
 const plansData: PlansDataType = {
   basic: {
-    originalPrice: 18,
-    promotionalPrice: 12,
-    discount: '33% OFF',
+    originalPrice: 19,
+    promotionalPrice: 14,
+    discount: '26% OFF',
     paymentLink: PAYMENT_LINK_BASIC
   },
   full: {
-    originalPrice: 76,
+    originalPrice: 69, // Soma dos valores percebidos (14 + 18 + 37)
     promotionalPrice: 18,
-    discount: '76% OFF',
+    discount: '74% OFF',
     paymentLink: PAYMENT_LINK_FULL
   }
 };
 
+// Dados dos bônus (Exclusivos para o Plano Completo)
 const bonusData: Bonus[] = [
   {
-    title: '40 Historinhas Exclusivas para o Desafio Literário',
-    description: 'Coletânea com 40 histórias curtas e envolventes, ideais para alunos em diferentes níveis de leitura.',
-    value: 17,
-    imagePath: '/images/products/historias-missao-literaria/bonus_cover.webp'
+    title: 'Versão Editável do Pixel Art',
+    description: 'Personalize todas as continhas e adapte o material para o Fundamental II em segundos. Você no controle total da dificuldade.',
+    value: 18,
+    imagePath: '/images/products/operacoes-matematicas/lp/versao_editavel_demo_opt.mp4'
   },
   {
-    title: 'Kit de Certificados Personalizáveis',
-    description: '3 modelos de certificados coloridos e editáveis para celebrar as conquistas dos seus alunos.',
-    value: 12,
-    imagePath: '/images/products/certificado/bonus_cover.webp'
-  },
-  {
-    title: 'Guia Prático de Motivação à Leitura',
-    description: '25 estratégias testadas e aprovadas para despertar o interesse pela leitura em alunos do Fundamental I e II.',
-    value: 17,
-    imagePath: '/images/products/guia-pratico-de-motivacao-a-leitura/bonus_cover.webp'
-  },
-  {
-    title: 'Apostila Completa para Produção Textual',
-    description: '50 páginas estruturadas para desenvolver habilidades de escrita, desde frases simples até textos completos.',
-    value: 12,
-    imagePath: '/images/products/producao_frases_texto/bonus_cover.webp'
+    title: 'Acesso à Fábrica de Continhas',
+    description: 'Plataforma exclusiva que gera flashcards personalizados das 4 operações, por nível de dificuldade. Você escolhe, a plataforma gera, você imprime e aplica.',
+    value: 37,
+    imagePath: '/images/fabrica-de-continhas/fabrica_de_continhas_demo.mp4'
   }
 ];
 
-export default function DesafioLiterarioPage() {
+export default function OperacoesMatematicasPage() {
   return (
-    <main className="bg-[#f1faee]">
-      <Header />
-      <div className="px-4 md:px-6 lg:px-8 max-w-screen-2xl mx-auto">
+    <main className="operacoes-matematicas-page bg-[#f1faee] min-h-screen">
+      <div className="max-w-screen-2xl mx-auto">
         <Hero />
-        <Demo />
-        <Benefits />
-        <CtaUrgency />
-        <Fit />
+        <Problem />
         <WhatsIncluded />
+        <Solution />
+        <Demo />
         <Bonuses bonusData={bonusData} />
         <PlanBasic planData={plansData.basic} />
         <PlanFull planData={plansData.full} bonusData={bonusData} />
         <Results />
-        <Faq />
+        <Faq fullPlanPrice={plansData.full.promotionalPrice} paymentLink={plansData.full.paymentLink} />
       </div>
       <Footer />
     </main>

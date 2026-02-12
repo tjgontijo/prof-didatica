@@ -1,61 +1,51 @@
-'use client';
-
 import React from 'react';
-import { motion } from 'framer-motion';
 import { CheckCircle } from 'lucide-react';
 
 type IncludedItemProps = {
   title: string;
   description: string;
-  index: number;
 };
 
-const IncludedItem: React.FC<IncludedItemProps> = ({ title, description, index }) => {
+const IncludedItem: React.FC<IncludedItemProps> = ({ title, description }) => {
   return (
-    <motion.div
-      initial={{ opacity: 0, y: 20 }}
-      whileInView={{ opacity: 1, y: 0 }}
-      transition={{ duration: 0.5, delay: index * 0.1 }}
-      viewport={{ once: true }}
-      className="flex items-start gap-4 mb-6"
-    >
+    <div className="flex items-start gap-4 mb-6">
       <div className="flex-shrink-0 mt-1">
-        <CheckCircle className="h-6 w-6 text-emerald-600" />
+        <CheckCircle className="h-6 w-6 text-dl-accent" />
       </div>
       <div>
-        <h3 className="text-lg font-bold text-[#1D3557]">{title}</h3>
-        <p className="text-[#457B9D]">{description}</p>
+        <h3 className="text-lg font-bold text-dl-primary-800">{title}</h3>
+        <p className="text-dl-primary-500">{description}</p>
       </div>
-    </motion.div>
+    </div>
   );
 };
 
 const WhatsIncluded: React.FC = () => {
   const includedItems = [
     {
-      title: "20 Fichas Literárias",
-      description: "Prontas para imprimir, com campos para registro de leitura e avaliação"
+      title: "18 Folhinhas em Pixel Art",
+      description: "Com os 9 personagens do Divertidamente II: Alegria, Tristeza, Medo, Raiva, Nojinho, Inveja, Ansiedade, Tédio e Vergonha"
     },
     {
-      title: "3 Modelos de Leiturômetro",
-      description: "Para acompanhamento visual do progresso de cada aluno"
+      title: "4 Operações Contempladas",
+      description: "Adição, subtração, multiplicação e divisão em cada atividade"
     },
     {
-      title: "2 Tabelas de Acompanhamento",
-      description: "Para registro da pontuação e classificação dos alunos"
+      title: "Níveis Progressivos de Dificuldade",
+      description: "Das operações mais simples até desafios com números na ordem de milhar"
     },
     {
-      title: "Guia de Aplicação",
-      description: "Passo a passo para implementar o desafio em sala de aula"
+      title: "Gabarito Completo para o Professor",
+      description: "Arquivo separado com todas as respostas para conferência rápida"
     }
   ];
 
   return (
-    <section id="whats-included" className="py-16 bg-[#f1faee]">
-      <div className="container max-w-4xl mx-auto bg-white rounded-lg shadow-lg p-8 border border-gray-100">
-        <div className="text-center mb-12">
-          <h2 className="text-3xl md:text-4xl font-bold text-[#1D3557] mb-4">
-            O QUE VOCÊ RECEBE NO DESAFIO LITERÁRIO
+    <section id="whats-included" className="py-12 md:py-16 px-3 bg-white">
+      <div className="container mx-auto px-3 max-w-3xl">
+        <div className="text-center mb-8">
+          <h2 className="text-2xl md:text-3xl font-bold text-dl-primary-800 mb-4 uppercase">
+            O QUE VOCÊ RECEBE NO PIXEL ART MATEMÁTICO
           </h2>
         </div>
 
@@ -65,7 +55,6 @@ const WhatsIncluded: React.FC = () => {
               key={index}
               title={item.title}
               description={item.description}
-              index={index}
             />
           ))}
         </div>

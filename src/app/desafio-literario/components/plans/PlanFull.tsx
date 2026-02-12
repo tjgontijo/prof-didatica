@@ -1,6 +1,6 @@
 'use client';
 
-import { Check, Shield, Star, Gem, Clock } from 'lucide-react';
+import { Check, Star, Gem, Clock } from 'lucide-react';
 import { useEffect, useState } from 'react';
 import Image from 'next/image';
 import { motion } from 'framer-motion';
@@ -120,24 +120,9 @@ export default function PlanFull({ planData, bonusData }: PlanFullProps) {
             {/* Layout de coluna única */}
             <div className="flex flex-col items-center">
               {/* Imagem centralizada */}
-              <div className="flex justify-center mb-6">
-                <div className="relative w-64 h-64">
-                  <Image
-                    src="/images/products/desafio-literario/lp/mockup_full.webp"
-                    alt="Desafio Literário"
-                    fill
-                    sizes="(max-width: 768px) 256px, 256px"
-                    style={{ objectFit: 'contain' }}
-                    className="drop-shadow-lg"
-                    loading="lazy"
-                  />
-
-                </div>
-              </div>
 
               {/* Conteúdo em coluna única */}
               <div className="w-full text-center">
-                <div className="mt-2 border-t border-emerald-100 pt-4"></div>
                 {/* O que está incluído */}
                 <div className="mb-8">
 
@@ -219,7 +204,8 @@ export default function PlanFull({ planData, bonusData }: PlanFullProps) {
                       </div>
 
                       {/* Texto adicional */}
-                      <p className="text-gray-600 text-sm mt-2">Acesso imediato no E-mail</p>
+                      <p className="text-emerald-700 font-bold text-sm mt-2 uppercase tracking-wide">Você economiza R$ 58,00</p>
+                      <p className="text-gray-600 text-sm mt-1">Acesso imediato no E-mail</p>
 
                     </div>
                   </div>
@@ -253,19 +239,6 @@ export default function PlanFull({ planData, bonusData }: PlanFullProps) {
 
             {/* Separador */}
             <div className="border-t border-gray-200 my-8"></div>
-
-            {/* Selo de garantia */}
-            <div className="text-center bg-gradient-to-r from-emerald-50 to-blue-50 p-6 rounded-lg max-w-md mx-auto">
-              <div className="flex flex-col items-center justify-center gap-4 mb-4">
-                <div className="bg-white p-4 rounded-full shadow-md">
-                  <Shield className="text-4xl text-emerald-700" />
-                </div>
-                <div className="text-center">
-                  <h4 className="text-lg font-bold text-emerald-800 mb-1">Garantia de 7 dias</h4>
-                  <p className="text-gray-600">Se você não ficar satisfeito com o material, devolvemos seu dinheiro sem burocracia.</p>
-                </div>
-              </div>
-            </div>
           </div>
         </motion.div>
       </div>

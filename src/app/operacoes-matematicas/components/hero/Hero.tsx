@@ -1,86 +1,43 @@
-'use client';
-
 import Image from 'next/image';
-import Link from 'next/link';
 
 export default function Hero() {
   return (
-    <section className="mt-8 mb-20">
-      {/* Tag de urgência */}
-      {/* <div className="bg-[#1D3557] text-white py-2 px-4 rounded-lg max-w-max mx-auto mb-4 animate-pulse">
-        <p className="text-sm md:text-base font-medium flex items-center">
-          <span className="mr-2">🔥</span> Material exclusivo por tempo limitado
-        </p>
-      </div> */}
-
+    <section className="pt-8 pb-12 md:pb-16">
       {/* Cabeçalho principal */}
       <div className="text-center mb-6">
-        <h1 className="text-2xl md:text-4xl font-black tracking-tight text-center mb-2 leading-tight">
-          <span className="bg-gradient-to-r from-[#457B9D] to-[#1D3557] bg-clip-text text-transparent drop-shadow-sm">
-            ACABE COM O "EU ODEIO MATEMÁTICA"
+        <span className="inline-flex items-center justify-center mb-4 px-4 py-1 rounded-full bg-dl-primary-100 text-dl-primary-800 text-xs md:text-sm font-semibold uppercase tracking-wide shadow-sm border border-white/60">
+          Indicado para Fundamental I e II
+        </span>
+        <h1 className="text-3xl md:text-5xl font-black tracking-tight text-center mb-4 leading-tight px-4">
+          <span className="text-dl-primary-800">
+            Seus alunos vão{' '}
+          </span>
+          <span className="text-dl-warning font-extrabold uppercase">
+            pedir para resolver continhas
           </span>
         </h1>
-        <h2 className="text-xl md:text-2xl font-bold text-center mb-4">
-          <span className="inline-block mt-1 bg-[#1D3557] text-white px-4 py-1 rounded-md transform -rotate-2">
-            COM PIXEL ART DO FILME <br />DIVERTIDAMENTE II
-          </span>
-        </h2>
+        <p className="text-lg md:text-xl text-gray-700 max-w-3xl mx-auto mt-4 px-4">
+          18 atividades em Pixel Art com os personagens do Divertidamente II que escondem a matemática dentro de uma brincadeira.
+          <span className="font-bold text-dl-primary-800"> Pronto para imprimir e aplicar na próxima aula.</span>
+        </p>
       </div>
 
       {/* Imagem do mockup do kit */}
-      <div className="max-w-4xl mx-auto mb-6">
+      <div className="max-w-4xl mx-auto">
         <div className="relative">
           <div className="relative w-full h-[350px] md:h-[500px] overflow-hidden">
-            {/* Selo de preço */}
-            <div className="absolute top-0 right-0 md:right-10 z-10 bg-[#457B9D] text-white rounded-full w-24 h-24 md:w-32 md:h-32 flex flex-col items-center justify-center transform rotate-12 shadow-lg border-4 border-white">
-              <div className="flex items-baseline">
-                <span className="text-xs md:text-md">De&nbsp;</span>
-                <span className="text-xs md:text-md line-through decoration-red-600 decoration-2">R$</span>
-                <span className="text-xl md:text-2xl font-bold line-through decoration-red-600 decoration-2">18</span>
-              </div>
-              <span className="text-xs md:text-md font-medium">por apenas:</span>
-              <div className="flex items-baseline">
-                <span className="text-xs md:text-md font-medium">R$</span>
-                <span className="text-xl md:text-2xl font-bold">12</span>
-              </div>
-            </div>
             <Image
-              src="/images/products/operacoes-matematicas/lp/hero_mockup.webp"
+              src="https://images.yampi.me/assets/stores/prof-didatica/uploads/images/operacoes-matematicas-em-pixel-art-divertidamente-ii-67032d0b836a6-large.png"
               alt="Kit Operações Matemáticas em Pixel Art"
               fill
               sizes="(max-width: 768px) 100vw, (max-width: 1200px) 80vw, 1000px"
               className="object-contain"
-              quality={100}
+              quality={75}
               priority
+              fetchPriority="high"
             />
           </div>
         </div>
-      </div>
-
-      {/* Texto persuasivo */}
-      <div className="max-w-3xl mx-auto mb-8 text-center">
-        <p className="text-lg md:text-xl text-[#1D3557] font-normal leading-relaxed mb-4">
-          Transforme as <strong>4 operações básicas</strong> em uma experiência mágica onde cada cálculo correto revela personagens amados do <strong>Divertidamente II</strong>.
-        </p>
-        <p className="text-lg md:text-xl text-[#1D3557] font-normal leading-relaxed">
-          Receba <strong>hoje mesmo</strong> no seu WhatsApp este material exclusivo que une <strong>aprendizado matemático</strong> com <strong>inteligência emocional</strong> pronto para imprimir e usar na sua próxima aula!
-        </p>
-      </div>
-
-      {/* CTA centralizado */}
-      <div className="text-center mb-2">
-        <Link
-          href="#plans"
-          className="hover:bg-[#457B9D] bg-[#1D3557] text-white font-bold py-4 px-10 md:px-12 rounded-lg text-lg inline-block transition-all shadow-lg border-2 border-white relative overflow-hidden group"
-        >
-          <span className="relative z-10">QUERO ADQUIIR AGORA!</span>
-          <span className="absolute inset-0 bg-[#457B9D] transform scale-x-0 group-hover:scale-x-100 transition-transform origin-left duration-300"></span>
-        </Link>
-      </div>
-
-      {/* Microcopy */}
-      <div className="text-center">
-        <p className="text-sm text-gray-600">Envio imediato após a compra</p>
       </div>
     </section>
   );

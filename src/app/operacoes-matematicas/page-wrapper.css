@@ -1,0 +1,5 @@
+/* Override do background do body apenas para esta página */
+body:has(main.operacoes-matematicas-page) {
+    background: #f1faee !important;
+}
+  

@@ -3,9 +3,12 @@
 import FaqItem from './FaqItem';
 import CtaButton from '@/components/buttons/CtaButton';
 
-const PAYMENT_LINK_FULL = 'https://seguro.profdidatica.com.br/r/D6B9TPX140';
+interface FaqProps {
+  fullPlanPrice?: number;
+  paymentLink?: string;
+}
 
-export default function Faq() {
+export default function Faq({ fullPlanPrice = 18, paymentLink = 'https://seguro.profdidatica.com.br/r/D6B9TPX140' }: FaqProps) {
   const faqItems = [
     {
       question: 'Para qual faixa etária esse material é indicado?',
@@ -62,11 +65,11 @@ export default function Faq() {
             Pronto para transformar a experiência de leitura dos seus alunos?
           </h3>
           <p className="text-gray-700 mb-6">
-            O Desafio Literário é a solução completa que vai engajar seus alunos e tornar a leitura uma atividade prazerosa e divertida.
+            Por R$ {fullPlanPrice}, você leva o material completo + bônus exclusivos.
           </p>
           <div className="max-w-md mx-auto">
             <CtaButton
-              paymentLink={PAYMENT_LINK_FULL}
+              paymentLink={paymentLink}
               text="COMPRAR AGORA"
               className="!bg-dl-accent hover:!bg-dl-accent-hover"
             />
