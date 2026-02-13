@@ -1,4 +1,0 @@
-/* Override do background do body apenas para esta página */
-body:has(main.desafio-literario-page) {
-  background: #f1faee !important;
-}

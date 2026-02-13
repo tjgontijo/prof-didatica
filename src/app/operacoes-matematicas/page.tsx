@@ -9,7 +9,6 @@ import PlanFull from './components/plans/PlanFull';
 import Results from './components/results/Results';
 import Faq from './components/faq/Faq';
 import Footer from './components/footer/Footer';
-import './page-wrapper.css';
 
 // Tipos centralizados
 type PlanType = {

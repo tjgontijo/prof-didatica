@@ -140,7 +140,17 @@ section {
   0% {
     background-position: 0% 0;
   }
+
   100% {
     background-position: -200% 0;
   }
+}
+
+/* Override do background do body para Landing Pages específicas */
+body:has(main.operacoes-matematicas-page) {
+  background: #f1faee !important;
+}
+
+body:has(main.desafio-literario-page) {
+  background: #f1faee !important;
 }
