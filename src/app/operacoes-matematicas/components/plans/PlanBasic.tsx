@@ -81,7 +81,7 @@ export default function PlanBasic({ planData }: PlanBasicProps) {
 
             <div className="text-center bg-gradient-to-r from-blue-50 to-emerald-50 p-6 rounded-lg">
               <p className="text-2xl font-bold text-red-600 mb-2 uppercase leading-relaxed">
-                Por apenas R$ 4 a mais...
+                Por apenas R$ 5 a mais...
               </p>
               <p className="text-xl text-zinc-600 mb-4">
                 Você leva R$ 55 em bônus GRÁTIS. Veja abaixo a oferta completa!

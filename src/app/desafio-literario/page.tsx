@@ -39,14 +39,14 @@ const PAYMENT_LINK_BASIC = 'https://seguro.profdidatica.com.br/r/NZL4JLXAYJ';
 const plansData: PlansDataType = {
   basic: {
     originalPrice: 18,
-    promotionalPrice: 14,
-    discount: '22% OFF',
+    promotionalPrice: 12,
+    discount: '33% OFF',
     paymentLink: PAYMENT_LINK_BASIC
   },
   full: {
     originalPrice: 76,
-    promotionalPrice: 18,
-    discount: '76% OFF',
+    promotionalPrice: 17,
+    discount: '77% OFF',
     paymentLink: PAYMENT_LINK_FULL
   }
 };

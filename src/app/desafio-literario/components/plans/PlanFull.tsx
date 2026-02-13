@@ -204,7 +204,7 @@ export default function PlanFull({ planData, bonusData }: PlanFullProps) {
                       </div>
 
                       {/* Texto adicional */}
-                      <p className="text-emerald-700 font-bold text-sm mt-2 uppercase tracking-wide">Você economiza R$ 58,00</p>
+                      <p className="text-emerald-700 font-bold text-sm mt-2 uppercase tracking-wide">Você economiza R$ 59,00</p>
                       <p className="text-gray-600 text-sm mt-1">Acesso imediato no E-mail</p>
 
                     </div>
