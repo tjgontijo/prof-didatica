@@ -20,6 +20,7 @@ interface PlanFullProps {
     value: number;
     imagePath: string;
   }>;
+  bonusValue: number;
 }
 
 // Componente de Countdown adaptado para a paleta de cores do Desafio Literário
@@ -92,7 +93,8 @@ function CountdownTimer() {
   );
 }
 
-export default function PlanFull({ planData, bonusData }: PlanFullProps) {
+export default function PlanFull({ planData, bonusData, bonusValue }: PlanFullProps) {
+  const savings = planData.originalPrice - planData.promotionalPrice;
   return (
     <section id="plan-full" className="py-16 bg-gradient-to-b from-emerald-50 to-white">
       <div className="container mx-auto px-2 max-w-3xl">
@@ -113,7 +115,7 @@ export default function PlanFull({ planData, bonusData }: PlanFullProps) {
               <Gem className="text-yellow-300" />
               <h3 className="text-2xl md:text-3xl font-bold text-center">Plano Completo</h3>
             </div>
-            <p className="text-center opacity-90 mt-2">Acesso a todos os recursos + bônus exclusivos</p>
+            <p className="text-center opacity-90 mt-2">Acesso a todos os recursos + bônus que valem R$ {bonusValue}</p>
           </div>
 
           <div className="p-4">
@@ -204,7 +206,7 @@ export default function PlanFull({ planData, bonusData }: PlanFullProps) {
                       </div>
 
                       {/* Texto adicional */}
-                      <p className="text-emerald-700 font-bold text-sm mt-2 uppercase tracking-wide">Você economiza R$ 59,00</p>
+                      <p className="text-emerald-700 font-bold text-sm mt-2 uppercase tracking-wide">Você economiza R$ {savings.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</p>
                       <p className="text-gray-600 text-sm mt-1">Acesso imediato no E-mail</p>
 
                     </div>

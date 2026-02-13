@@ -6,9 +6,14 @@ import CtaButton from '@/components/buttons/CtaButton';
 interface FaqProps {
   fullPlanPrice?: number;
   paymentLink?: string;
+  bonusValue?: number;
 }
 
-export default function Faq({ fullPlanPrice = 18, paymentLink = 'https://seguro.profdidatica.com.br/r/SG7QX68CHY' }: FaqProps) {
+export default function Faq({
+  fullPlanPrice = 17,
+  paymentLink = 'https://seguro.profdidatica.com.br/r/SG7QX68CHY',
+  bonusValue = 55
+}: FaqProps) {
   const faqItems = [
     // ... (faqItems remained the same)
     {
@@ -29,7 +34,7 @@ export default function Faq({ fullPlanPrice = 18, paymentLink = 'https://seguro.
     {
       question: 'Qual a diferença do Plano Básico para o Completo?',
       answer:
-        'O Básico traz as 18 folhinhas prontas em PDF (não editável). O Completo traz tudo do básico + a versão editável do material (você altera as continhas e ajusta a dificuldade) + acesso à Fábrica de Continhas, uma plataforma que gera exercícios infinitos das 4 operações. Por R$ 4 a mais, você leva R$ 55 em bônus grátis.',
+        'O Básico traz as 18 folhinhas prontas em PDF (não editável). O Completo traz tudo do básico + a versão editável do material (você altera as continhas e ajusta a dificuldade) + acesso à Fábrica de Continhas, uma plataforma que gera exercícios infinitos das 4 operações. Você leva R$ {bonusValue} em bônus grátis no plano completo.',
     },
     {
       question: 'O que é a Fábrica de Continhas?',
@@ -60,7 +65,7 @@ export default function Faq({ fullPlanPrice = 18, paymentLink = 'https://seguro.
             Pronta para ver seus alunos sorrindo na aula de matemática?
           </h3>
           <p className="text-gray-700 mb-6">
-            Por R$ {fullPlanPrice}, você leva o material completo + R$ 55 em bônus grátis.
+            Por R$ {fullPlanPrice}, você leva o material completo + R$ {bonusValue} em bônus grátis.
           </p>
           <div className="max-w-md mx-auto">
             <CtaButton

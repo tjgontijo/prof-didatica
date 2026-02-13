@@ -68,6 +68,9 @@ const bonusData: Bonus[] = [
 ];
 
 export default function OperacoesMatematicasPage() {
+  const bonusTotalValue = bonusData.reduce((acc, bonus) => acc + bonus.value, 0);
+  const upsellAmount = plansData.full.promotionalPrice - plansData.basic.promotionalPrice;
+
   return (
     <main className="operacoes-matematicas-page bg-[#f1faee] min-h-screen">
       <div className="max-w-screen-2xl mx-auto">
@@ -77,10 +80,14 @@ export default function OperacoesMatematicasPage() {
         <Solution />
         <Demo />
         <Bonuses bonusData={bonusData} />
-        <PlanBasic planData={plansData.basic} />
-        <PlanFull planData={plansData.full} bonusData={bonusData} />
+        <PlanBasic planData={plansData.basic} bonusValue={bonusTotalValue} upsellAmount={upsellAmount} />
+        <PlanFull planData={plansData.full} bonusData={bonusData} bonusValue={bonusTotalValue} />
         <Results />
-        <Faq fullPlanPrice={plansData.full.promotionalPrice} paymentLink={plansData.full.paymentLink} />
+        <Faq
+          fullPlanPrice={plansData.full.promotionalPrice}
+          paymentLink={plansData.full.paymentLink}
+          bonusValue={bonusTotalValue}
+        />
       </div>
       <Footer />
     </main>

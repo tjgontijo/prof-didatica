@@ -6,9 +6,14 @@ import CtaButton from '@/components/buttons/CtaButton';
 interface FaqProps {
   fullPlanPrice?: number;
   paymentLink?: string;
+  bonusValue?: number;
 }
 
-export default function Faq({ fullPlanPrice = 18, paymentLink = 'https://seguro.profdidatica.com.br/r/D6B9TPX140' }: FaqProps) {
+export default function Faq({
+  fullPlanPrice = 17,
+  paymentLink = 'https://seguro.profdidatica.com.br/r/D6B9TPX140',
+  bonusValue = 58
+}: FaqProps) {
   const faqItems = [
     {
       question: 'Para qual faixa etária esse material é indicado?',
@@ -65,7 +70,7 @@ export default function Faq({ fullPlanPrice = 18, paymentLink = 'https://seguro.
             Pronto para transformar a experiência de leitura dos seus alunos?
           </h3>
           <p className="text-gray-700 mb-6">
-            Por R$ {fullPlanPrice}, você leva o material completo + bônus exclusivos.
+            Por R$ {fullPlanPrice}, você leva o material completo + bônus exclusivos no valor de R$ {bonusValue}.
           </p>
           <div className="max-w-md mx-auto">
             <CtaButton

@@ -10,9 +10,11 @@ interface PlanBasicProps {
     discount: string;
     paymentLink: string;
   };
+  bonusValue: number;
+  upsellAmount: number;
 }
 
-export default function PlanBasic({ planData }: PlanBasicProps) {
+export default function PlanBasic({ planData, bonusValue, upsellAmount }: PlanBasicProps) {
   return (
     <section id="plans" className="py-16 bg-gradient-to-b from-blue-50 to-white">
       <div className="container mx-auto px-4 max-w-3xl">
@@ -87,10 +89,10 @@ export default function PlanBasic({ planData }: PlanBasicProps) {
             {/* Chamada para o plano completo */}
             <div className="text-center bg-gradient-to-r from-blue-50 to-emerald-50 p-6 rounded-lg">
               <p className="text-2xl font-bold text-red-600 mb-2 uppercase leading-relaxed">
-                Por apenas R$ 5 a mais...
+                Por apenas R$ {upsellAmount} a mais...
               </p>
               <p className="text-xl text-zinc-600 mb-4">
-                Você leva todos os bônus exclusivos. Veja abaixo a oferta completa!
+                Você leva todos os bônus exclusivos no valor de R$ {bonusValue}. Veja abaixo a oferta completa!
               </p>
               <div className="flex justify-center mt-2">
                 <div className="text-red-600 animate-bounce">
